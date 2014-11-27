@@ -1,0 +1,16 @@
+out
+bin
+lib
+
+.directory
+Thumbs.db
+desktop.ini
+.DS_Store
+
+*.tmp
+*~
+*.swp
+
+*.bin
+*.class
+*.jar

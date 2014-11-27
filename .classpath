@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="src-war"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Tomcat 8.0.15"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/thirdparty"/>
+	<classpathentry kind="output" path="out/production/chatnoir2-webclient"/>
+</classpath>
