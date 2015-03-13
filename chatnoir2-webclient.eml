@@ -7,5 +7,6 @@
 	<levels>
 		<level name="Tomcat 8.0.15" value="application_server_libraries"/>
 		<level name="thirdparty" value="project"/>
+		<level name="Java EE 6-Java EE 6" value="project"/>
 	</levels>
 </component>

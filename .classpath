@@ -6,5 +6,6 @@
 	<classpathentry kind="src" path="res"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Tomcat 8.0.15"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/thirdparty"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Java EE 6-Java EE 6"/>
 	<classpathentry kind="output" path="out/production/chatnoir2-webclient"/>
 </classpath>
