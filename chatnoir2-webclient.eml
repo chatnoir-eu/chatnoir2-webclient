@@ -26,5 +26,8 @@
 		<level name="Gradle: org.antlr:antlr-runtime:3.5" value="project"/>
 		<level name="Gradle: org.ow2.asm:asm:4.1" value="project"/>
 		<level name="Gradle: org.ow2.asm:asm-commons:4.1" value="project"/>
+		<level name="Gradle: javax.servlet:javax.servlet-api:3.0.1" value="project"/>
+		<level name="Gradle: com.github.spullara.mustache.java:compiler:0.9.0" value="project"/>
+		<level name="Gradle: com.googlecode.json-simple:json-simple:1.1" value="project"/>
 	</levels>
 </component>

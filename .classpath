@@ -24,5 +24,8 @@
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.antlr:antlr-runtime:3.5"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.ow2.asm:asm:4.1"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.ow2.asm:asm-commons:4.1"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: javax.servlet:javax.servlet-api:3.0.1"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.github.spullara.mustache.java:compiler:0.9.0"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.googlecode.json-simple:json-simple:1.1"/>
 	<classpathentry kind="output" path="build/classes/main"/>
 </classpath>

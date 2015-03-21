@@ -3,8 +3,8 @@ apply plugin: 'java'
 version = '1.0'
 
 allprojects {
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 }
 
 sourceSets {
@@ -23,5 +23,8 @@ repositories {
 }
 
 dependencies {
-    compile "org.elasticsearch:elasticsearch:1.4.4"
+    compile 'javax.servlet:javax.servlet-api:3.0.1'
+    compile 'org.elasticsearch:elasticsearch:1.4.4'
+    compile 'com.github.spullara.mustache.java:compiler:0.9.0'
+    compile 'com.googlecode.json-simple:json-simple:1.1'
 }
