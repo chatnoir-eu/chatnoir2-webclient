@@ -1,12 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component inherit-compiler-output="true" inheritJdk="true">
-	<output-test url="file://$MODULE_DIR$/out/test/chatnoir2-webclient"/>
+<component inheritJdk="true">
+	<output-test url="file://$MODULE_DIR$/build/classes/test"/>
 	<exclude-output/>
-	<contentEntry url="file://$MODULE_DIR$"/>
-	<lib name="Tomcat 8.0.15" scope="PROVIDED"/>
+	<contentEntry url="file://$MODULE_DIR$">
+		<testFolder url="file://$MODULE_DIR$/src/test/java"/>
+		<testFolder url="file://$MODULE_DIR$/src/test/resources"/>
+		<excludeFolder url="file://$MODULE_DIR$/.gradle"/>
+		<excludeFolder url="file://$MODULE_DIR$/build"/>
+	</contentEntry>
 	<levels>
-		<level name="Tomcat 8.0.15" value="application_server_libraries"/>
-		<level name="thirdparty" value="project"/>
-		<level name="Java EE 6-Java EE 6" value="project"/>
+		<level name="Gradle: org.elasticsearch:elasticsearch:1.4.4" value="project"/>
+		<level name="Gradle: org.apache.lucene:lucene-core:4.10.3" value="project"/>
+		<level name="Gradle: org.apache.lucene:lucene-analyzers-common:4.10.3" value="project"/>
+		<level name="Gradle: org.apache.lucene:lucene-queries:4.10.3" value="project"/>
+		<level name="Gradle: org.apache.lucene:lucene-memory:4.10.3" value="project"/>
+		<level name="Gradle: org.apache.lucene:lucene-highlighter:4.10.3" value="project"/>
+		<level name="Gradle: org.apache.lucene:lucene-sandbox:4.10.3" value="project"/>
+		<level name="Gradle: org.apache.lucene:lucene-queryparser:4.10.3" value="project"/>
+		<level name="Gradle: org.apache.lucene:lucene-misc:4.10.3" value="project"/>
+		<level name="Gradle: org.apache.lucene:lucene-suggest:4.10.3" value="project"/>
+		<level name="Gradle: org.apache.lucene:lucene-grouping:4.10.3" value="project"/>
+		<level name="Gradle: org.apache.lucene:lucene-join:4.10.3" value="project"/>
+		<level name="Gradle: com.spatial4j:spatial4j:0.4.1" value="project"/>
+		<level name="Gradle: org.apache.lucene:lucene-spatial:4.10.3" value="project"/>
+		<level name="Gradle: org.antlr:antlr-runtime:3.5" value="project"/>
+		<level name="Gradle: org.ow2.asm:asm:4.1" value="project"/>
+		<level name="Gradle: org.ow2.asm:asm-commons:4.1" value="project"/>
 	</levels>
 </component>

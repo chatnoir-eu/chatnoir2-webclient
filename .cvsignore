@@ -1,6 +1,7 @@
 out
 bin
 lib
+.gradle
 
 .directory
 Thumbs.db
