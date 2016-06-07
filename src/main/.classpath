@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="/chatnoir2-webclient_main/java"/>
-	<classpathentry kind="src" path="/chatnoir2-webclient_main/resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="java"/>
+	<classpathentry kind="src" path="resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: javax.servlet:javax.servlet-api:3.0.1"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.elasticsearch:elasticsearch:1.4.4"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.github.spullara.mustache.java:compiler:0.9.0"/>
@@ -29,5 +29,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.google.code.findbugs:annotations:2.0.1"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: net.arnx:jsonic:1.2.7"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.spatial4j:spatial4j:0.4.1"/>
-	<classpathentry kind="output" path="/build/classes/main"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
