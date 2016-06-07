@@ -3,8 +3,8 @@
         "cluster_name"  : "betaweb",
         "host"          : "betaweb020.medien.uni-weimar.de",
         "port"          : 9300,
-        "indices"       : [ "webis_clueweb09", "webis_clueweb12" ],
-        "default_index" : "webis_clueweb12"
+        "indices"       : [ "webis_warc_clueweb09", "webis_warc_clueweb12" ],
+        "default_index" : "webis_warc_clueweb12"
     },
 
     "serp" : {
@@ -18,10 +18,10 @@
     "search" : {
         "default_simple" : {
             "main_fields" : [
-                { "name" : "title",                    "boost" : 3.0, "proximity_matching" : true },
-                { "name" : "body",                     "boost" : 3.0, "proximity_matching" : true },
-                { "name" : "meta_desc",                "boost" : 0.2 },
-                { "name" : "meta_keywords",            "boost" : 0.1 },
+                { "name" : "title_lang_en",            "boost" : 3.0, "proximity_matching" : true },
+                { "name" : "body_lang_en",             "boost" : 3.0, "proximity_matching" : true },
+                { "name" : "meta_desc_lang_en",        "boost" : 0.2 },
+                { "name" : "meta_keywords_lang_en",    "boost" : 0.1 },
                 { "name" : "warc_target_hostname",     "boost" : 5.0 },
                 { "name" : "warc_target_path",         "boost" : 1.0 },
                 { "name" : "warc_target_hostname_raw", "boost" : 50000.0 }

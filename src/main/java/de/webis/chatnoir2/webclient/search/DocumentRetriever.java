@@ -10,11 +10,11 @@ package de.webis.chatnoir2.webclient.search;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.*;
 
 /**
@@ -72,8 +72,9 @@ public class DocumentRetriever extends SearchProvider
         }
 
 
-        final Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName).build();
-        client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress(hostName, port));
+        final Settings settings = Settings.settingsBuilder().put("cluster.name", clusterName).build();
+        client = new TransportClient.Builder().settings(settings).build().addTransportAddress(
+                new InetSocketTransportAddress(new InetSocketAddress(hostName, port)));
     }
 
     public DocumentRetriever()

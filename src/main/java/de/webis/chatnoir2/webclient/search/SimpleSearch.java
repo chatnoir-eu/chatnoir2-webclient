@@ -11,7 +11,6 @@ import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
-import org.elasticsearch.common.settings.ImmutableSettings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -22,11 +21,10 @@ import org.elasticsearch.index.query.functionscore.fieldvaluefactor.FieldValueFa
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsAggregator;
-import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsBuilder;
 import org.json.simple.JSONArray;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.*;
 
 /**
@@ -116,8 +114,9 @@ public class SimpleSearch extends SearchProvider
             this.indices = new String[]{config.get("cluster").getString("default_index", allowedIndices.get(0))};
         }
 
-        final Settings settings = ImmutableSettings.settingsBuilder().put("cluster.name", clusterName).build();
-        client = new TransportClient(settings).addTransportAddress(new InetSocketTransportAddress(hostName, port));
+        final Settings settings = Settings.settingsBuilder().put("cluster.name", clusterName).build();
+        client = new TransportClient.Builder().settings(settings).build().addTransportAddress(
+                new InetSocketTransportAddress(new InetSocketAddress(hostName, port)));
     }
 
     public SimpleSearch()
@@ -151,19 +150,19 @@ public class SimpleSearch extends SearchProvider
      *      'start_at'     at what result offset to start
      *      'num_results'  how many results to return
      *
-     * @param searchFields key-value pairs of search fields
+     * @param searchParameters key-value pairs of search fields
      */
     @Override
-    public void doSearch(final HashMap<String, String> searchFields) throws InvalidSearchFieldException
+    public void doSearch(final HashMap<String, String> searchParameters) throws InvalidSearchFieldException
     {
-        if (searchFields.get("search_query") == null ||
-                searchFields.get("start_at") == null ||
-                searchFields.get("num_results") == null) {
+        if (searchParameters.get("search_query") == null ||
+                searchParameters.get("start_at") == null ||
+                searchParameters.get("num_results") == null) {
             throw new InvalidSearchFieldException();
         }
 
-        final Integer from = Integer.parseInt(searchFields.get("start_at"));
-        final Integer size = Integer.parseInt(searchFields.get("num_results"));
+        final Integer from = Integer.parseInt(searchParameters.get("start_at"));
+        final Integer size = Integer.parseInt(searchParameters.get("num_results"));
 
         // prepare aggregation
         final AggregationBuilder aggregation = AggregationBuilders.terms("hosts").
@@ -175,13 +174,14 @@ public class SimpleSearch extends SearchProvider
 
         // run search
         response = client.prepareSearch(indices).
-                setQuery(buildQuery(searchFields)).
+                setQuery(buildQuery(searchParameters)).
                 setFrom(from).
                 setSize(size).
-                addHighlightedField("body", snippetLength, 1).
-                addHighlightedField("title", titleLength, 1).
+                addHighlightedField("body_lang_en", snippetLength, 1).
+                addHighlightedField("title_lang_en", titleLength, 1).
                 setHighlighterEncoder("html").
                 setExplain(doExplain).
+                setTerminateAfter(config.get("search").get("default_simple").getInteger("node_limit", -1)).
                 //addAggregation(aggregation).
                 execute().
                 actionGet();
@@ -203,24 +203,24 @@ public class SimpleSearch extends SearchProvider
             final Map<String, Object> source = hit.getSource();
 
             String snippet = "";
-            if (null != hit.getHighlightFields().get("body")) {
-                final Text[] fragments = hit.getHighlightFields().get("body").fragments();
+            if (null != hit.getHighlightFields().get("body_lang_en")) {
+                final Text[] fragments = hit.getHighlightFields().get("body_lang_en").fragments();
                 if (1 >= fragments.length) {
                     snippet = fragments[0].string();
                 }
             }
 
             // use meta description or first body part if no highlighted snippet available
-            if (snippet.equals("") && !source.get("meta_desc").toString().equals("")) {
-                snippet = truncateSnippet(source.get("meta_desc").toString(), snippetLength);
+            if (snippet.equals("") && !source.get("meta_desc_lang_en").toString().equals("")) {
+                snippet = truncateSnippet(source.get("meta_desc_lang_en").toString(), snippetLength);
             } else if (snippet.equals("")) {
                 snippet = truncateSnippet(source.get("body").toString(), snippetLength);
             }
 
             // use highlighted title if available
-            String title = truncateSnippet(source.get("title").toString(), titleLength);
-            if (null != hit.getHighlightFields().get("title")) {
-                final Text[] fragments = hit.getHighlightFields().get("title").fragments();
+            String title = truncateSnippet(source.get("title_lang_en").toString(), titleLength);
+            if (null != hit.getHighlightFields().get("title_lang_en")) {
+                final Text[] fragments = hit.getHighlightFields().get("title_lang_en").fragments();
                 if (1 >= fragments.length) {
                     title = fragments[0].string();
                 }
@@ -245,7 +245,7 @@ public class SimpleSearch extends SearchProvider
                     title(title).
                     link(source.get("warc_target_uri").toString()).
                     snippet(snippet).
-                    fullBody(source.get("body").toString()).
+                    fullBody(source.get("body_lang_en").toString()).
                     addMetadata("score", hit.getScore()).
                     addMetadata("page_rank", source.get("page_rank")).
                     addMetadata("spam_rank", source.get("spam_rank")).
@@ -277,7 +277,7 @@ public class SimpleSearch extends SearchProvider
         final ConfigLoader.Config simpleSearchConfig = config.get("search").get("default_simple");
 
         // parse query string
-        final SimpleQueryStringBuilder mainQuery = QueryBuilders.simpleQueryString(userQueryString);
+        final SimpleQueryStringBuilder mainQuery = QueryBuilders.simpleQueryStringQuery(userQueryString);
         final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
         final ArrayList<String> proximityFields = new ArrayList<>();
         for (final ConfigLoader.Config field : mainFields) {
@@ -357,9 +357,9 @@ public class SimpleSearch extends SearchProvider
         }
 
         // add range filters (e.g. to filter by minimal content length)
-        final ConfigLoader.Config[] rangeFilters = simpleSearchConfig.getArray("range_filters");
+        /*final ConfigLoader.Config[] rangeFilters = simpleSearchConfig.getArray("range_filters");
         for (final ConfigLoader.Config filterConfig : rangeFilters) {
-            final RangeFilterBuilder rangeFilter = FilterBuilders.rangeFilter(filterConfig.getString("name", ""));
+            final RangeFilterBuilder rangeFilter = QueryBuilders.rangeQuery(filterConfig.getString("name", ""));
             if (null != filterConfig.getDouble("gt")) {
                 rangeFilter.gt(filterConfig.getDouble("gt"));
             }
@@ -373,14 +373,14 @@ public class SimpleSearch extends SearchProvider
                 rangeFilter.lte(filterConfig.getDouble("lte"));
             }
             finalQuery = QueryBuilders.filteredQuery(finalQuery, rangeFilter);
-        }
+        }*/
 
         // limit per-node results for performance reasons
-        final int nodeLimit = simpleSearchConfig.getInteger("node_limit", -1);
+        /*final int nodeLimit = simpleSearchConfig.getInteger("node_limit", -1);
         if (0 < nodeLimit) {
             final FilterBuilder limitFilter = FilterBuilders.limitFilter(nodeLimit);
             finalQuery = QueryBuilders.filteredQuery(finalQuery, limitFilter);
-        }
+        }*/
 
         return finalQuery;
     }
