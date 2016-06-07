@@ -1,8 +1,6 @@
-out
-bin
-lib
 .gradle
 .idea
+build
 
 .directory
 Thumbs.db

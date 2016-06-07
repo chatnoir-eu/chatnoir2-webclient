@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatnoir 2 Search Results</title>
+    {{> bootstrap-head}}
+    <link href="{{contextPath}}/static/css/chatnoir2.css" rel="stylesheet" />
+</head>
+<body class="cache-page">
+<div id="Main" class="container">
+    <div id="SearchHeader" class="row">
+        <div id="Logo" class="col-sm-2">
+            <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
+                <img src="/static/img/chatnoir-logo.png" alt="ChatNoir Logo">
+            </a>
+        </div>
+        <div class="col-sm-8">
+            <form role="search" method="get" action="/">
+                <div class="input-group">
+                    <input type="text" class="form-control input-lg" placeholder="Search" name="q" id="SearchInput">
+                        <span class="input-group-btn">
+                            <button type="submit" class="btn btn-primary input-lg">Go!</button>
+                        </span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="CacheResult">
+        <iframe src="{{contextPath}}/cache?docId={{doc-id}}&amp;raw=1{{#plainTextMode}}&amp;plain=1{{/plainTextMode}}&amp;i={{index}}"></iframe>
+    </div>
+</div>
+
+{{> chatnoir2-page-foot}}
+
+{{> jquery-foot}}
+{{> bootstrap-foot}}
+</body>
+</html>

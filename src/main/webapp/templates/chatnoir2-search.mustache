@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatnoir 2 Search Results</title>
+    {{> bootstrap-head}}
+    <link href="{{contextPath}}/static/css/chatnoir2.css" rel="stylesheet" />
+</head>
+<body class="search-page">
+    <div id="Main" class="container">
+        <div id="SearchHeader" class="row">
+            <div id="Logo" class="col-sm-2">
+                <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
+                    <img src="/static/img/chatnoir-logo.png" alt="ChatNoir Logo">
+                </a>
+            </div>
+            <div class="col-sm-8">
+                <form role="search" action="/" method="get">
+                    <div class="input-group">
+                        <input type="text" class="form-control input-lg" placeholder="Search" name="q" value="{{search-query}}" id="SearchInput">
+                        {{#indices-string}}<input type="hidden" name="i" value="{{.}}">{{/indices-string}}
+                        <span class="input-group-btn">
+                            <button type="submit" class="btn btn-primary input-lg">Go!</button>
+                        </span>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="search-info">
+            {{#paginationInfo.num-results}}<div class="num-results">Total results: {{paginationInfo.num-results}} (retrieved in {{query-time}})</div>{{/paginationInfo.num-results}}
+            <h1>Search results {{#resultsFound}}{{paginationInfo.results-range-start}}-{{paginationInfo.results-range-end}} {{/resultsFound}}for <em>{{search-query}}</em></h1>
+        </div>
+
+        <section id="SearchResults">
+            {{#searchResults}}
+                <article class="search-result{{#groupingSuggested}} grouped{{/groupingSuggested}}" id="result-{{trecId}}"{{#metadata.has_explanation}} data-explanation="{{metadata.explanation}}"{{/metadata.has_explanation}}>
+                    <header>
+                        <h2><a href="{{link}}">{{& title}}</a></h2>
+                        <div class="meta">
+                            <a href="{{link}}" class="link">{{#hostName}}{{hostName}}{{/hostName}}{{^hostName}}{{link}}{{/hostName}}</a>
+                            <div class="dropdown">
+                                <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                                    <li role="presentation" class="result-cache"><a role="menuitem" tabindex="-1" href="{{contextPath}}/cache?docId={{id}}{{#indices-string}}&i={{.}}{{/indices-string}}">Cache</a></li>
+                                    <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{{contextPath}}/cache?docId={{id}}&plain=1{{#indices-urlstring}}&i={{.}}{{/indices-urlstring}}">Plaintext</a></li>
+                                    <li role="presentation" class="divider"></li>
+                                    <li role="presentation" class="dropdown-header">TREC ID: {{trecId}}</li>
+                                    <li role="presentation" class="dropdown-header">Score: {{metadata.score}}</li>
+                                    <li role="presentation" class="dropdown-header">Page Rank: {{metadata.page_rank}}</li>
+                                    <li role="presentation" class="dropdown-header">Spam Rank: {{metadata.spam_rank}}</li>
+                                    <li role="presentation" class="divider"></li>
+                                    <li role="presentation" class="result-explain">
+                                    <a role="menuitem" class="result-explain" tabindex="-1" href="{{page-url}}?q={{{search-query-urlencoded}}}&p={{#currentPage}}{{.}}{{/currentPage}}&explain#result-{{trecId}}">Explain</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </header>
+                    {{^groupingSuggested}}{{& snippet}}{{/groupingSuggested}}
+                </article>
+            {{/searchResults}}
+            {{^searchResults}}
+                <div class="no-results">No results found… ;-(</div>
+            {{/searchResults}}
+
+            <footer>
+                <ul class="pagination">
+                    {{#pagination}}
+                        <li{{#active}} class="active"{{/active}}>
+                                <a href="{{page-url}}?q={{{search-query-urlencoded}}}&p={{pagenumber}}{{#isExplainMode}}&explain{{/isExplainMode}}{{#indices-urlstring}}&i={{.}}{{/indices-urlstring}}" {{#hiddenlabel}} title="{{hiddenlabel}}"{{/hiddenlabel}}>
+                                {{label}}{{#ariahiddenlabel}} <span aria-hidden="true">{{ariahiddenlabel}}</span>{{/ariahiddenlabel}}
+                                {{#hiddenlabel}} <span class="sr-only">{{hiddenlabel}}</span>{{/hiddenlabel}}
+                        </a>
+                        </li>
+                    {{/pagination}}
+                </ul>
+            </footer>
+        </section>
+    </div>
+
+
+    {{#isExplainMode}}
+        <div class="modal fade" id="ExplanationModal" tabindex="-1" role="dialog" aria-labelledby="ExplanationModal" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title">&nbsp;</h4>
+                    </div>
+                    <div class="modal-body"><div id="ExplanationModalContent">&nbsp;</div></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{/isExplainMode}}
+
+    {{> chatnoir2-page-foot}}
+
+    {{> jquery-foot}}
+    {{> bootstrap-foot}}
+</body>
+</html>

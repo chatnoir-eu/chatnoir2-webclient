@@ -1,0 +1,51 @@
+{
+    "cluster" : {
+        "cluster_name"  : "betaweb",
+        "host"          : "betaweb020.medien.uni-weimar.de",
+        "port"          : 9300,
+        "indices"       : [ "webis_clueweb09", "webis_clueweb12" ],
+        "default_index" : "webis_clueweb12"
+    },
+
+    "serp" : {
+        "pagination" : {
+            "results_per_page" : 10
+        },
+        "snippet_length" : 500,
+        "title_length" : 70
+    },
+
+    "search" : {
+        "default_simple" : {
+            "main_fields" : [
+                { "name" : "title",                    "boost" : 3.0, "proximity_matching" : true },
+                { "name" : "body",                     "boost" : 3.0, "proximity_matching" : true },
+                { "name" : "meta_desc",                "boost" : 0.2 },
+                { "name" : "meta_keywords",            "boost" : 0.1 },
+                { "name" : "warc_target_hostname",     "boost" : 5.0 },
+                { "name" : "warc_target_path",         "boost" : 1.0 },
+                { "name" : "warc_target_hostname_raw", "boost" : 50000.0 }
+            ],
+            "additional_fields" : [
+                { "name" : "warc_trec_id", "boost" : 100000.0 }
+            ],
+            "tie_breaker" : 0.7,
+            "function_scores" : {
+                "score_mode" : "multiply",
+                "boost_mode" : "multiply",
+
+                "scoring_fields": [
+                    { "name" : "page_rank", "modifier" : "log1p", "factor" : 20.0 },
+                    { "name" : "spam_rank", "modifier" : "none", "factor" : 0.2 }
+                ]
+            },
+            "range_filters" : [
+                { "name" : "body_length", "gte" : 1000.0 }
+            ],
+            "proximity_slop" : 3,
+            "proximity_boost" : 250.0,
+            "proximity_cutoff_frequency" : 0.001,
+            "node_limit" : 100000
+        }
+    }
+}

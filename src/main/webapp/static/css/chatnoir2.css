@@ -1,0 +1,258 @@
+/*!
+ * Main CSS for Chatnoir 2 web frontend
+ * Copyright (C) 2014 Webis Group @ Bauhaus University Weimar
+ * Main Contributor: Janek Bevendorff
+ */
+
+/* ===========================================================================
+ * Global element styles
+ * ===========================================================================*/
+
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100%;
+    position: relative;
+    padding-bottom: 8rem;
+}
+
+/* ===========================================================================
+ * Bootstrap overrides
+ * ===========================================================================*/
+.modal {
+    z-index: 99999999;
+}
+
+.modal-backdrop {
+    z-index: 9999999;
+}
+
+.modal-body {
+    max-height: 80vh;
+    overflow: auto;
+}
+
+
+/*===========================================================================
+ * General page elements
+ * ===========================================================================*/
+
+#Main {
+    max-width: 110rem;
+}
+
+#PageFooter {
+    position: absolute;
+    bottom: 0;
+    height: 4rem;
+    margin-top: .5rem;
+    margin-bottom: 1em;
+    width: 100%;
+}
+
+#PageFooter ul:last-child {
+    text-align: right;
+}
+
+#PageFooter ul:last-child li {
+    float: none;
+    display: inline-block;
+}
+
+#PageFooter .row {
+    margin-left: 0;
+}
+
+/* ===========================================================================
+ * Index template
+ * ===========================================================================*/
+
+.index-page #Main {
+    max-width: 70rem;
+}
+
+.index-page #Logo {
+    text-align: center;
+    padding: 20rem 0 1rem 0;
+}
+
+.index-page #SearchField {
+    padding-bottom: 15rem;
+}
+
+/* ===========================================================================
+ * Search template
+ * ===========================================================================*/
+
+.search-page #Logo {
+    height: 12rem;
+}
+
+.search-page #Logo img {
+    max-height: 100%;
+}
+
+#SearchHeader {
+    padding: 1rem 0 2rem 0;
+    margin-bottom: 2.3rem;
+    height: 11rem;
+    text-align: center;
+    border-bottom: .1rem solid #ddd;
+    position: relative;
+    z-index: 100000;
+}
+
+#SearchHeader form {
+    margin-top: 2rem;
+}
+
+.search-info {
+    margin-bottom: 2rem;
+}
+
+.search-info h1 {
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.num-results {
+    color: #888;
+    float: right;
+}
+
+.no-results {
+    text-align: center;
+    color: #888;
+    padding: 3rem 0;
+}
+
+.search-result {
+    margin: 2em 0;
+    clear: both;
+}
+
+.search-result.grouped {
+    margin-left: 3em;
+    margin-top: -1em;
+    width: 20em;
+    float: left;
+    clear: none;
+}
+
+.search-result header h2 {
+    font-size: 1.3em;
+    margin-bottom: .2rem;
+}
+
+.search-result.grouped header h2 {
+    font-size: 1.0em;
+    width: 15em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.meta .link {
+    font-weight: normal;
+    color: #006621;
+}
+
+.meta .dropdown {
+    display: inline-block;
+}
+
+.meta .dropdown .btn {
+    padding: 0 .5em;
+    background: none;
+    border: none;
+    margin-top: -.2em;
+    margin-left: -.1em;
+}
+
+.meta .trec-id {
+    color: #999;
+    margin-top: .5em;
+}
+
+.search-result em {
+    font-weight: bold;
+    font-style: normal;
+}
+#SearchResults > footer {
+    text-align: center;
+    clear: both;
+}
+
+#ExplanationModal ul {
+    padding-left: 0;
+    list-style: none;
+}
+
+#ExplanationModal li {
+    padding-left: 1em;
+}
+
+#ExplanationModal li:before {
+    content: "\2937  ";
+    color: #777;
+}
+
+#ExplanationModal .modal-body > ul > li:before {
+    content: "    ";
+}
+
+#ExplanationModal .explanation-tree {
+    float: left;
+    margin-right: 1em;
+}
+
+#ExplanationModal .explanation-tree h5 {
+    padding: .8em;
+    margin-left: 1em;
+    border-radius: 3px;
+    background-color: #eee;
+}
+
+#ExplanationModal .explanation-tree.active h5 {
+    background-color: #dff0d8
+}
+
+#ExplanationModal .explanation-tree .close {
+    line-height: .7em;
+}
+
+#ExplanationModalContent {
+    overflow: hidden;
+ }
+
+/* ===========================================================================
+ * Cache template
+ * ===========================================================================*/
+
+body.cache-page {
+    height: 100%;
+    min-height: unset;
+}
+
+.cache-page #Main {
+    min-height: 100%;
+    position: relative;
+}
+
+#CacheResult {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding-top: 11rem;
+}
+
+#CacheResult iframe {
+    border: none;
+    border-bottom: .1rem solid #ddd;
+    height: 100%;
+    width: 100%;
+}

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatnoir 2</title>
+    {{> bootstrap-head}}
+    <link href="{{contextPath}}/static/css/chatnoir2.css" rel="stylesheet" />
+</head>
+<body class="index-page">
+    <div id="Main" class="container">
+        <div id="Logo">
+            <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
+                <img src="/static/img/chatnoir-logo.png">
+            </a>
+        </div>
+        <div id="SearchField">
+            <form role="search" method="get">
+                <div class="input-group">
+                    <input type="text" class="form-control input-lg" placeholder="Search" name="q" id="SearchInput">
+                    <span class="input-group-btn">
+                        <button type="submit" class="btn btn-primary input-lg">Go!</button>
+                    </span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{> chatnoir2-page-foot}}
+
+    {{> jquery-foot}}
+    {{> bootstrap-foot}}
+</body>
+</html>
