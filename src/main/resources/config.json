@@ -36,7 +36,7 @@
 
                 "scoring_fields": [
                     { "name" : "page_rank", "modifier" : "log1p", "factor" : 20.0 },
-                    { "name" : "spam_rank", "modifier" : "none", "factor" : 0.2 }
+                    { "name" : "spam_rank", "modifier" : "none", "factor" : 2000.0 }
                 ]
             },
             "range_filters" : [
@@ -45,7 +45,7 @@
             "proximity_slop" : 3,
             "proximity_boost" : 250.0,
             "proximity_cutoff_frequency" : 0.001,
-            "node_limit" : 100000
+            "node_limit" : 200000
         }
     }
 }

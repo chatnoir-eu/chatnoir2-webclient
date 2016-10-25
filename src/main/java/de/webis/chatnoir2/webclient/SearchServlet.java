@@ -23,7 +23,6 @@ import de.webis.chatnoir2.webclient.response.Renderer;
 import de.webis.chatnoir2.webclient.search.SearchProvider;
 import de.webis.chatnoir2.webclient.search.SearchResultBuilder;
 import de.webis.chatnoir2.webclient.search.SimpleSearch;
-import de.webis.chatnoir2.webclient.util.LangDetector;
 
 /**
  * Search Servlet for Chatnoir 2.

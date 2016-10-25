@@ -8,19 +8,29 @@
 package de.webis.chatnoir2.webclient.search;
 
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
+import org.apache.lucene.search.TopScoreDocCollector;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.xcontent.ToXContent;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.index.query.functionscore.fieldvaluefactor.FieldValueFactorFunctionBuilder;
+import org.elasticsearch.script.Script;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.*;
+import org.elasticsearch.search.aggregations.bucket.filters.Filters;
+import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.profile.ProfileShardResult;
 import org.json.simple.JSONArray;
 
 import java.io.IOException;
@@ -166,11 +176,9 @@ public class SimpleSearch extends SearchProvider
 
         // prepare aggregation
         final AggregationBuilder aggregation = AggregationBuilders.terms("hosts").
-                field("warc_target_hostname_raw").
-                subAggregation(AggregationBuilders.topHits("top").
-                        setExplain(doExplain).
-                        setFrom(from).
-                        setSize(1));
+                field("warc_target_hostname_raw").order(Terms.Order.count(false)).size(1).
+                subAggregation(AggregationBuilders.max("top_score").script(new Script("_score"))).
+                subAggregation(AggregationBuilders.topHits("top_hosts").setFetchSource(true).setSize(5));
 
         // run search
         response = client.prepareSearch(indices).
@@ -181,10 +189,35 @@ public class SimpleSearch extends SearchProvider
                 addHighlightedField("title_lang_en", titleLength, 1).
                 setHighlighterEncoder("html").
                 setExplain(doExplain).
-                setTerminateAfter(config.get("search").get("default_simple").getInteger("node_limit", -1)).
-                //addAggregation(aggregation).
+                setTerminateAfter(config.get("search").get("default_simple").getInteger("node_limit", 200000)).
+                addAggregation(aggregation).
+                setProfile(true).
                 execute().
                 actionGet();
+
+        final StringTerms agg = response.getAggregations().get("hosts");
+        for (final Terms.Bucket entry: agg.getBuckets()) {
+            System.out.println(entry.getKeyAsString());
+        }
+
+        try {
+            final Map<String, List<ProfileShardResult>> profileResults = response.getProfileResults();
+            if (null != profileResults) {
+                final XContentBuilder jsonBuilder = XContentFactory.contentBuilder(XContentType.JSON);
+                jsonBuilder.startObject();
+                for (final Map.Entry<String, List<ProfileShardResult>> e : profileResults.entrySet()) {
+                    for (final ProfileShardResult p : e.getValue()) {
+                        jsonBuilder.startObject(e.getKey());
+                        p.toXContent(jsonBuilder, ToXContent.EMPTY_PARAMS);
+                        jsonBuilder.endObject();
+                    }
+                }
+                jsonBuilder.endObject();
+                System.out.println(jsonBuilder.string());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -278,6 +311,7 @@ public class SimpleSearch extends SearchProvider
 
         // parse query string
         final SimpleQueryStringBuilder mainQuery = QueryBuilders.simpleQueryStringQuery(userQueryString);
+
         final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
         final ArrayList<String> proximityFields = new ArrayList<>();
         for (final ConfigLoader.Config field : mainFields) {
@@ -296,18 +330,18 @@ public class SimpleSearch extends SearchProvider
         }
 
         // wrap main query into function score query
-        final ConfigLoader.Config functionScoreConfig      = simpleSearchConfig.get("function_scores");
+        final ConfigLoader.Config functionScoreConfig = simpleSearchConfig.get("function_scores");
         final FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders.functionScoreQuery(mainQuery);
         functionScoreQuery.
                 boost(functionScoreConfig.getFloat("boost", 1.0f)).
                 maxBoost(functionScoreConfig.getFloat("max_boost", Float.MAX_VALUE)).
                 boostMode(functionScoreConfig.getString("boost_mode", "multiply")).
-                scoreMode(functionScoreConfig.getString("score_mode", "multiply"));
+                scoreMode(functionScoreConfig.getString("score_mode", "sum"));
 
         // add function score fields
         final ConfigLoader.Config[] scoreFields = functionScoreConfig.getArray("scoring_fields");
         for (final ConfigLoader.Config c : scoreFields) {
-            FieldValueFactorFunction.Modifier modifier                = mapStringToFunctionModifier(c.getString("modifier", "none"));
+            FieldValueFactorFunction.Modifier modifier = mapStringToFunctionModifier(c.getString("modifier", "none"));
             FieldValueFactorFunctionBuilder fieldValueFunctionBuilder = ScoreFunctionBuilders.
                     fieldValueFactorFunction(c.getString("name")).
                     factor(c.getFloat("factor", 1.0f));
@@ -357,9 +391,9 @@ public class SimpleSearch extends SearchProvider
         }
 
         // add range filters (e.g. to filter by minimal content length)
-        /*final ConfigLoader.Config[] rangeFilters = simpleSearchConfig.getArray("range_filters");
+        final ConfigLoader.Config[] rangeFilters = simpleSearchConfig.getArray("range_filters");
         for (final ConfigLoader.Config filterConfig : rangeFilters) {
-            final RangeFilterBuilder rangeFilter = QueryBuilders.rangeQuery(filterConfig.getString("name", ""));
+            final RangeQueryBuilder rangeFilter = QueryBuilders.rangeQuery(filterConfig.getString("name", ""));
             if (null != filterConfig.getDouble("gt")) {
                 rangeFilter.gt(filterConfig.getDouble("gt"));
             }
@@ -373,14 +407,7 @@ public class SimpleSearch extends SearchProvider
                 rangeFilter.lte(filterConfig.getDouble("lte"));
             }
             finalQuery = QueryBuilders.filteredQuery(finalQuery, rangeFilter);
-        }*/
-
-        // limit per-node results for performance reasons
-        /*final int nodeLimit = simpleSearchConfig.getInteger("node_limit", -1);
-        if (0 < nodeLimit) {
-            final FilterBuilder limitFilter = FilterBuilders.limitFilter(nodeLimit);
-            finalQuery = QueryBuilders.filteredQuery(finalQuery, limitFilter);
-        }*/
+        }
 
         return finalQuery;
     }

@@ -126,8 +126,8 @@ public class DocumentRetriever extends SearchProvider
         results.add(new SearchResultBuilder().
                 id(response.getId()).
                 trecId(source.get("warc_trec_id").toString()).
-                title(source.get("title").toString()).
-                fullBody(source.get("body").toString()).
+                title(source.get("title_lang_en").toString()).
+                fullBody(source.get("body_lang_en").toString()).
                 rawHTML("RAW HTML NOT AVAILABLE YET").
                 build());
         return results;
