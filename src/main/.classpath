@@ -43,5 +43,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.apache.lucene:lucene-grouping:5.5.2"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.apache.lucene:lucene-spatial3d:5.5.2"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.spatial4j:spatial4j:0.5"/>
-	<classpathentry kind="output" path="/home/roce3528/code-in-progress/chatnoir2/chatnoir2-webclient/build/classes/main"/>
+	<classpathentry kind="output" path="home/roce3528/code-in-progress/chatnoir2/chatnoir2-webclient/build/classes/main"/>
 </classpath>

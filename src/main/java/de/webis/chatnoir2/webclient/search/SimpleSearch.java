@@ -8,6 +8,7 @@
 package de.webis.chatnoir2.webclient.search;
 
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
+import org.apache.lucene.queryparser.xml.builders.*;
 import org.apache.lucene.search.TopScoreDocCollector;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
@@ -20,6 +21,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.index.query.functionscore.fieldvaluefactor.FieldValueFactorFunctionBuilder;
@@ -310,12 +312,12 @@ public class SimpleSearch extends SearchProvider
         final ConfigLoader.Config simpleSearchConfig = config.get("search").get("default_simple");
 
         // parse query string
-        final SimpleQueryStringBuilder mainQuery = QueryBuilders.simpleQueryStringQuery(userQueryString);
+        final SimpleQueryStringBuilder simpleQuery = QueryBuilders.simpleQueryStringQuery(userQueryString);
 
         final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
-        final ArrayList<String> proximityFields = new ArrayList<>();
+        final ArrayList<Object[]> proximityFields = new ArrayList<>();
         for (final ConfigLoader.Config field : mainFields) {
-            mainQuery.field(field.getString("name", ""), field.getFloat("boost", 1.0f)).
+            simpleQuery.field(field.getString("name", ""), field.getFloat("boost", 1.0f)).
                     defaultOperator(SimpleQueryStringBuilder.Operator.AND).
                     flags(SimpleQueryStringFlag.AND,
                             SimpleQueryStringFlag.OR,
@@ -325,13 +327,18 @@ public class SimpleSearch extends SearchProvider
 
             // add field to list of proximity-aware fields for later precessing
             if (field.getBoolean("proximity_matching", false)) {
-                proximityFields.add(field.getString("name"));
+                proximityFields.add(new Object[] {
+                        field.getString("name"),
+                        field.getInteger("proximity_slop", 1),
+                        field.getFloat("proximity_boost", 1.0f),
+                        field.getFloat("proximity_cutoff_frequency", 0.001f)
+                });
             }
         }
 
         // wrap main query into function score query
         final ConfigLoader.Config functionScoreConfig = simpleSearchConfig.get("function_scores");
-        final FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders.functionScoreQuery(mainQuery);
+        final FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders.functionScoreQuery(simpleQuery);
         functionScoreQuery.
                 boost(functionScoreConfig.getFloat("boost", 1.0f)).
                 maxBoost(functionScoreConfig.getFloat("max_boost", Float.MAX_VALUE)).
@@ -372,25 +379,8 @@ public class SimpleSearch extends SearchProvider
         // set global tie breaker
         disMaxQuery.tieBreaker(simpleSearchConfig.getFloat("tie_breaker", 0.0f));
 
-        // save pointer to dismax query for conditional decoration
-        QueryBuilder finalQuery = disMaxQuery;
-
-        // add proximity rankings
-        if (0 != proximityFields.size()) {
-            final BoolQueryBuilder proximityBoolQuery = QueryBuilders.boolQuery();
-            final MultiMatchQueryBuilder proximityMatchQuery = QueryBuilders.multiMatchQuery(userQueryString);
-            proximityFields.forEach(proximityMatchQuery::field);
-            proximityMatchQuery.operator(MatchQueryBuilder.Operator.AND);
-            proximityMatchQuery.slop(simpleSearchConfig.getInteger("proximity_slop", 1));
-            proximityMatchQuery.boost(simpleSearchConfig.getFloat("proximity_boost", 1.0f));
-            proximityMatchQuery.cutoffFrequency(simpleSearchConfig.getFloat("proximity_cutoff_frequency", 0.001f));
-            proximityBoolQuery.must(finalQuery);
-            proximityBoolQuery.should(proximityMatchQuery);
-
-            finalQuery = proximityBoolQuery;
-        }
-
         // add range filters (e.g. to filter by minimal content length)
+        BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
         final ConfigLoader.Config[] rangeFilters = simpleSearchConfig.getArray("range_filters");
         for (final ConfigLoader.Config filterConfig : rangeFilters) {
             final RangeQueryBuilder rangeFilter = QueryBuilders.rangeQuery(filterConfig.getString("name", ""));
@@ -406,10 +396,26 @@ public class SimpleSearch extends SearchProvider
             if (null != filterConfig.getDouble("lte")) {
                 rangeFilter.lte(filterConfig.getDouble("lte"));
             }
-            finalQuery = QueryBuilders.filteredQuery(finalQuery, rangeFilter);
+            mainQuery.filter(rangeFilter);
         }
+        mainQuery.must(disMaxQuery);
 
-        return finalQuery;
+        // proximity matching
+        //BoolQueryBuilder proximityBoolQuery = QueryBuilders.boolQuery();
+        for (Object[] o : proximityFields) {
+            final MatchQueryBuilder proximityMatchQuery = QueryBuilders.matchQuery(
+                    (String) o[0],
+                    userQueryString
+            );
+            proximityMatchQuery.operator(MatchQueryBuilder.Operator.AND);
+            proximityMatchQuery.slop((Integer) o[1]);
+            proximityMatchQuery.boost((Float) o[2]);
+            proximityMatchQuery.cutoffFrequency((Float) o[3]);
+            mainQuery.should(proximityMatchQuery);
+        }
+        //proximityBoolQuery.must(simpleQuery);
+
+        return mainQuery;
     }
 
     /**

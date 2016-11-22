@@ -18,8 +18,15 @@
     "search" : {
         "default_simple" : {
             "main_fields" : [
-                { "name" : "title_lang_en",            "boost" : 3.0, "proximity_matching" : true },
-                { "name" : "body_lang_en",             "boost" : 3.0, "proximity_matching" : true },
+                { "name" : "title_lang_en",            "boost" : 3.0 },
+                {
+                    "name" : "body_lang_en",
+                    "boost" : 3.0,
+                    "proximity_matching" : true,
+                    "proximity_slop" : 3,
+                    "proximity_boost" : 2500.0,
+                    "proximity_cutoff_frequency" : 0.001
+                },
                 { "name" : "meta_desc_lang_en",        "boost" : 0.2 },
                 { "name" : "meta_keywords_lang_en",    "boost" : 0.1 },
                 { "name" : "warc_target_hostname",     "boost" : 5.0 },
@@ -40,12 +47,10 @@
                 ]
             },
             "range_filters" : [
-                { "name" : "body_length", "gte" : 1000.0 }
+                { "name" : "body_length", "gte" : 1000.0 },
+                { "name" : "spam_rank", "gte" : 70.0 }
             ],
-            "proximity_slop" : 3,
-            "proximity_boost" : 250.0,
-            "proximity_cutoff_frequency" : 0.001,
-            "node_limit" : 200000
+            "node_limit" : 20000
         }
     }
 }
