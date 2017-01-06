@@ -18,7 +18,7 @@
     "search" : {
         "default_simple" : {
             "main_fields" : [
-                { "name" : "title_lang_en",            "boost" : 3.0 },
+                { "name" : "title_lang_en",            "boost" : 300.0 },
                 {
                     "name" : "body_lang_en",
                     "boost" : 3.0,
@@ -27,10 +27,10 @@
                     "proximity_boost" : 4000.0,
                     "proximity_cutoff_frequency" : 0.001
                 },
-                { "name" : "meta_desc_lang_en",        "boost" : 0.2 },
-                { "name" : "meta_keywords_lang_en",    "boost" : 0.1 },
-                { "name" : "warc_target_hostname",     "boost" : 5.0 },
-                { "name" : "warc_target_path",         "boost" : 1.0 },
+                { "name" : "meta_desc_lang_en",        "boost" : 20.0 },
+                { "name" : "meta_keywords_lang_en",    "boost" : 10.0 },
+                { "name" : "warc_target_hostname",     "boost" : 400.0 },
+                { "name" : "warc_target_path",         "boost" : 50.0 },
                 { "name" : "warc_target_hostname_raw", "boost" : 50000.0 }
             ],
             "additional_fields" : [
@@ -50,7 +50,7 @@
                 { "name" : "spam_rank", "gt" : 0.0, "lte": 80.0, "negate" : true }
             ],
             "node_limit" : 20000,
-            "rescore_window" : 10000,
+            "rescore_window" : 1000,
             "prequery_cutoff_frequency": 0.001
         }
     }

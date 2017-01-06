@@ -23,6 +23,7 @@ import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.index.query.functionscore.fieldvaluefactor.FieldValueFactorFunctionBuilder;
+import org.elasticsearch.index.search.MatchQuery;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.*;
@@ -456,6 +457,16 @@ public class SimpleSearch extends SearchProvider
             mainQuery.should(proximityMatchQuery);
         }
         mainQuery.must(functionScoreQuery);
+
+        // general host boost
+        MatchQueryBuilder hostBooster = QueryBuilders.matchQuery("warc_target_hostname", userQueryString);
+        hostBooster.boost(20.0f).operator(MatchQueryBuilder.Operator.OR);
+        mainQuery.should(hostBooster);
+
+        // Wikipedia boost
+        MatchQueryBuilder wikiBooster = QueryBuilders.matchQuery("warc_target_hostname_raw", "en.wikipedia.org");
+        wikiBooster.boost(0.0001f);
+        mainQuery.should(wikiBooster);
 
         return mainQuery;
     }
