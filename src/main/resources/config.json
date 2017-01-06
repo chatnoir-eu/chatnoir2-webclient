@@ -1,10 +1,10 @@
 {
     "cluster" : {
         "cluster_name"  : "betaweb",
-        "host"          : "betaweb020.medien.uni-weimar.de",
+        "host"          : "betaweb015.medien.uni-weimar.de",
         "port"          : 9300,
-        "indices"       : [ "webis_warc_clueweb09", "webis_warc_clueweb12" ],
-        "default_index" : "webis_warc_clueweb12"
+        "indices"       : [ "webis_warc_clueweb12_004" ],
+        "default_index" : "webis_warc_clueweb12_004"
     },
 
     "serp" : {
@@ -23,8 +23,8 @@
                     "name" : "body_lang_en",
                     "boost" : 3.0,
                     "proximity_matching" : true,
-                    "proximity_slop" : 3,
-                    "proximity_boost" : 2500.0,
+                    "proximity_slop" : 4,
+                    "proximity_boost" : 4000.0,
                     "proximity_cutoff_frequency" : 0.001
                 },
                 { "name" : "meta_desc_lang_en",        "boost" : 0.2 },
@@ -42,15 +42,16 @@
                 "boost_mode" : "multiply",
 
                 "scoring_fields": [
-                    { "name" : "page_rank", "modifier" : "log1p", "factor" : 20.0 },
-                    { "name" : "spam_rank", "modifier" : "none", "factor" : 2000.0 }
+                    { "name" : "page_rank", "modifier" : "log1p", "factor" : 20.0 }
                 ]
             },
             "range_filters" : [
                 { "name" : "body_length", "gte" : 1000.0 },
-                { "name" : "spam_rank", "gte" : 70.0 }
+                { "name" : "spam_rank", "gt" : 0.0, "lte": 80.0, "negate" : true }
             ],
-            "node_limit" : 20000
+            "node_limit" : 20000,
+            "rescore_window" : 10000,
+            "prequery_cutoff_frequency": 0.001
         }
     }
 }
