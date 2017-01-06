@@ -295,6 +295,11 @@ public class SimpleSearch extends SearchProvider
             }
             previousHost = currentHost;
 
+            String pr = String.format("%.03f", (Double) source.get("page_rank"));
+            if (0.001 > (Double) source.get("page_rank")) {
+                pr = String.format("%.03e", (Double) source.get("page_rank"));
+            }
+
             final SearchResultBuilder.SearchResult result = new SearchResultBuilder().
                     id(hit.getId()).
                     trecId(source.get("warc_trec_id").toString()).
@@ -302,9 +307,9 @@ public class SimpleSearch extends SearchProvider
                     link(source.get("warc_target_uri").toString()).
                     snippet(TextCleanser.cleanse(snippet, true)).
                     fullBody(source.get("body_lang_en").toString()).
-                    addMetadata("score", hit.getScore()).
-                    addMetadata("page_rank", source.get("page_rank")).
-                    addMetadata("spam_rank", source.get("spam_rank")).
+                    addMetadata("score", String.format("%.03f", hit.getScore())).
+                    addMetadata("page_rank", pr).
+                    addMetadata("spam_rank", (0 != (Integer) source.get("spam_rank")) ? source.get("spam_rank") : "none").
                     addMetadata("explanation", explanation).
                     addMetadata("has_explanation", doExplain).
                     suggestGrouping(doGroup).
