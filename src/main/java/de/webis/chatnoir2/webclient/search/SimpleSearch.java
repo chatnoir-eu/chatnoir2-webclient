@@ -27,10 +27,15 @@ import org.elasticsearch.index.search.MatchQuery;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.*;
+import org.elasticsearch.search.aggregations.bucket.nested.ReverseNested;
 import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.metrics.tophits.TopHits;
+import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsAggregator;
+import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsBuilder;
 import org.elasticsearch.search.profile.ProfileShardResult;
 import org.elasticsearch.search.rescore.RescoreBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
 import org.json.simple.JSONArray;
 
 import java.io.IOException;
@@ -175,33 +180,40 @@ public class SimpleSearch extends SearchProvider
         final Integer size = Integer.parseInt(searchParameters.get("num_results"));
 
         // prepare aggregation
-        final AggregationBuilder aggregation = AggregationBuilders.terms("hosts").
-                field("warc_target_hostname_raw").order(Terms.Order.count(false)).size(1).
-                subAggregation(AggregationBuilders.max("top_score").script(new Script("_score"))).
-                subAggregation(AggregationBuilders.topHits("top_hosts").setFetchSource(true).setSize(5));
+        // unfortunately still not working with rescoring in Elasticsearch 2.4.3
+        /*final AggregationBuilder aggregation = AggregationBuilders.terms("hosts")
+                .field("warc_target_hostname_raw")
+                .order(Terms.Order.aggregation("top_score", false))
+                .subAggregation(AggregationBuilders.topHits("top_sites").setSize(4))
+                .subAggregation(AggregationBuilders.max("top_score").field("_score"));*/
+
 
         final ConfigLoader.Config simpleSearchConfig = config.get("search").get("default_simple");
 
         // run search
-        response = client.prepareSearch(indices).
-                setQuery(buildPreQuery(searchParameters)).
-                setRescorer(buildRescorer(buildRescoreQuery(searchParameters)),
-                        simpleSearchConfig.getInteger("rescore_window", size)).
-                setFrom(from).
-                setSize(size).
-                addHighlightedField("body_lang_en", snippetLength, 1).
-                addHighlightedField("title_lang_en", titleLength, 1).
-                setHighlighterEncoder("html").
-                setExplain(doExplain).
-                setTerminateAfter(simpleSearchConfig.getInteger("node_limit", 200000)).
-                //addAggregation(aggregation).
-                setProfile(false).
-                execute().
-                actionGet();
+        response = client.prepareSearch(indices)
+                .setQuery(buildPreQuery(searchParameters))
+                .setRescorer(buildRescorer(buildRescoreQuery(searchParameters)),
+                       simpleSearchConfig.getInteger("rescore_window", size))
+                .setFrom(from)
+                .setSize(size)
+                .addHighlightedField("body_lang_en", snippetLength, 1)
+                .addHighlightedField("title_lang_en", titleLength, 1)
+                .setHighlighterEncoder("html")
+                .setExplain(doExplain)
+                .setTerminateAfter(simpleSearchConfig.getInteger("node_limit", 200000))
+                //.addAggregation(aggregation)
+                .setProfile(false)
+                .execute()
+                .actionGet();
 
-        /*final StringTerms agg = response.getAggregations().get("hosts");
-        for (final Terms.Bucket entry: agg.getBuckets()) {
-            System.out.println(entry.getKeyAsString());
+        /*final Terms agg = response.getAggregations().get("hosts");
+        for (final Terms.Bucket bucket: agg.getBuckets()) {
+            System.out.println(bucket.getKeyAsString());
+            TopHits ts = bucket.getAggregations().get("top_sites");
+            for (SearchHit h: ts.getHits().hits()) {
+                System.out.printf(" >   %s%n", h.sourceAsMap().get("warc_target_uri").toString());
+            }
         }*/
 
         try {
@@ -218,6 +230,12 @@ public class SimpleSearch extends SearchProvider
                 }
                 jsonBuilder.endObject();
                 System.out.println(jsonBuilder.string());
+
+                final XContentBuilder jsonBuilder2 = XContentFactory.contentBuilder(XContentType.JSON);
+                jsonBuilder2.startObject();
+                response.toXContent(jsonBuilder2, ToXContent.EMPTY_PARAMS);
+                jsonBuilder2.endObject();
+                System.out.println(jsonBuilder2.string());
             }
         } catch (IOException e) {
             e.printStackTrace();

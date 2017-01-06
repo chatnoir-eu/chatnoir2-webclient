@@ -50,7 +50,7 @@
                 { "name" : "spam_rank", "gt" : 0.0, "lte": 80.0, "negate" : true }
             ],
             "node_limit" : 20000,
-            "rescore_window" : 1000,
+            "rescore_window" : 400,
             "prequery_cutoff_frequency": 0.001
         }
     }

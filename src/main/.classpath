@@ -4,7 +4,7 @@
 	<classpathentry kind="src" path="java"/>
 	<classpathentry kind="src" path="resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: javax.servlet:javax.servlet-api:3.0.1"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.elasticsearch:elasticsearch:2.4.1"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.elasticsearch:elasticsearch:2.4.3"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.github.spullara.mustache.java:compiler:0.9.0"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.googlecode.json-simple:json-simple:1.1"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.reflections:reflections:0.9.10"/>
@@ -22,8 +22,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.google.guava:guava:18.0"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.elasticsearch:securesm:1.0"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.carrotsearch:hppc:0.7.1"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: joda-time:joda-time:2.9.4"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.joda:joda-convert:1.2"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: joda-time:joda-time:2.9.5"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.fasterxml.jackson.core:jackson-core:2.8.1"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.fasterxml.jackson.dataformat:jackson-dataformat-smile:2.8.1"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.8.1"/>
@@ -43,5 +42,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.apache.lucene:lucene-grouping:5.5.2"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.apache.lucene:lucene-spatial3d:5.5.2"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.spatial4j:spatial4j:0.5"/>
-	<classpathentry kind="output" path="home/roce3528/code-in-progress/chatnoir2/chatnoir2-webclient/build/classes/main"/>
+	<classpathentry kind="output" path="/home/roce3528/code-in-progress/chatnoir2/chatnoir2-webclient/build/classes/main"/>
 </classpath>
