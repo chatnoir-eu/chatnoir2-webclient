@@ -8,6 +8,7 @@
 package de.webis.chatnoir2.webclient.search;
 
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
+import de.webis.chatnoir2.webclient.util.TextCleanser;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
@@ -297,9 +298,9 @@ public class SimpleSearch extends SearchProvider
             final SearchResultBuilder.SearchResult result = new SearchResultBuilder().
                     id(hit.getId()).
                     trecId(source.get("warc_trec_id").toString()).
-                    title(title).
+                    title(TextCleanser.cleanse(title, true)).
                     link(source.get("warc_target_uri").toString()).
-                    snippet(snippet).
+                    snippet(TextCleanser.cleanse(snippet, true)).
                     fullBody(source.get("body_lang_en").toString()).
                     addMetadata("score", hit.getScore()).
                     addMetadata("page_rank", source.get("page_rank")).
