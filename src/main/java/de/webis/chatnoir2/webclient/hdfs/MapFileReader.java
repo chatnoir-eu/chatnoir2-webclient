@@ -9,6 +9,7 @@
 package de.webis.chatnoir2.webclient.hdfs;
 
 import de.webis.WebisUUID;
+import de.webis.chatnoir2.webclient.util.Configured;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -25,29 +26,36 @@ import java.util.UUID;
 /**
  * Tools for retrieving WARC records from Webis MapFiles.
  */
-public class MapFileReader
+public class MapFileReader extends Configured
 {
     private static final String DATA_OUTPUT_NAME = "data";
     private static final String URI_OUTPUT_NAME  = "uri";
 
     private static Configuration mHadoopConfig = new Configuration();
     private static HashMap<Path, MapFile.Reader> mMapfileReaders = new HashMap<>();
-    private static ConfigLoader.Config mConfig = null;
+
+    private static MapFileReader mInstance = null;
+
+    private MapFileReader() {}
 
     public static void init()
     {
-        try {
-            mConfig = ConfigLoader.getInstance().getConfig();
-        } catch (IOException | ConfigLoader.ParseException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Error loading config file");
+        if (null != mInstance) {
+            for (Path p : mMapfileReaders.keySet()) {
+                try {
+                    mMapfileReaders.get(p).close();
+                } catch (IOException ignored) {}
+            }
+            mMapfileReaders.clear();
         }
-        mHadoopConfig.set("fs.defaultFS", mConfig.get("hdfs").getString("defaultFS"));
+
+        mInstance = new MapFileReader();
+        mHadoopConfig.set("fs.defaultFS", mInstance.getConf().get("hdfs").getString("defaultFS"));
     }
 
     public static boolean isInitialized()
     {
-        return null != mConfig;
+        return null != mInstance;
     }
 
     /**
@@ -59,7 +67,7 @@ public class MapFileReader
      */
     public static JSONObject getDocument(final String origId, final String index)
     {
-        final UUID uuid = WebisUUID.generateUUID(mConfig.get("mapfiles").get(index).getString("prefix"), origId);
+        final UUID uuid = WebisUUID.generateUUID(mInstance.getConf().get("mapfiles").get(index).getString("prefix"), origId);
         return getDocument(uuid, index);
     }
 
@@ -72,11 +80,11 @@ public class MapFileReader
      */
     public static JSONObject getDocument(final UUID recordUUID, final String index)
     {
-        if (null == mConfig) {
+        if (null == mInstance.getConf()) {
             throw new RuntimeException("MapFileReader not initialized");
         }
 
-        final ConfigLoader.Config mapfileConfig = mConfig.get("mapfiles").get(index);
+        final ConfigLoader.Config mapfileConfig = mInstance.getConf().get("mapfiles").get(index);
         final int partition = getPartition(recordUUID.toString(), mapfileConfig.getInteger("partitions"));
         String inputPathStr = String.format("%s/%s-r-%05d", mapfileConfig.getString("path"),
                 DATA_OUTPUT_NAME, partition);
@@ -105,11 +113,11 @@ public class MapFileReader
      */
     public static UUID getUUIDForUrl(final String url, final String index)
     {
-        if (null == mConfig) {
+        if (null == mInstance.getConf()) {
             throw new RuntimeException("MapFileReader not initialized");
         }
 
-        final ConfigLoader.Config mapfileConfig = mConfig.get("mapfiles").get(index);
+        final ConfigLoader.Config mapfileConfig = mInstance.getConf().get("mapfiles").get(index);
         final int partition = getPartition(url, mapfileConfig.getInteger("partitions"));
         String inputPathStr = String.format("%s/%s-r-%05d", mapfileConfig.getString("path"),
                 URI_OUTPUT_NAME, partition);

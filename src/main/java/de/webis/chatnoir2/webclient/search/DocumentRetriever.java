@@ -1,29 +1,24 @@
 /*
  * ChatNoir 2 Web frontend.
  *
- * Copyright (C) 2014 Webis Group @ Bauhaus University Weimar
+ * Copyright (C) 2014-2017 Webis Group @ Bauhaus University Weimar
  * Main Contributor: Janek Bevendorff
  */
 
 package de.webis.chatnoir2.webclient.search;
 
+import de.webis.WebisUUID;
 import de.webis.chatnoir2.webclient.CacheServlet;
 import de.webis.chatnoir2.webclient.hdfs.MapFileReader;
-import de.webis.chatnoir2.webclient.resources.ConfigLoader;
+import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.http.client.utils.URIBuilder;
 import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.json.simple.JSONObject;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -35,218 +30,274 @@ import java.util.*;
  * @author Janek Bevendorff
  * @version 1
  */
-public class DocumentRetriever extends SearchProvider
+public class DocumentRetriever extends Configured
 {
-    /**
-     * Elasticsearch TransportClient.
-     */
-    private final TransportClient client;
-
-    /**
-     * The index to search.
-     */
-    private final String index;
-
-    /**
-     * Search response of the last search.
-     */
-    private GetResponse response = null;
-
-    /**
-     * Application configuration.
-     */
-    private final ConfigLoader.Config config;
-
-    /**
-     * Constructor.
-     *
-     * @param index index to retrieve document from (null means first default index from config).
-     *              Indices that are not present in the config will be ignored.
-     */
-    public DocumentRetriever(final String index)
-    {
-        config = new Object() {
-            public ConfigLoader.Config run()
-            {
-                try {
-                    return ConfigLoader.getInstance().getConfig();
-                } catch (IOException | ConfigLoader.ParseException e) {
-                    e.printStackTrace();
-                    return new ConfigLoader.Config();
-                }
-            }
-        }.run();
-
-        if (!MapFileReader.isInitialized())
-            MapFileReader.init();
-
-        final String clusterName = config.get("cluster").getString("cluster_name", "");
-        final String hostName    = config.get("cluster").getString("host", "localhost");
-        final int port           = config.get("cluster").getInteger("port", 9300);
-
-        final List<String> allowedIndices = Arrays.asList(config.get("cluster").getStringArray("indices"));
-        if (null != index && allowedIndices.contains(index)) {
-            this.index = index;
-        } else {
-            this.index = config.get("cluster").getString("default_index", allowedIndices.get(0));
-        }
-
-
-        final Settings settings = Settings.settingsBuilder().put("cluster.name", clusterName).build();
-        client = new TransportClient.Builder().settings(settings).build().addTransportAddress(
-                new InetSocketTransportAddress(new InetSocketAddress(hostName, port)));
-    }
+    private boolean mRewriteURIs;
 
     public DocumentRetriever()
     {
-        this(null);
+        this(false);
     }
 
     /**
-     * Perform a simple search.
-     * Expects the following fields present:
-     *      'docId' internal ID of the document
-     *
-     * @param searchFields key-value pairs of search fields
+     * @param rewriteURIs whether to rewrite URIs in the retrieved documents.
      */
-    @Override
-    public void doSearch(final HashMap<String, String> searchFields) throws InvalidSearchFieldException
+    public DocumentRetriever(final boolean rewriteURIs)
     {
-        if (searchFields.get("docId") == null) {
-            throw new InvalidSearchFieldException();
+        if (!MapFileReader.isInitialized()) {
+            MapFileReader.init();
         }
-
-        try {
-            response = client.prepareGet(index, "warcrecord", searchFields.get("docId")).
-                    execute().
-                    actionGet();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        mRewriteURIs = rewriteURIs;
     }
 
-    @Override
-    public void finish() {
-        if (null != client) {
-            client.close();
-        }
+    public void setRewriteURIs(final boolean rewriteURIs)
+    {
+        mRewriteURIs = rewriteURIs;
     }
 
-    @Override
-    public ArrayList<SearchResultBuilder.SearchResult> getResults()
+    /**
+     * Retrieve plain text rendering of a document from given Elasticsearch index.
+     *
+     * @param indexName index to retrieve the document from
+     * @param docID Elasticsearch Flake ID of the document
+     * @return plain text rendering of the requested document, null if it does not exit
+     */
+    public String getPlainText(final String indexName, final String docID)
     {
-        final ArrayList<SearchResultBuilder.SearchResult> results = new ArrayList<>();
-
-        if (null == response || !response.isExists()) {
-            return results;
+        final GetResponse response = getClient().prepareGet(indexName, "warcrecord", docID)
+                .execute()
+                .actionGet();
+        if (!response.isExists()) {
+            return null;
         }
+        final Map<String, Object> s = response.getSource();
+        return s.get(String.format("body_lang_%s", s.get("lang"))).toString();
+    }
 
-        final Map<String, Object> source = response.getSource();
-
-        final String index = response.getIndex();
-        final String docId = source.get("warc_trec_id").toString();
-
-        JSONObject doc = MapFileReader.getDocument(docId, index);
-        String html;
+    /**
+     * Retrieve document by its UUID.
+     *
+     * @param indexName name of the index from which to retrieve the document
+     * @param docUUID document UUID inside the MapFile
+     * @return retrieved document, null if no matching document exists
+     */
+    public Document getByUUID(final String indexName, final UUID docUUID)
+    {
+        final JSONObject doc = MapFileReader.getDocument(docUUID, indexName);
         if (null == doc) {
-            html = "HTML unavailable";
-        } else {
-            html = ((JSONObject) doc.get("payload")).get("body").toString();
+            return null;
         }
-
-        results.add(new SearchResultBuilder().
-                id(response.getId()).
-                trecId(docId).
-                title(source.get("title_lang_en").toString()).
-                fullBody(source.get("body_lang_en").toString()).
-                rawHTML(rewriteURIs(html, doc)).
-                build());
-        return results;
-    }
-
-    @Override
-    public long getTotalResultNumber()
-    {
-        return 1;
+        return new Document(docUUID, indexName, doc);
     }
 
     /**
-     * Get a List of all indices that are allowed by the config and are therefore actually used.
+     * Retrieve document by its index-internal Elasticsearch document ID.
      *
-     * @return List of index names
+     * @param indexName name of the index from which to retrieve the document
+     * @param docID Elasticsearch Flake ID
+     * @return retrieved document, null if no matching document exists
      */
-    public String getEffectiveIndex()
+    public Document getByIndexDocID(final String indexName, final String docID)
     {
-        return this.index;
+        final GetResponse response = getClient().prepareGet(indexName, "warcrecord", docID)
+                .execute()
+                .actionGet();
+        if (!response.isExists()) {
+            return null;
+        }
+        String recordIDKey = "warc_record_id";
+        if (indexName.contains("clueweb")) {
+            recordIDKey = "warc_trec_id";
+        }
+        String recordID = (String) response.getSource().get(recordIDKey);
+        return getByWarcID(indexName, recordID);
     }
 
-    private String rewriteURIs(final String html, JSONObject thisDocument)
-    {
-        Document doc = Jsoup.parse(html);
-
-        Elements anchors = doc.select("a[href]");
-        for (Element a : anchors) {
-            a.attr("href", rewriteURL(a.attr("href"), thisDocument));
-        }
-
-        Elements links = doc.select("link[href]");
-        for (Element l : links) {
-            l.attr("href", rewriteURL(l.attr("href"), thisDocument, true));
-        }
-
-        Elements images = doc.select("img[src]");
-        for (Element img : images) {
-            img.attr("src", rewriteURL(img.attr("src"), thisDocument, true));
-        }
-
-        Elements scripts = doc.select("script[src]");
-        for (Element script : scripts) {
-            script.attr("src", rewriteURL(script.attr("src"), thisDocument, true));
-        }
-
-        return doc.toString();
-    }
-
-
-    private String rewriteURL(String uriStr, final JSONObject thisDocument)
-    {
-        return rewriteURL(uriStr, thisDocument, false);
-    }
-
-    private String rewriteURL(String uriStr, final JSONObject thisDocument, final boolean skipMapFileCheck)
+    /**
+     * Retrieve document by its WARC record ID.
+     *
+     * @param indexName name of the index from which to retrieve the document
+     * @param warcID document WARC ID
+     * @return retrieved document, null if no matching document exists
+     */
+    public Document getByWarcID(final String indexName, final String warcID)
     {
         try {
-            URI uri = new URI(uriStr);
-            String host   = uri.getHost();
-            String scheme = uri.getScheme();
-            int port      = uri.getPort();
+            String prefix = getConf().get("mapfiles").get(indexName).getString("prefix");
+            final UUID uuid = WebisUUID.generateUUID(prefix, warcID);
+            return getByUUID(indexName, uuid);
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
 
-            if (scheme != null && !scheme.equals("http") && !scheme.equals("https"))
-                return uriStr;
+    /**
+     * Retrieve document by its URI.
+     *
+     * @param indexName name of the index from which to retrieve the document
+     * @param uri document URI
+     * @return retrieved document, null if no matching document exists
+     */
+    public Document getByURI(final String indexName, final String uri)
+    {
+        final UUID docUUID = MapFileReader.getUUIDForUrl(uri, indexName);
+        if (null == docUUID) {
+            return null;
+        }
+        return getByUUID(indexName, docUUID);
+    }
+    public class Document
+    {
+        private UUID mDocUUID;
+        private String mIndexName;
+        private Map<String, String> mMetadata = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        private Map<String, String> mHttpHeaders = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        private String mBody;
+        private String mEncoding;
 
-            URI thisURI = new URI(( (JSONObject) thisDocument.get("metadata")).get("WARC-Target-URI").toString());
-            if (null == scheme) {
-                scheme = thisURI.getScheme();
-            }
-            if (-1 == port) {
-                port = thisURI.getPort();
-            }
-            if (null == host) {
-                host = thisURI.getHost();
-            }
-            // make sure we always have absolute URIs with scheme and hostname
-            uriStr = new URIBuilder(uri).setScheme(scheme).setPort(port).setHost(host).build().toString();
-        } catch (URISyntaxException ignored) {}
+        Document(final UUID uuid, final String indexName, final JSONObject document)
+        {
+            mDocUUID = uuid;
+            mIndexName = indexName;
 
-        if (!skipMapFileCheck) {
-            final UUID id = MapFileReader.getUUIDForUrl(uriStr, getEffectiveIndex());
-            if (null != id) {
+            JSONObject m = (JSONObject) document.get("metadata");
+            for (Object k : m.keySet()) {
+                mMetadata.put((String) k, (String) m.get(k));
+            }
+
+            JSONObject p = (JSONObject) document.get("payload");
+            JSONObject h = (JSONObject) p.get("headers");
+            for (Object k : h.keySet()) {
+                mHttpHeaders.put((String) k, (String) m.get(k));
+            }
+
+            mBody     = (String) p.get("body");
+            mEncoding = (String) p.get("encoding");
+            if (mEncoding.equals("base64")) {
                 try {
-                    uriStr = CacheServlet.ROUTE + "?uuid=" + id.toString() + "&i=" + URLEncoder.encode(this.index, "UTF-8");
+                    mBody = new String(Base64.getDecoder().decode(mBody), "ISO-8859-1");
                 } catch (UnsupportedEncodingException ignored) {}
             }
         }
 
-        return uriStr;
+        public boolean getURIsRewritten()
+        {
+            return mRewriteURIs;
+        }
+
+        public UUID getDocUUID()
+        {
+            return mDocUUID;
+        }
+
+        public String getIndexName()
+        {
+            return mIndexName;
+        }
+
+        public String getRecordID()
+        {
+            if (mIndexName.contains("clueweb")) {
+                return mMetadata.get("WARC-TREC-ID");
+            }
+            return mMetadata.get("WARC-Record-ID");
+        }
+
+        public String getTargetURI()
+        {
+            return mMetadata.get("WARC-Target-URI");
+        }
+
+        public Map<String, String> getMetadata()
+        {
+            return mMetadata;
+        }
+
+        public Map<String, String> getHttpHeaders()
+        {
+            return mHttpHeaders;
+        }
+
+        public String getBody()
+        {
+            if (mRewriteURIs) {
+                return rewriteURIs(mBody);
+            }
+            return mBody;
+        }
+
+        private String rewriteURIs(final String html)
+        {
+            org.jsoup.nodes.Document doc = Jsoup.parse(html);
+
+            Elements anchors = doc.select("a[href]");
+            for (Element a : anchors) {
+                a.attr("href", rewriteURL(a.attr("href"), true));
+            }
+
+            Elements links = doc.select("link[href]");
+            for (Element l : links) {
+                l.attr("href", rewriteURL(l.attr("href"), false, true));
+            }
+
+            Elements images = doc.select("img[src]");
+            for (Element img : images) {
+                img.attr("src", rewriteURL(img.attr("src"), false, true));
+            }
+
+            Elements scripts = doc.select("script[src]");
+            for (Element script : scripts) {
+                script.attr("src", rewriteURL(script.attr("src"), false, true));
+            }
+
+            return doc.toString();
+        }
+
+
+        private String rewriteURL(String uriStr, boolean redirectOther)
+        {
+            return rewriteURL(uriStr, redirectOther, false);
+        }
+
+        private String rewriteURL(String uriStr, boolean redirectOther, boolean skipMapFileCheck)
+        {
+            try {
+                URI uri = new URI(uriStr);
+                String host = uri.getHost();
+                String scheme = uri.getScheme();
+                int port = uri.getPort();
+
+                if (scheme != null && !scheme.equals("http") && !scheme.equals("https"))
+                    return uriStr;
+
+                URI thisURI = new URI(getTargetURI());
+                if (null == scheme) {
+                    scheme = thisURI.getScheme();
+                }
+                if (-1 == port) {
+                    port = thisURI.getPort();
+                }
+                if (null == host) {
+                    host = thisURI.getHost();
+                }
+                // make sure we always have absolute URIs with scheme and hostname
+                uriStr = new URIBuilder(uri).setScheme(scheme).setPort(port).setHost(host).build().toString();
+            } catch (URISyntaxException ignored) {
+            }
+
+            if (!skipMapFileCheck) {
+                final UUID id = MapFileReader.getUUIDForUrl(uriStr, mIndexName);
+                try {
+                    if (null != id) {
+                        uriStr = CacheServlet.ROUTE + "?uuid=" + id.toString() + "&i=" + URLEncoder.encode(mIndexName, "UTF-8");
+                    } else if (redirectOther) {
+                        // TODO: don't hardcode path
+                        uriStr = "/redirect?uri=" + URLEncoder.encode(uriStr, "UTF-8");
+                    }
+                } catch (UnsupportedEncodingException ignored) {}
+            }
+
+            return uriStr;
+        }
     }
 }
