@@ -7,8 +7,10 @@
 
 package de.webis.chatnoir2.webclient.search;
 
+import de.webis.chatnoir2.webclient.CacheServlet;
 import de.webis.chatnoir2.webclient.hdfs.MapFileReader;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
+import org.apache.http.client.utils.URIBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -19,7 +21,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
@@ -158,7 +159,7 @@ public class DocumentRetriever extends SearchProvider
                 trecId(docId).
                 title(source.get("title_lang_en").toString()).
                 fullBody(source.get("body_lang_en").toString()).
-                rawHTML(rewriteLinks(html, doc)).
+                rawHTML(rewriteURIs(html, doc)).
                 build());
         return results;
     }
@@ -179,34 +180,73 @@ public class DocumentRetriever extends SearchProvider
         return this.index;
     }
 
-    private String rewriteLinks(final String html, JSONObject thisDocument)
+    private String rewriteURIs(final String html, JSONObject thisDocument)
     {
         Document doc = Jsoup.parse(html);
-        Elements links = doc.select("a[href]");
-        for (Element a : links) {
-            String uriStr = a.attr("href");
-            try {
-                URI uri = new URI(uriStr);
-                String host = uri.getHost();
-                String scheme = uri.getScheme();
-                if (null == host) {
-                    host = new URI(( (JSONObject) thisDocument.get("metadata")).get("WARC-Target-URI").toString()).getHost();
-                }
-                if (null == uri.getScheme()) {
-                    scheme = "http";
-                }
-                uriStr = UriBuilder.fromUri(uri).host(host).scheme(scheme).build().toString();
-            } catch (URISyntaxException ignored) {}
-            final UUID id = MapFileReader.getUUIDForUrl(uriStr, getEffectiveIndex());
-            try {
-                if (null != id) {
-                    a.attr("href", "/cache?uuid=" + id.toString() + "&i=" + URLEncoder.encode(this.index, "UTF-8"));
-                } else {
-                    a.attr("href", "/redirect=url=" + URLEncoder.encode(uriStr, "UTF-8"));
-                }
-            } catch (UnsupportedEncodingException ignored) {}
+
+        Elements anchors = doc.select("a[href]");
+        for (Element a : anchors) {
+            a.attr("href", rewriteURL(a.attr("href"), thisDocument));
+        }
+
+        Elements links = doc.select("link[href]");
+        for (Element l : links) {
+            l.attr("href", rewriteURL(l.attr("href"), thisDocument, true));
+        }
+
+        Elements images = doc.select("img[src]");
+        for (Element img : images) {
+            img.attr("src", rewriteURL(img.attr("src"), thisDocument, true));
+        }
+
+        Elements scripts = doc.select("script[src]");
+        for (Element script : scripts) {
+            script.attr("src", rewriteURL(script.attr("src"), thisDocument, true));
         }
 
         return doc.toString();
+    }
+
+
+    private String rewriteURL(String uriStr, final JSONObject thisDocument)
+    {
+        return rewriteURL(uriStr, thisDocument, false);
+    }
+
+    private String rewriteURL(String uriStr, final JSONObject thisDocument, final boolean skipMapFileCheck)
+    {
+        try {
+            URI uri = new URI(uriStr);
+            String host   = uri.getHost();
+            String scheme = uri.getScheme();
+            int port      = uri.getPort();
+
+            if (scheme != null && !scheme.equals("http") && !scheme.equals("https"))
+                return uriStr;
+
+            URI thisURI = new URI(( (JSONObject) thisDocument.get("metadata")).get("WARC-Target-URI").toString());
+            if (null == scheme) {
+                scheme = thisURI.getScheme();
+            }
+            if (-1 == port) {
+                port = thisURI.getPort();
+            }
+            if (null == host) {
+                host = thisURI.getHost();
+            }
+            // make sure we always have absolute URIs with scheme and hostname
+            uriStr = new URIBuilder(uri).setScheme(scheme).setPort(port).setHost(host).build().toString();
+        } catch (URISyntaxException ignored) {}
+
+        if (!skipMapFileCheck) {
+            final UUID id = MapFileReader.getUUIDForUrl(uriStr, getEffectiveIndex());
+            if (null != id) {
+                try {
+                    uriStr = CacheServlet.ROUTE + "?uuid=" + id.toString() + "&i=" + URLEncoder.encode(this.index, "UTF-8");
+                } catch (UnsupportedEncodingException ignored) {}
+            }
+        }
+
+        return uriStr;
     }
 }
