@@ -12,15 +12,14 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
+import de.webis.chatnoir2.webclient.hdfs.MapFileReader;
 import de.webis.chatnoir2.webclient.response.Renderer;
 import de.webis.chatnoir2.webclient.search.DocumentRetriever;
 import de.webis.chatnoir2.webclient.search.SearchProvider;
 import de.webis.chatnoir2.webclient.search.SearchResultBuilder;
+import org.json.simple.JSONObject;
 
 /**
  * Index Servlet for Chatnoir 2.
@@ -41,6 +40,14 @@ public class CacheServlet extends ChatNoirServlet
      */
     private static final String TEMPLATE_INDEX = "/templates/chatnoir2-cache.mustache";
 
+    @Override
+    public void init() throws ServletException
+    {
+        super.init();
+        if (!MapFileReader.isInitialized())
+            MapFileReader.init();
+    }
+
     /**
      * GET action for this servlet.
      *
@@ -54,9 +61,25 @@ public class CacheServlet extends ChatNoirServlet
     {
         super.doGet(request, response);
 
-        if (null == request.getParameter("docId")) {
+        final String uuidParam = request.getParameter("uuid");
+        final String indexParam = request.getParameter("i");
+        if (null == request.getParameter("docId") && null == uuidParam
+                || (null != uuidParam && null == indexParam)) {
             getServletContext().getRequestDispatcher(SearchServlet.ROUTE).forward(request, response);
             return;
+        }
+
+        // if UUID given, just print document and return
+        if (null != uuidParam) {
+            try {
+                final JSONObject doc = MapFileReader.getDocument(UUID.fromString(uuidParam), indexParam);
+                final String body = ((JSONObject) doc.get("payload")).get("body").toString();
+                // TODO: rewrite Links
+                response.getWriter().print(body);
+                return;
+            } catch (Exception e) {
+                return;
+            }
         }
 
         final boolean rawMode       = (null != request.getParameter("raw"));

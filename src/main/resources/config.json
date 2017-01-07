@@ -7,6 +7,18 @@
         "default_index" : "webis_warc_clueweb12_004"
     },
 
+    "hdfs" : {
+        "defaultFS" : "hdfs://betaweb020:8020"
+    },
+
+    "mapfiles" : {
+        "webis_warc_clueweb12_004" : {
+            "path" : "/corpora/clueweb/12-mapfile",
+            "partitions" : 100,
+            "prefix" : "clueweb12"
+        }
+    },
+
     "serp" : {
         "pagination" : {
             "results_per_page" : 10

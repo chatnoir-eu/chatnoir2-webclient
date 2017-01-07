@@ -26,4 +26,7 @@ dependencies {
     compile 'com.googlecode.json-simple:json-simple:1.1'
     compile 'org.reflections:reflections:0.9.10'
     compile group: 'com.cybozu.labs', name: 'langdetect', version: '1.1-20120112'
+    compile 'org.apache.hadoop:hadoop-client:2.7.3'
+    compile 'org.jsoup:jsoup:1.8.3'
+    compile files("$projectDir/../webis-uuid/jar/webis-uuid.jar")
 }

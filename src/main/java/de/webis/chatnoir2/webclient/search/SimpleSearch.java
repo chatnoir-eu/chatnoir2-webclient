@@ -7,6 +7,7 @@
 
 package de.webis.chatnoir2.webclient.search;
 
+import de.webis.chatnoir2.webclient.hdfs.MapFileReader;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.TextCleanser;
 import org.elasticsearch.action.search.SearchResponse;

@@ -7,14 +7,25 @@
 
 package de.webis.chatnoir2.webclient.search;
 
+import de.webis.chatnoir2.webclient.hdfs.MapFileReader;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.json.simple.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
+import javax.ws.rs.core.UriBuilder;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.*;
 
 /**
@@ -41,6 +52,11 @@ public class DocumentRetriever extends SearchProvider
     private GetResponse response = null;
 
     /**
+     * Application configuration.
+     */
+    private final ConfigLoader.Config config;
+
+    /**
      * Constructor.
      *
      * @param index index to retrieve document from (null means first default index from config).
@@ -48,7 +64,7 @@ public class DocumentRetriever extends SearchProvider
      */
     public DocumentRetriever(final String index)
     {
-        final ConfigLoader.Config config = new Object() {
+        config = new Object() {
             public ConfigLoader.Config run()
             {
                 try {
@@ -59,6 +75,9 @@ public class DocumentRetriever extends SearchProvider
                 }
             }
         }.run();
+
+        if (!MapFileReader.isInitialized())
+            MapFileReader.init();
 
         final String clusterName = config.get("cluster").getString("cluster_name", "");
         final String hostName    = config.get("cluster").getString("host", "localhost");
@@ -123,12 +142,23 @@ public class DocumentRetriever extends SearchProvider
 
         final Map<String, Object> source = response.getSource();
 
+        final String index = response.getIndex();
+        final String docId = source.get("warc_trec_id").toString();
+
+        JSONObject doc = MapFileReader.getDocument(docId, index);
+        String html;
+        if (null == doc) {
+            html = "HTML unavailable";
+        } else {
+            html = ((JSONObject) doc.get("payload")).get("body").toString();
+        }
+
         results.add(new SearchResultBuilder().
                 id(response.getId()).
-                trecId(source.get("warc_trec_id").toString()).
+                trecId(docId).
                 title(source.get("title_lang_en").toString()).
                 fullBody(source.get("body_lang_en").toString()).
-                rawHTML("RAW HTML NOT AVAILABLE YET").
+                rawHTML(rewriteLinks(html, doc)).
                 build());
         return results;
     }
@@ -147,5 +177,36 @@ public class DocumentRetriever extends SearchProvider
     public String getEffectiveIndex()
     {
         return this.index;
+    }
+
+    private String rewriteLinks(final String html, JSONObject thisDocument)
+    {
+        Document doc = Jsoup.parse(html);
+        Elements links = doc.select("a[href]");
+        for (Element a : links) {
+            String uriStr = a.attr("href");
+            try {
+                URI uri = new URI(uriStr);
+                String host = uri.getHost();
+                String scheme = uri.getScheme();
+                if (null == host) {
+                    host = new URI(( (JSONObject) thisDocument.get("metadata")).get("WARC-Target-URI").toString()).getHost();
+                }
+                if (null == uri.getScheme()) {
+                    scheme = "http";
+                }
+                uriStr = UriBuilder.fromUri(uri).host(host).scheme(scheme).build().toString();
+            } catch (URISyntaxException ignored) {}
+            final UUID id = MapFileReader.getUUIDForUrl(uriStr, getEffectiveIndex());
+            try {
+                if (null != id) {
+                    a.attr("href", "/cache?uuid=" + id.toString() + "&i=" + URLEncoder.encode(this.index, "UTF-8"));
+                } else {
+                    a.attr("href", "/redirect=url=" + URLEncoder.encode(uriStr, "UTF-8"));
+                }
+            } catch (UnsupportedEncodingException ignored) {}
+        }
+
+        return doc.toString();
     }
 }
