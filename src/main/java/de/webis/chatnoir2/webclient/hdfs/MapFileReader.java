@@ -41,12 +41,7 @@ public class MapFileReader extends Configured
     public static void init()
     {
         if (null != mInstance) {
-            for (Path p : mMapfileReaders.keySet()) {
-                try {
-                    mMapfileReaders.get(p).close();
-                } catch (IOException ignored) {}
-            }
-            mMapfileReaders.clear();
+            cleanUp();
         }
 
         mInstance = new MapFileReader();
@@ -56,6 +51,27 @@ public class MapFileReader extends Configured
     public static boolean isInitialized()
     {
         return null != mInstance;
+    }
+
+    private static void cleanUp()
+    {
+        if (null == mInstance) {
+            return;
+        }
+
+        for (Path p : mMapfileReaders.keySet()) {
+            try {
+                mMapfileReaders.get(p).close();
+            } catch (IOException ignored) {}
+        }
+        mMapfileReaders.clear();
+    }
+
+    @Override
+    protected void finalize() throws Throwable
+    {
+        cleanUp();
+        super.finalize();
     }
 
     /**
