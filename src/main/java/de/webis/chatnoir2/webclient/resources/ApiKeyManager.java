@@ -45,9 +45,7 @@ public class ApiKeyManager
      */
     public static synchronized ApiKeyManager getInstance(final String apiKeysFileName)
     {
-        if (null == instances.get(apiKeysFileName)) {
-            instances.put(apiKeysFileName, new ApiKeyManager(apiKeysFileName));
-        }
+        instances.computeIfAbsent(apiKeysFileName, k -> new ApiKeyManager(apiKeysFileName));
         return instances.get(apiKeysFileName);
     }
 

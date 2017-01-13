@@ -13,7 +13,7 @@ import de.webis.chatnoir2.webclient.hdfs.MapFileReader;
 import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.http.client.utils.URIBuilder;
 import org.elasticsearch.action.get.GetResponse;
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -126,7 +126,7 @@ public class DocumentRetriever extends Configured
             String prefix = getConf().get("mapfiles").get(indexName).getString("prefix");
             final UUID uuid = WebisUUID.generateUUID(prefix, warcID);
             return getByUUID(indexName, uuid);
-        } catch (Exception ignored) {
+        } catch (Exception e) {
             return null;
         }
     }
@@ -160,19 +160,19 @@ public class DocumentRetriever extends Configured
             mDocUUID = uuid;
             mIndexName = indexName;
 
-            JSONObject m = (JSONObject) document.get("metadata");
-            for (Object k : m.keySet()) {
-                mMetadata.put((String) k, (String) m.get(k));
+            JSONObject m = document.getJSONObject("metadata");
+            for (String k : m.keySet()) {
+                mMetadata.put(k, m.getString(k));
             }
 
-            JSONObject p = (JSONObject) document.get("payload");
-            JSONObject h = (JSONObject) p.get("headers");
-            for (Object k : h.keySet()) {
-                mHttpHeaders.put((String) k, (String) m.get(k));
+            JSONObject p = document.getJSONObject("payload");
+            JSONObject h = p.getJSONObject("headers");
+            for (String k : h.keySet()) {
+                mHttpHeaders.put(k, h.getString(k));
             }
 
-            mBody     = (String) p.get("body");
-            mEncoding = (String) p.get("encoding");
+            mBody     = p.getString("body");
+            mEncoding = p.getString("encoding");
             if (mEncoding.equals("base64")) {
                 try {
                     mBody = new String(Base64.getDecoder().decode(mBody), "ISO-8859-1");

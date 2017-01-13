@@ -9,7 +9,7 @@ package de.webis.chatnoir2.webclient.api;
 
 import de.webis.chatnoir2.webclient.ChatNoirServlet;
 import de.webis.chatnoir2.webclient.resources.ApiKeyManager;
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

@@ -7,8 +7,8 @@
 
 package de.webis.chatnoir2.webclient.search;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -82,7 +82,7 @@ public abstract class SearchProvider
 
             if (indentLevel < numSpaces / 2) {
                 final JSONArray newLevel = new JSONArray();
-                treeLevels.peek().add(newLevel);
+                treeLevels.peek().put(newLevel);
                 treeLevels.push(newLevel);
                 ++indentLevel;
             }
@@ -97,7 +97,7 @@ public abstract class SearchProvider
 
             final JSONObject tmpObj = new JSONObject();
             tmpObj.put(numberPart, descPart);
-            treeLevels.peek().add(tmpObj);
+            treeLevels.peek().put(tmpObj);
         }
 
         return outputJson;

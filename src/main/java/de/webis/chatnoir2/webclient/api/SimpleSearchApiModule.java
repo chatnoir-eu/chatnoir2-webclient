@@ -11,8 +11,8 @@ import de.webis.chatnoir2.webclient.ChatNoirServlet;
 import de.webis.chatnoir2.webclient.search.SearchProvider;
 import de.webis.chatnoir2.webclient.search.SearchResultBuilder;
 import de.webis.chatnoir2.webclient.search.SimpleSearch;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -102,7 +102,7 @@ public class SimpleSearchApiModule extends ApiModuleBase
                     }
                     current.put(key, resMeta.get(key));
                 }
-                resultsJson.add(current);
+                resultsJson.put(current);
             }
 
             final JSONObject searchMeta = new JSONObject();

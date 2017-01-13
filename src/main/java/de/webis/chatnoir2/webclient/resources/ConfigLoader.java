@@ -7,17 +7,16 @@
 
 package de.webis.chatnoir2.webclient.resources;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.ListIterator;
-import java.util.stream.Collectors;
 
 /**
  * Loader and provider singleton for configuration directives.
@@ -95,11 +94,18 @@ public class ConfigLoader
         }
 
         final String fullConfigFileName = configFileURL.getPath();
-        final JSONParser parser = new JSONParser();
-        try (FileReader reader = new FileReader(fullConfigFileName)) {
+        try (BufferedReader br = new BufferedReader(new FileReader(fullConfigFileName))) {
+            StringBuilder sb = new StringBuilder();
+
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
+                sb.append(System.lineSeparator());
+            }
+
             try {
-                configObjects.put(configFileName, (JSONObject) parser.parse(reader));
-            } catch (org.json.simple.parser.ParseException e) {
+                configObjects.put(configFileName, new JSONObject(sb.toString()));
+            } catch (JSONException e) {
                 throw new ParseException(e.getMessage());
             }
         }
@@ -142,11 +148,11 @@ public class ConfigLoader
          */
         public Config get(String name)
         {
-            if (null == configObject) {
+            if (null == configObject || !configObject.has(name)) {
                 return this;
             }
 
-            return new Config((JSONObject) configObject.get(name));
+            return new Config(configObject.getJSONObject(name));
         }
 
         /**
@@ -157,11 +163,11 @@ public class ConfigLoader
          */
         public String getString(final String name)
         {
-            if (null == configObject) {
+            if (null == configObject || !configObject.has(name)) {
                 return null;
             }
 
-            return (String) configObject.get(name);
+            return configObject.getString(name);
         }
 
         /**
@@ -172,11 +178,11 @@ public class ConfigLoader
          */
         public String getString(final String name, final String defaultValue)
         {
-            if (null == configObject || null == configObject.get(name)) {
+            if (null == configObject || !configObject.has(name)) {
                 return defaultValue;
             }
 
-            return (String) configObject.get(name);
+            return configObject.getString(name);
         }
 
         /**
@@ -187,11 +193,11 @@ public class ConfigLoader
          */
         public Long getLong(final String name)
         {
-            if (null == configObject) {
+            if (null == configObject || !configObject.has(name)) {
                 return null;
             }
 
-            return (Long) configObject.get(name);
+            return configObject.getLong(name);
         }
 
         /**
@@ -202,11 +208,11 @@ public class ConfigLoader
          */
         public Long getLong(final String name, final Long defaultValue)
         {
-            if (null == configObject || null == configObject.get(name)) {
+            if (null == configObject || !configObject.has(name)) {
                 return defaultValue;
             }
 
-            return (Long) configObject.get(name);
+            return configObject.getLong(name);
         }
 
 
@@ -240,11 +246,11 @@ public class ConfigLoader
          */
         public Double getDouble(final String name)
         {
-            if (null == configObject) {
+            if (null == configObject || !configObject.has(name)) {
                 return null;
             }
 
-            return (Double) configObject.get(name);
+            return configObject.getDouble(name);
         }
 
         /**
@@ -255,11 +261,11 @@ public class ConfigLoader
          */
         public Double getDouble(final String name, final Double defaultValue)
         {
-            if (null == configObject || null == configObject.get(name)) {
+            if (null == configObject || !configObject.has(name)) {
                 return defaultValue;
             }
 
-            return (Double) configObject.get(name);
+            return configObject.getDouble(name);
         }
 
         /**
@@ -292,11 +298,11 @@ public class ConfigLoader
          */
         public Boolean getBoolean(final String name)
         {
-            if (null == configObject) {
+            if (null == configObject || !configObject.has(name)) {
                 return null;
             }
 
-            return (Boolean) configObject.get(name);
+            return configObject.getBoolean(name);
         }
 
         /**
@@ -307,11 +313,11 @@ public class ConfigLoader
          */
         public Boolean getBoolean(final String name, final Boolean defaultValue)
         {
-            if (null == configObject || null == configObject.get(name)) {
+            if (null == configObject || !configObject.has(name)) {
                 return defaultValue;
             }
 
-            return (Boolean) configObject.get(name);
+            return configObject.getBoolean(name);
         }
 
         /**
@@ -322,16 +328,15 @@ public class ConfigLoader
          */
         public Config[] getArray(final String name)
         {
-            if (null == configObject || null == configObject.get(name)) {
+            if (null == configObject || !configObject.has(name)) {
                 return new Config[0];
             }
 
-            final JSONArray jsonArr  = (JSONArray) configObject.get(name);
-            final Config[] configArr = new Config[jsonArr.size()];
-            final ListIterator it    = jsonArr.listIterator();
-
-            while (it.hasNext()) {
-                configArr[it.nextIndex()] = new Config((JSONObject) it.next());
+            final JSONArray jsonArr  = configObject.getJSONArray(name);
+            final int len = jsonArr.length();
+            final Config[] configArr = new Config[len];
+            for (int i = 0; i < len; ++i) {
+                configArr[i] = new Config(jsonArr.getJSONObject(i));
             }
 
             return configArr;
@@ -384,12 +389,12 @@ public class ConfigLoader
         @SuppressWarnings({"unchecked"})
         private <T> ArrayList<T> getTypeArrayList(final String name, final Class<T> type)
         {
-            if (null == configObject || null == configObject.get(name)) {
+            if (null == configObject || !configObject.has(name)) {
                 return new ArrayList<>(0);
             }
 
             final ArrayList<T> typedArrayList = new ArrayList<>();
-            final JSONArray cfg = (JSONArray) configObject.get(name);
+            final JSONArray cfg = configObject.getJSONArray(name);
 
             for (final Object o : cfg) {
                 typedArrayList.add((T) o);

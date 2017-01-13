@@ -88,6 +88,7 @@ public class CacheServlet extends ChatNoirServlet
                 return;
             } catch (Exception e) {
                 // catch self-thrown exception as well as any UUID parsing errors
+                e.printStackTrace();
                 redirectError(request, response);
                 return;
             }

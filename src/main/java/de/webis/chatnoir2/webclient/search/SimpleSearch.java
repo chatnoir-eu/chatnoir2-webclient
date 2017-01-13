@@ -7,7 +7,6 @@
 
 package de.webis.chatnoir2.webclient.search;
 
-import de.webis.chatnoir2.webclient.hdfs.MapFileReader;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.TextCleanser;
 import org.elasticsearch.action.search.SearchResponse;
@@ -25,20 +24,10 @@ import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.index.query.functionscore.fieldvaluefactor.FieldValueFactorFunctionBuilder;
-import org.elasticsearch.index.search.MatchQuery;
-import org.elasticsearch.script.Script;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.aggregations.*;
-import org.elasticsearch.search.aggregations.bucket.nested.ReverseNested;
-import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
-import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.aggregations.metrics.tophits.TopHits;
-import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsAggregator;
-import org.elasticsearch.search.aggregations.metrics.tophits.TopHitsBuilder;
 import org.elasticsearch.search.profile.ProfileShardResult;
 import org.elasticsearch.search.rescore.RescoreBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.json.simple.JSONArray;
+import org.json.JSONArray;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

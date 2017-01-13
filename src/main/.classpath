@@ -4,14 +4,14 @@
 	<classpathentry kind="src" path="java"/>
 	<classpathentry kind="src" path="resources"/>
 	<classpathentry kind="lib" path="/home/roce3528/code-in-progress/chatnoir2/webis-uuid/jar/webis-uuid.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: javax.servlet:javax.servlet-api:3.0.1"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.elasticsearch:elasticsearch:2.4.3"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.github.spullara.mustache.java:compiler:0.9.0"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.googlecode.json-simple:json-simple:1.1"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: javax.servlet:javax.servlet-api:3.1.0"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.elasticsearch:elasticsearch:2.4.4"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.github.spullara.mustache.java:compiler:0.9.4"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.json:json:20160810"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.reflections:reflections:0.9.10"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.cybozu.labs:langdetect:1.1-20120112"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.apache.hadoop:hadoop-client:2.7.3"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.jsoup:jsoup:1.8.3"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.jsoup:jsoup:1.10.2"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.apache.httpcomponents:httpclient:4.5.2"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.apache.lucene:lucene-core:5.5.2"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.apache.lucene:lucene-backward-codecs:5.5.2"/>
@@ -121,5 +121,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: org.sonatype.sisu.inject:cglib:2.2.1-v20090111"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: asm:asm:3.1"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Gradle: com.sun.xml.bind:jaxb-impl:2.2.3-1"/>
-	<classpathentry kind="output" path="/home/roce3528/code-in-progress/chatnoir2/chatnoir2-webclient/build/classes/main"/>
+	<classpathentry kind="output" path="home/roce3528/code-in-progress/chatnoir2/chatnoir2-webclient/build/classes/main"/>
 </classpath>

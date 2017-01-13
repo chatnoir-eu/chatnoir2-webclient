@@ -8,7 +8,7 @@
 
 package de.webis.chatnoir2.webclient.api;
 
-import org.json.simple.JSONObject;
+import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

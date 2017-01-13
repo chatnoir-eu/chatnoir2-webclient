@@ -15,9 +15,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.MapFile;
 import org.apache.hadoop.io.Text;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -113,9 +112,9 @@ public class MapFileReader extends Configured
                 mMapfileReaders.put(inputPath, reader);
             }
 
-            return (JSONObject) new JSONParser().parse(reader.get(new Text(recordUUID.toString()), new Text()).toString());
+            return new JSONObject(reader.get(new Text(recordUUID.toString()), new Text()).toString());
 
-        } catch (IOException | ParseException | NullPointerException e) {
+        } catch (IOException | JSONException | NullPointerException e) {
             return null;
         }
     }
