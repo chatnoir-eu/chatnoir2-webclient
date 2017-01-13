@@ -11,7 +11,9 @@ import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.TextCleanser;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.lucene.search.function.CombineFunction;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
+import org.elasticsearch.common.lucene.search.function.FiltersFunctionScoreQuery;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -21,12 +23,16 @@ import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
-import org.elasticsearch.index.query.functionscore.fieldvaluefactor.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.profile.ProfileShardResult;
+import org.elasticsearch.search.rescore.QueryRescoreMode;
+import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.elasticsearch.search.rescore.RescoreBuilder;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.json.JSONArray;
 
 import java.io.IOException;
@@ -120,8 +126,11 @@ public class SimpleSearch extends SearchProvider
             this.indices = new String[]{config.get("cluster").getString("default_index", allowedIndices.get(0))};
         }
 
-        final Settings settings = Settings.settingsBuilder().put("cluster.name", clusterName).build();
-        client = new TransportClient.Builder().settings(settings).build().addTransportAddress(
+        final Settings settings = Settings.builder()
+                .put("cluster.name", clusterName)
+                .put("client.transport.sniff", true)
+                .build();
+        client = new PreBuiltTransportClient(settings).addTransportAddress(
                 new InetSocketTransportAddress(new InetSocketAddress(hostName, port)));
     }
 
@@ -188,9 +197,8 @@ public class SimpleSearch extends SearchProvider
                        simpleSearchConfig.getInteger("rescore_window", size))
                 .setFrom(from)
                 .setSize(size)
-                .addHighlightedField("body_lang_en", snippetLength, 1)
-                .addHighlightedField("title_lang_en", titleLength, 1)
-                .setHighlighterEncoder("html")
+                .highlighter(new HighlightBuilder().field("body_lang_en", snippetLength, 1).encoder("html"))
+                .highlighter(new HighlightBuilder().field("title_lang_en", titleLength, 1).encoder("html"))
                 .setExplain(doExplain)
                 .setTerminateAfter(simpleSearchConfig.getInteger("node_limit", 200000))
                 //.addAggregation(aggregation)
@@ -207,12 +215,13 @@ public class SimpleSearch extends SearchProvider
             }
         }*/
 
+        /*
         try {
-            final Map<String, List<ProfileShardResult>> profileResults = response.getProfileResults();
+            final Map<String, ProfileShardResult> profileResults = response.getProfileResults();
             if (null != profileResults) {
                 final XContentBuilder jsonBuilder = XContentFactory.contentBuilder(XContentType.JSON);
                 jsonBuilder.startObject();
-                for (final Map.Entry<String, List<ProfileShardResult>> e : profileResults.entrySet()) {
+                for (final Map.Entry<String, ProfileShardResult> e : profileResults.entrySet()) {
                     for (final ProfileShardResult p : e.getValue()) {
                         jsonBuilder.startObject(e.getKey());
                         p.toXContent(jsonBuilder, ToXContent.EMPTY_PARAMS);
@@ -231,6 +240,7 @@ public class SimpleSearch extends SearchProvider
         } catch (IOException e) {
             e.printStackTrace();
         }
+        */
     }
 
     @Override
@@ -327,7 +337,7 @@ public class SimpleSearch extends SearchProvider
         final ConfigLoader.Config simpleSearchConfig = config.get("search").get("default_simple");
 
         final MultiMatchQueryBuilder multimatchQuery = QueryBuilders.multiMatchQuery(userQueryString);
-        multimatchQuery.operator(MatchQueryBuilder.Operator.AND).
+        multimatchQuery.operator(Operator.AND).
                 cutoffFrequency(simpleSearchConfig.getFloat("prequery_cutoff_frequency", 0.001f));
 
         final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
@@ -386,13 +396,12 @@ public class SimpleSearch extends SearchProvider
      * @param mainQuery query to rescore
      * @return assembled RescoreBuilder
      */
-    private RescoreBuilder.Rescorer buildRescorer(final QueryBuilder mainQuery)
+    private QueryRescorerBuilder buildRescorer(final QueryBuilder mainQuery)
     {
-        final RescoreBuilder rescoreBuilder = new RescoreBuilder();
-        final RescoreBuilder.QueryRescorer resorer = RescoreBuilder.queryRescorer(mainQuery);
+        final QueryRescorerBuilder resorer = RescoreBuilder.queryRescorer(mainQuery);
         resorer.setQueryWeight(0.1f).
                 setRescoreQueryWeight(1.0f).
-                setScoreMode("total");
+                setScoreMode(QueryRescoreMode.Total);
         return resorer;
     }
 
@@ -414,7 +423,7 @@ public class SimpleSearch extends SearchProvider
         final ArrayList<Object[]> proximityFields = new ArrayList<>();
         for (final ConfigLoader.Config field : mainFields) {
             simpleQuery.field(field.getString("name", ""), field.getFloat("boost", 1.0f)).
-                    defaultOperator(SimpleQueryStringBuilder.Operator.AND).
+                    defaultOperator(Operator.AND).
                     flags(SimpleQueryStringFlag.AND,
                             SimpleQueryStringFlag.OR,
                             SimpleQueryStringFlag.NOT,
@@ -433,13 +442,14 @@ public class SimpleSearch extends SearchProvider
         }
 
         // wrap main query into function score query
-        final ConfigLoader.Config functionScoreConfig = simpleSearchConfig.get("function_scores");
+        // TODO: port this code
+        /*final ConfigLoader.Config functionScoreConfig = simpleSearchConfig.get("function_scores");
         final FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders.functionScoreQuery(simpleQuery);
         functionScoreQuery.
                 boost(functionScoreConfig.getFloat("boost", 1.0f)).
                 maxBoost(functionScoreConfig.getFloat("max_boost", Float.MAX_VALUE)).
-                boostMode(functionScoreConfig.getString("boost_mode", "multiply")).
-                scoreMode(functionScoreConfig.getString("score_mode", "sum"));
+                boostMode(CombineFunction.fromString(functionScoreConfig.getString("boost_mode", "multiply"))).
+                scoreMode(FiltersFunctionScoreQuery.ScoreMode.fromString(functionScoreConfig.getString("score_mode", "sum")));
 
         // add function score fields
         final ConfigLoader.Config[] scoreFields = functionScoreConfig.getArray("scoring_fields");
@@ -455,7 +465,7 @@ public class SimpleSearch extends SearchProvider
             }
 
             functionScoreQuery.add(fieldValueFunctionBuilder);
-        }
+        }*/
 
         // proximity matching
         BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
@@ -464,17 +474,19 @@ public class SimpleSearch extends SearchProvider
                     (String) o[0],
                     userQueryString
             );
-            proximityMatchQuery.operator(MatchQueryBuilder.Operator.AND).
+            proximityMatchQuery.operator(Operator.AND).
                     slop((Integer) o[1]).
                     boost((Float) o[2]).
                     cutoffFrequency((Float) o[3]);
             mainQuery.should(proximityMatchQuery);
         }
-        mainQuery.must(functionScoreQuery);
+        // TODO: use functionScoreQuery
+        //mainQuery.must(functionScoreQuery);
+        mainQuery.must(simpleQuery);
 
         // general host boost
         MatchQueryBuilder hostBooster = QueryBuilders.matchQuery("warc_target_hostname", userQueryString);
-        hostBooster.boost(20.0f).operator(MatchQueryBuilder.Operator.OR);
+        hostBooster.boost(20.0f).operator(Operator.OR);
         mainQuery.should(hostBooster);
 
         // Wikipedia boost

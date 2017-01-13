@@ -11,6 +11,7 @@ import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -67,8 +68,12 @@ public class Configured
             final String hostName    = cfg.get("cluster").getString("host", "localhost");
             final int port           = cfg.get("cluster").getInteger("port", 9300);
 
-            final Settings settings = Settings.settingsBuilder().put("cluster.name", clusterName).build();
-            mClient = new TransportClient.Builder().settings(settings).build().addTransportAddress(
+            final Settings settings = Settings.builder()
+                    .put("cluster.name", clusterName)
+                    .put("client.transport.sniff", true)
+                    .build();
+
+            mClient = new PreBuiltTransportClient(settings).addTransportAddress(
                     new InetSocketTransportAddress(new InetSocketAddress(hostName, port)));
         }
         return mClient;
