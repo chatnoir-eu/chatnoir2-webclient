@@ -335,20 +335,24 @@ public class SimpleSearch extends SearchProvider
      */
     private QueryBuilder buildPreQuery(final HashMap<String, String> searchFields)
     {
+        BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
+
         final String userQueryString = searchFields.get("search_query");
         final ConfigLoader.Config simpleSearchConfig = config.get("search").get("default_simple");
 
         final MultiMatchQueryBuilder multimatchQuery = QueryBuilders.multiMatchQuery(userQueryString);
-        multimatchQuery.operator(Operator.AND).
-                cutoffFrequency(simpleSearchConfig.getFloat("prequery_cutoff_frequency", 0.001f));
+        multimatchQuery
+                .operator(Operator.AND)
+                .cutoffFrequency(simpleSearchConfig.getFloat("prequery_cutoff_frequency", 0.001f))
+                .type(MultiMatchQueryBuilder.Type.MOST_FIELDS);
 
         final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
         for (final ConfigLoader.Config field : mainFields) {
             multimatchQuery.field(field.getString("name", ""));
         }
+        mainQuery.must(multimatchQuery);
 
         // add range filters (e.g. to filter by minimal content length)
-        BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
         final ConfigLoader.Config[] rangeFilters = simpleSearchConfig.getArray("range_filters");
         for (final ConfigLoader.Config filterConfig : rangeFilters) {
             final RangeQueryBuilder rangeFilter = QueryBuilders.rangeQuery(filterConfig.getString("name", ""));
@@ -370,25 +374,7 @@ public class SimpleSearch extends SearchProvider
             else
                 mainQuery.filter(rangeFilter);
         }
-        mainQuery.must(multimatchQuery);
 
-        // wrap function score query into dismax query
-        /*final DisMaxQueryBuilder disMaxQuery = QueryBuilders.disMaxQuery();
-        disMaxQuery.add(functionScoreQuery);
-
-        // mix in additional fields
-        final ConfigLoader.Config[] subFields = simpleSearchConfig.getArray("additional_fields");
-        for (final ConfigLoader.Config field : subFields) {
-            disMaxQuery.add(
-                    QueryBuilders.
-                            matchQuery(field.getString("name"), userQueryString).
-                            boost(field.getFloat("boost", 1.0f)).
-                            operator(MatchQueryBuilder.Operator.AND)
-            );
-        }
-
-        // set global tie breaker
-        disMaxQuery.tieBreaker(simpleSearchConfig.getFloat("tie_breaker", 0.0f));*/
         return mainQuery;
     }
 
@@ -443,47 +429,19 @@ public class SimpleSearch extends SearchProvider
             }
         }
 
-        // wrap main query into function score query
-        // TODO: port this code
-        /*final ConfigLoader.Config functionScoreConfig = simpleSearchConfig.get("function_scores");
-        final FunctionScoreQueryBuilder functionScoreQuery = QueryBuilders.functionScoreQuery(simpleQuery);
-        functionScoreQuery.
-                boost(functionScoreConfig.getFloat("boost", 1.0f)).
-                maxBoost(functionScoreConfig.getFloat("max_boost", Float.MAX_VALUE)).
-                boostMode(CombineFunction.fromString(functionScoreConfig.getString("boost_mode", "multiply"))).
-                scoreMode(FiltersFunctionScoreQuery.ScoreMode.fromString(functionScoreConfig.getString("score_mode", "sum")));
-
-        // add function score fields
-        final ConfigLoader.Config[] scoreFields = functionScoreConfig.getArray("scoring_fields");
-        for (final ConfigLoader.Config c : scoreFields) {
-            FieldValueFactorFunction.Modifier modifier = mapStringToFunctionModifier(c.getString("modifier", "none"));
-            FieldValueFactorFunctionBuilder fieldValueFunctionBuilder = ScoreFunctionBuilders.
-                    fieldValueFactorFunction(c.getString("name")).
-                    factor(c.getFloat("factor", 1.0f));
-
-            // work around nasty bug with NONE enum constant
-            if (FieldValueFactorFunction.Modifier.NONE != modifier) {
-                fieldValueFunctionBuilder.modifier(modifier);
-            }
-
-            functionScoreQuery.add(fieldValueFunctionBuilder);
-        }*/
-
         // proximity matching
         BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
         for (Object[] o : proximityFields) {
-            final MatchQueryBuilder proximityMatchQuery = QueryBuilders.matchQuery(
+            final MatchPhraseQueryBuilder proximityQuery = QueryBuilders.matchPhraseQuery(
                     (String) o[0],
                     userQueryString
             );
-            proximityMatchQuery.operator(Operator.AND).
-                    slop((Integer) o[1]).
-                    boost((Float) o[2]).
-                    cutoffFrequency((Float) o[3]);
-            mainQuery.should(proximityMatchQuery);
+            proximityQuery
+                    .slop((Integer) o[1])
+                    .boost((Float) o[2] / 2.0f);
+            mainQuery.should(proximityQuery);
         }
-        // TODO: use functionScoreQuery
-        //mainQuery.must(functionScoreQuery);
+
         mainQuery.must(simpleQuery);
 
         // general host boost
