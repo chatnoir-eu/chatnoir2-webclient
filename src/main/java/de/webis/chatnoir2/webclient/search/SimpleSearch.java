@@ -340,17 +340,19 @@ public class SimpleSearch extends SearchProvider
         final String userQueryString = searchFields.get("search_query");
         final ConfigLoader.Config simpleSearchConfig = config.get("search").get("default_simple");
 
-        final MultiMatchQueryBuilder multimatchQuery = QueryBuilders.multiMatchQuery(userQueryString);
-        multimatchQuery
-                .operator(Operator.AND)
-                .cutoffFrequency(simpleSearchConfig.getFloat("prequery_cutoff_frequency", 0.001f))
-                .type(MultiMatchQueryBuilder.Type.MOST_FIELDS);
+        final SimpleQueryStringBuilder searchQuery = QueryBuilders.simpleQueryStringQuery(userQueryString);
+        searchQuery
+                .defaultOperator(Operator.AND)
+                .flags(SimpleQueryStringFlag.AND,
+                        SimpleQueryStringFlag.OR,
+                        SimpleQueryStringFlag.NOT,
+                        SimpleQueryStringFlag.WHITESPACE);
 
         final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
         for (final ConfigLoader.Config field : mainFields) {
-            multimatchQuery.field(field.getString("name", ""));
+            searchQuery.field(field.getString("name", ""));
         }
-        mainQuery.must(multimatchQuery);
+        mainQuery.must(searchQuery);
 
         // add range filters (e.g. to filter by minimal content length)
         final ConfigLoader.Config[] rangeFilters = simpleSearchConfig.getArray("range_filters");
@@ -416,7 +418,8 @@ public class SimpleSearch extends SearchProvider
                             SimpleQueryStringFlag.OR,
                             SimpleQueryStringFlag.NOT,
                             SimpleQueryStringFlag.PHRASE,
-                            SimpleQueryStringFlag.PREFIX);
+                            SimpleQueryStringFlag.PREFIX,
+                            SimpleQueryStringFlag.WHITESPACE);
 
             // add field to list of proximity-aware fields for later processing
             if (field.getBoolean("proximity_matching", false)) {
@@ -445,13 +448,13 @@ public class SimpleSearch extends SearchProvider
         mainQuery.must(simpleQuery);
 
         // general host boost
-        MatchQueryBuilder hostBooster = QueryBuilders.matchQuery("warc_target_hostname", userQueryString);
-        hostBooster.boost(20.0f).operator(Operator.OR);
+        SimpleQueryStringBuilder hostBooster = QueryBuilders.simpleQueryStringQuery(userQueryString);
+        hostBooster.field("warc_target_hostname");
+        hostBooster.boost(20.0f);
         mainQuery.should(hostBooster);
 
         // Wikipedia boost
-        MatchQueryBuilder wikiBooster = QueryBuilders.matchQuery("warc_target_hostname_raw", "en.wikipedia.org");
-        wikiBooster.boost(0.0001f);
+        TermQueryBuilder wikiBooster = QueryBuilders.termQuery("warc_target_hostname_raw", "en.wikipedia.org");
         mainQuery.should(wikiBooster);
 
         return mainQuery;
