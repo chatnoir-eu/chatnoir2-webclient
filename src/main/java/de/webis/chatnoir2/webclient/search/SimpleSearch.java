@@ -261,7 +261,6 @@ public class SimpleSearch extends SearchProvider
             final Map<String, Object> source = hit.getSource();
 
             String snippet = "";
-            System.out.println(hit.getHighlightFields());
             if (null != hit.getHighlightFields().get("body_lang_en")) {
                 final Text[] fragments = hit.getHighlightFields().get("body_lang_en").fragments();
                 if (1 >= fragments.length) {
