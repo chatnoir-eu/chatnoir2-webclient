@@ -197,8 +197,10 @@ public class SimpleSearch extends SearchProvider
                        simpleSearchConfig.getInteger("rescore_window", size))
                 .setFrom(from)
                 .setSize(size)
-                .highlighter(new HighlightBuilder().field("body_lang_en", snippetLength, 1).encoder("html"))
-                .highlighter(new HighlightBuilder().field("title_lang_en", titleLength, 1).encoder("html"))
+                .highlighter(new HighlightBuilder()
+                        .field("title_lang_en", titleLength, 1)
+                        .field("body_lang_en", snippetLength, 1)
+                        .encoder("html"))
                 .setExplain(doExplain)
                 .setTerminateAfter(simpleSearchConfig.getInteger("node_limit", 200000))
                 //.addAggregation(aggregation)
@@ -259,6 +261,7 @@ public class SimpleSearch extends SearchProvider
             final Map<String, Object> source = hit.getSource();
 
             String snippet = "";
+            System.out.println(hit.getHighlightFields());
             if (null != hit.getHighlightFields().get("body_lang_en")) {
                 final Text[] fragments = hit.getHighlightFields().get("body_lang_en").fragments();
                 if (1 >= fragments.length) {
