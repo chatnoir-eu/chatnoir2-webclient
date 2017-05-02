@@ -191,8 +191,8 @@ public class SearchServlet extends ChatNoirServlet
             }
 
             final List<HashMap<String, String>> pagination = new ArrayList<>();
-            int numPages      = (int)Math.ceil((double)numResults / resultsPerPage);
-            long displayPages = Math.min(currentPage + 5, numPages);
+            int numPages      = Math.min((int) Math.ceil((double) numResults / resultsPerPage), 1000);
+            long displayPages = Math.min(Math.min(currentPage + 5, numPages), 1000);
             long startingPage = Math.max(currentPage - 4, 1);
 
             // go to first page
@@ -310,7 +310,7 @@ public class SearchServlet extends ChatNoirServlet
         {
             this.numResults     = numResults;
             this.resultsPerPage = resultsPerPage;
-            this.currentPage    = currentPage;
+            this.currentPage    = Math.min(currentPage, 1000);
         }
     }
 }

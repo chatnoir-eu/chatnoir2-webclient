@@ -176,7 +176,7 @@ public class SimpleSearch extends SearchProvider
             throw new InvalidSearchFieldException();
         }
 
-        final Integer from = Integer.parseInt(searchParameters.get("start_at"));
+        final Integer from = Math.min(Integer.parseInt(searchParameters.get("start_at")), 1000);
         final Integer size = Integer.parseInt(searchParameters.get("num_results"));
 
         // prepare aggregation
