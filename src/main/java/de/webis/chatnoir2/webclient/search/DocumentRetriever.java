@@ -251,6 +251,12 @@ public class DocumentRetriever extends Configured
                 script.attr("src", rewriteURL(script.attr("src"), false));
             }
 
+            // remove base tags
+            Elements bases = doc.select("head base");
+            for (Element base: bases) {
+                base.remove();
+            }
+
             return doc.toString();
         }
 
