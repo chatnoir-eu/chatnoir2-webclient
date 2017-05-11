@@ -22,19 +22,8 @@ import java.net.InetSocketAddress;
  */
 public class Configured
 {
-    private ConfigLoader.Config mConf = null;
-    private TransportClient mClient = null;
-
-    @Override
-    protected void finalize() throws Throwable
-    {
-        try {
-            if (null != mClient)
-                mClient.close();
-        } finally {
-            super.finalize();
-        }
-    }
+    private static ConfigLoader.Config mConf = null;
+    private static TransportClient mClient = null;
 
     /**
      * Get system configuration.

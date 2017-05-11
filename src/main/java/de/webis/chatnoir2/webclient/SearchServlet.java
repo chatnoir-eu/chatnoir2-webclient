@@ -133,8 +133,6 @@ public class SearchServlet extends ChatNoirServlet
             }
         } catch (SearchProvider.InvalidSearchFieldException e) {
             e.printStackTrace();
-        } finally {
-            search.finish();
         }
 
         final SERPContext serpContext = new SERPContext();

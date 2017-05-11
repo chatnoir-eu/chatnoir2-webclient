@@ -115,9 +115,6 @@ public class SimpleSearchApiModule extends ApiModuleBase
 
             writeResponse(response, responseObj);
         } catch (SearchProvider.InvalidSearchFieldException ignored) { }
-        finally {
-            search.finish();
-        }
     }
 
     /**

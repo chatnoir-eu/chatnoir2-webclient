@@ -1,7 +1,7 @@
 /*
  * ChatNoir 2 Web frontend.
  *
- * Copyright (C) 2014 Webis Group @ Bauhaus University Weimar
+ * Copyright (C) 2014-2017 Webis Group @ Bauhaus University Weimar
  * Main Contributor: Janek Bevendorff
  */
 
@@ -10,36 +10,18 @@ package de.webis.chatnoir2.webclient.search;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.TextCleanser;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.lucene.search.function.CombineFunction;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
-import org.elasticsearch.common.lucene.search.function.FiltersFunctionScoreQuery;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.text.Text;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.xcontent.ToXContent;
-import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.XContentFactory;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
-import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
-import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
-import org.elasticsearch.search.profile.ProfileShardResult;
 import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.elasticsearch.search.rescore.RescoreBuilder;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.json.JSONArray;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.*;
-
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 /**
  * Provider for simple universal search.
@@ -50,39 +32,29 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 public class SimpleSearch extends SearchProvider
 {
     /**
-     * Elasticsearch TransportClient.
-     */
-    private final TransportClient client;
-
-    /**
      * (Default) snippet length.
      */
-    private int snippetLength = 400;
+    private int mSnippetLength = 400;
 
     /**
      * (Default) title length.
      */
-    private int titleLength = 70;
+    private int mTitleLength = 70;
 
     /**
-     * Array of indices to search.
+     * Array of mIndices to search.
      */
-    private String[] indices;
-
-    /**
-     * Global configuration.
-     */
-    private final ConfigLoader.Config config;
+    private String[] mIndices;
 
     /**
      * Whether to explain query.
      */
-    private boolean doExplain = false;
+    private boolean mDoExplain = false;
 
     /**
-     * Search response of the last search.
+     * Search mResponse of the last search.
      */
-    private SearchResponse response = new SearchResponse();
+    private SearchResponse mResponse = new SearchResponse();
 
     /**
      * Constructor.
@@ -92,23 +64,10 @@ public class SimpleSearch extends SearchProvider
      */
     public SimpleSearch(final List<String> indices)
     {
-        config = new Object() {
-            public ConfigLoader.Config run()
-            {
-                try {
-                    return ConfigLoader.getInstance().getConfig();
-                } catch (IOException | ConfigLoader.ParseException e) {
-                    e.printStackTrace();
-                    return new ConfigLoader.Config();
-                }
-            }
-        }.run();
+        ConfigLoader.Config config = getConf();
 
-        final String clusterName = config.get("cluster").getString("cluster_name", "");
-        final String hostName    = config.get("cluster").getString("host", "localhost");
-        final int port           = config.get("cluster").getInteger("port", 9300);
-        snippetLength            = config.get("serp").getInteger("snippet_length", snippetLength);
-        titleLength              = config.get("serp").getInteger("title_length", titleLength);
+        mSnippetLength = config.get("serp").getInteger("snippet_length", mSnippetLength);
+        mTitleLength   = config.get("serp").getInteger("title_length", mTitleLength);
 
         final ArrayList<String> allowedIndices = new ArrayList<>(Arrays.asList(config.get("cluster").getStringArray("indices")));
         boolean useDefaultIndex = true;
@@ -120,20 +79,13 @@ public class SimpleSearch extends SearchProvider
                 }
             }
             if (!usedIndices.isEmpty()) {
-                this.indices = usedIndices.toArray(new String[usedIndices.size()]);
+                this.mIndices = usedIndices.toArray(new String[usedIndices.size()]);
                 useDefaultIndex = false;
             }
         }
         if (useDefaultIndex) {
-            this.indices = new String[]{config.get("cluster").getString("default_index", allowedIndices.get(0))};
+            this.mIndices = new String[]{config.get("cluster").getString("default_index", allowedIndices.get(0))};
         }
-
-        final Settings settings = Settings.builder()
-                .put("cluster.name", clusterName)
-                .put("client.transport.sniff", true)
-                .build();
-        client = new PreBuiltTransportClient(settings).addTransportAddress(
-                new InetSocketTransportAddress(new InetSocketAddress(hostName, port)));
     }
 
     public SimpleSearch()
@@ -142,13 +94,13 @@ public class SimpleSearch extends SearchProvider
     }
 
     /**
-     * Get a List of all indices that are allowed by the config and are therefore actually used.
+     * Get a List of all mIndices that are allowed by the config and are therefore actually used.
      *
      * @return List of index names
      */
     public List<String> getEffectiveIndexList()
     {
-        return Arrays.asList(this.indices);
+        return Arrays.asList(this.mIndices);
     }
 
     /**
@@ -157,7 +109,7 @@ public class SimpleSearch extends SearchProvider
      * @param doExplain true if query shall be explained
      */
     public void setExplain(final boolean doExplain) {
-        this.doExplain = doExplain;
+        this.mDoExplain = doExplain;
     }
 
     /**
@@ -181,76 +133,22 @@ public class SimpleSearch extends SearchProvider
         final Integer from = Math.min(Integer.parseInt(searchParameters.get("start_at")), 1000);
         final Integer size = Integer.parseInt(searchParameters.get("num_results"));
 
-        // prepare aggregation
-        // unfortunately still not working with rescoring in Elasticsearch 2.4.3
-        /*final AggregationBuilder aggregation = AggregationBuilders.terms("hosts")
-                .field("warc_target_hostname.raw")
-                .order(Terms.Order.aggregation("top_score", false))
-                .subAggregation(AggregationBuilders.topHits("top_sites").setSize(4))
-                .subAggregation(AggregationBuilders.max("top_score").field("_score"));*/
-
-
-        final ConfigLoader.Config simpleSearchConfig = config.get("search").get("default_simple");
+        final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
         // run search
-        response = client.prepareSearch(indices)
+        mResponse = getClient().prepareSearch(mIndices)
                 .setQuery(buildPreQuery(searchParameters))
                 .setRescorer(buildRescorer(buildRescoreQuery(searchParameters)),
                        simpleSearchConfig.getInteger("rescore_window", size))
                 .setFrom(from)
                 .setSize(size)
                 .highlighter(new HighlightBuilder()
-                        .field("title_lang.en", titleLength, 1)
-                        .field("body_lang.en", snippetLength, 1)
+                        .field("title_lang.en", mTitleLength, 1)
+                        .field("body_lang.en", mSnippetLength, 1)
                         .encoder("html"))
-                .setExplain(doExplain)
+                .setExplain(mDoExplain)
                 .setTerminateAfter(simpleSearchConfig.getInteger("node_limit", 200000))
-                //.addAggregation(aggregation)
                 .setProfile(false)
-                .execute()
-                .actionGet();
-
-        /*final Terms agg = response.getAggregations().get("hosts");
-        for (final Terms.Bucket bucket: agg.getBuckets()) {
-            System.out.println(bucket.getKeyAsString());
-            TopHits ts = bucket.getAggregations().get("top_sites");
-            for (SearchHit h: ts.getHits().hits()) {
-                System.out.printf(" >   %s%n", h.sourceAsMap().get("warc_target_uri").toString());
-            }
-        }*/
-
-        /*
-        try {
-            final Map<String, ProfileShardResult> profileResults = response.getProfileResults();
-            if (null != profileResults) {
-                final XContentBuilder jsonBuilder = XContentFactory.contentBuilder(XContentType.JSON);
-                jsonBuilder.startObject();
-                for (final Map.Entry<String, ProfileShardResult> e : profileResults.entrySet()) {
-                    for (final ProfileShardResult p : e.getValue()) {
-                        jsonBuilder.startObject(e.getKey());
-                        p.toXContent(jsonBuilder, ToXContent.EMPTY_PARAMS);
-                        jsonBuilder.endObject();
-                    }
-                }
-                jsonBuilder.endObject();
-                System.out.println(jsonBuilder.string());
-
-                final XContentBuilder jsonBuilder2 = XContentFactory.contentBuilder(XContentType.JSON);
-                jsonBuilder2.startObject();
-                response.toXContent(jsonBuilder2, ToXContent.EMPTY_PARAMS);
-                jsonBuilder2.endObject();
-                System.out.println(jsonBuilder2.string());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        */
-    }
-
-    @Override
-    public void finish() {
-        if (null != client) {
-            client.close();
-        }
+                .get();
     }
 
     @Override
@@ -258,7 +156,7 @@ public class SimpleSearch extends SearchProvider
     {
         final ArrayList<SearchResultBuilder.SearchResult> results = new ArrayList<>();
         String previousHost = "";
-        for (final SearchHit hit : response.getHits()) {
+        for (final SearchHit hit : mResponse.getHits()) {
             final Map<String, Object> source = hit.getSource();
 
             String snippet = "";
@@ -271,13 +169,13 @@ public class SimpleSearch extends SearchProvider
 
             // use meta description or first body part if no highlighted snippet available
             if (snippet.equals("") && !source.get("meta_desc_lang.en").toString().equals("")) {
-                snippet = truncateSnippet(source.get("meta_desc_lang.en").toString(), snippetLength);
+                snippet = truncateSnippet(source.get("meta_desc_lang.en").toString(), mSnippetLength);
             } else if (snippet.equals("")) {
-                snippet = truncateSnippet(source.get("body_lang.en").toString(), snippetLength);
+                snippet = truncateSnippet(source.get("body_lang.en").toString(), mSnippetLength);
             }
 
             // use highlighted title if available
-            String title = truncateSnippet(source.get("title_lang.en").toString(), titleLength);
+            String title = truncateSnippet(source.get("title_lang.en").toString(), mTitleLength);
             if (null != hit.getHighlightFields().get("title_lang.en")) {
                 final Text[] fragments = hit.getHighlightFields().get("title_lang.en").fragments();
                 if (1 >= fragments.length) {
@@ -314,7 +212,7 @@ public class SimpleSearch extends SearchProvider
                     addMetadata("page_rank", pr).
                     addMetadata("spam_rank", (0 != (Integer) source.get("spam_rank")) ? source.get("spam_rank") : "none").
                     addMetadata("explanation", explanation).
-                    addMetadata("has_explanation", doExplain).
+                    addMetadata("has_explanation", mDoExplain).
                     suggestGrouping(doGroup).
                     build();
             results.add(result);
@@ -326,7 +224,7 @@ public class SimpleSearch extends SearchProvider
     @Override
     public long getTotalResultNumber()
     {
-        return response.getHits().getTotalHits();
+        return mResponse.getHits().getTotalHits();
     }
 
     /**
@@ -340,7 +238,7 @@ public class SimpleSearch extends SearchProvider
         mainQuery.filter(QueryBuilders.termQuery("lang", "en"));
 
         final String userQueryString = searchFields.get("search_query");
-        final ConfigLoader.Config simpleSearchConfig = config.get("search").get("default_simple");
+        final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
 
         final SimpleQueryStringBuilder searchQuery = QueryBuilders.simpleQueryStringQuery(userQueryString);
         searchQuery
@@ -405,7 +303,7 @@ public class SimpleSearch extends SearchProvider
     private QueryBuilder buildRescoreQuery(final HashMap<String, String> searchFields)
     {
         final String userQueryString = searchFields.get("search_query");
-        final ConfigLoader.Config simpleSearchConfig = config.get("search").get("default_simple");
+        final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
 
         // parse query string
         final SimpleQueryStringBuilder simpleQuery = QueryBuilders.simpleQueryStringQuery(userQueryString);

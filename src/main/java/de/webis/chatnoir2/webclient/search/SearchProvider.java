@@ -1,12 +1,13 @@
 /*
  * ChatNoir 2 Web frontend.
  *
- * Copyright (C) 2014 Webis Group @ Bauhaus University Weimar
+ * Copyright (C) 2014-2017 Webis Group @ Bauhaus University Weimar
  * Main Contributor: Janek Bevendorff
  */
 
 package de.webis.chatnoir2.webclient.search;
 
+import de.webis.chatnoir2.webclient.util.Configured;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -21,7 +22,7 @@ import java.util.HashMap;
  * @author Janek Bevendorff
  * @version 1
  */
-public abstract class SearchProvider
+public abstract class SearchProvider extends Configured
 {
     /**
      * Run a search based on given search fields.
@@ -29,12 +30,6 @@ public abstract class SearchProvider
      * @param searchFields key-value pairs of search fields
      */
     public abstract void doSearch(HashMap<String, String> searchFields) throws InvalidSearchFieldException;
-
-    /**
-     * Finish search and close ElasticSearch connection.
-     * No search requests should be performed after calling this method.
-     */
-    public abstract void finish();
 
     /**
      * Return a list of SearchResult objects for the executed search.
