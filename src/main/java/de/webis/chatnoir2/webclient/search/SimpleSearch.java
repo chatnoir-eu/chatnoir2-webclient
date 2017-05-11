@@ -39,6 +39,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+
 /**
  * Provider for simple universal search.
  *
@@ -182,14 +184,13 @@ public class SimpleSearch extends SearchProvider
         // prepare aggregation
         // unfortunately still not working with rescoring in Elasticsearch 2.4.3
         /*final AggregationBuilder aggregation = AggregationBuilders.terms("hosts")
-                .field("warc_target_hostname_raw")
+                .field("warc_target_hostname.raw")
                 .order(Terms.Order.aggregation("top_score", false))
                 .subAggregation(AggregationBuilders.topHits("top_sites").setSize(4))
                 .subAggregation(AggregationBuilders.max("top_score").field("_score"));*/
 
 
         final ConfigLoader.Config simpleSearchConfig = config.get("search").get("default_simple");
-
         // run search
         response = client.prepareSearch(indices)
                 .setQuery(buildPreQuery(searchParameters))
@@ -198,8 +199,8 @@ public class SimpleSearch extends SearchProvider
                 .setFrom(from)
                 .setSize(size)
                 .highlighter(new HighlightBuilder()
-                        .field("title_lang_en", titleLength, 1)
-                        .field("body_lang_en", snippetLength, 1)
+                        .field("title_lang.en", titleLength, 1)
+                        .field("body_lang.en", snippetLength, 1)
                         .encoder("html"))
                 .setExplain(doExplain)
                 .setTerminateAfter(simpleSearchConfig.getInteger("node_limit", 200000))
@@ -261,24 +262,24 @@ public class SimpleSearch extends SearchProvider
             final Map<String, Object> source = hit.getSource();
 
             String snippet = "";
-            if (null != hit.getHighlightFields().get("body_lang_en")) {
-                final Text[] fragments = hit.getHighlightFields().get("body_lang_en").fragments();
+            if (null != hit.getHighlightFields().get("body_lang.en")) {
+                final Text[] fragments = hit.getHighlightFields().get("body_lang.en").fragments();
                 if (1 >= fragments.length) {
                     snippet = fragments[0].string();
                 }
             }
 
             // use meta description or first body part if no highlighted snippet available
-            if (snippet.equals("") && !source.get("meta_desc_lang_en").toString().equals("")) {
-                snippet = truncateSnippet(source.get("meta_desc_lang_en").toString(), snippetLength);
+            if (snippet.equals("") && !source.get("meta_desc_lang.en").toString().equals("")) {
+                snippet = truncateSnippet(source.get("meta_desc_lang.en").toString(), snippetLength);
             } else if (snippet.equals("")) {
-                snippet = truncateSnippet(source.get("body_lang_en").toString(), snippetLength);
+                snippet = truncateSnippet(source.get("body_lang.en").toString(), snippetLength);
             }
 
             // use highlighted title if available
-            String title = truncateSnippet(source.get("title_lang_en").toString(), titleLength);
-            if (null != hit.getHighlightFields().get("title_lang_en")) {
-                final Text[] fragments = hit.getHighlightFields().get("title_lang_en").fragments();
+            String title = truncateSnippet(source.get("title_lang.en").toString(), titleLength);
+            if (null != hit.getHighlightFields().get("title_lang.en")) {
+                final Text[] fragments = hit.getHighlightFields().get("title_lang.en").fragments();
                 if (1 >= fragments.length) {
                     title = fragments[0].string();
                 }
@@ -291,7 +292,7 @@ public class SimpleSearch extends SearchProvider
 
             // group consecutive results with same host
             boolean doGroup = false;
-            final String currentHost = (String) source.get("warc_target_hostname_raw");
+            final String currentHost = (String) source.get("warc_target_hostname");
             if (previousHost.equals(currentHost)) {
                 doGroup = true;
             }
@@ -308,7 +309,7 @@ public class SimpleSearch extends SearchProvider
                     title(TextCleanser.cleanse(title, true)).
                     link(source.get("warc_target_uri").toString()).
                     snippet(TextCleanser.cleanse(snippet, true)).
-                    fullBody(source.get("body_lang_en").toString()).
+                    fullBody(source.get("body_lang.en").toString()).
                     addMetadata("score", String.format("%.03f", hit.getScore())).
                     addMetadata("page_rank", pr).
                     addMetadata("spam_rank", (0 != (Integer) source.get("spam_rank")) ? source.get("spam_rank") : "none").
@@ -336,6 +337,7 @@ public class SimpleSearch extends SearchProvider
     private QueryBuilder buildPreQuery(final HashMap<String, String> searchFields)
     {
         BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
+        mainQuery.filter(QueryBuilders.termQuery("lang", "en"));
 
         final String userQueryString = searchFields.get("search_query");
         final ConfigLoader.Config simpleSearchConfig = config.get("search").get("default_simple");
@@ -454,7 +456,7 @@ public class SimpleSearch extends SearchProvider
         mainQuery.should(hostBooster);
 
         // Wikipedia boost
-        TermQueryBuilder wikiBooster = QueryBuilders.termQuery("warc_target_hostname_raw", "en.wikipedia.org");
+        TermQueryBuilder wikiBooster = QueryBuilders.termQuery("warc_target_hostname.raw", "en.wikipedia.org");
         mainQuery.should(wikiBooster);
 
         return mainQuery;
