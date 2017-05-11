@@ -88,6 +88,7 @@ body {
 
 .search-page #Logo {
     height: 12rem;
+    width: auto;
 }
 
 .search-page #Logo img {
@@ -96,7 +97,7 @@ body {
 
 #SearchHeader {
     padding: 1rem 0 2rem 0;
-    margin-bottom: 2.3rem;
+    margin: 0 0 2.3rem 0;
     height: 11rem;
     text-align: center;
     border-bottom: .1rem solid #ddd;
@@ -225,7 +226,7 @@ body {
 
 #ExplanationModalContent {
     overflow: hidden;
- }
+}
 
 /* ===========================================================================
  * Cache template
@@ -238,6 +239,10 @@ body.cache-page {
 
 .cache-page #Main {
     min-height: 100%;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
     position: relative;
 }
 
@@ -282,4 +287,85 @@ body.cache-page {
 .redirect-message .timer-message {
     font-weight: bold;
     font-size: 1.2em;
+}
+
+/* ===========================================================================
+ * Responsive changes
+ * ===========================================================================*/
+@media screen and (max-width: 900px) {
+    .search-page #Logo, .cache-page #Logo {
+        width: 100%;
+    }
+
+    #SearchHeader {
+        height: auto;
+    }
+
+    #SearchHeader .col-sm-8 {
+        width: 100%;
+        float: none;
+        padding: 0;
+    }
+
+    .search-info h1, .search-info .num-results {
+        font-size: 1em;
+        line-height: 1em;
+    }
+
+    #CacheResult {
+        padding-top: 19rem
+    }
+}
+
+@media screen and (max-width: 650px) {
+    body, body.cache-page {
+        padding-bottom: 0;
+        height: auto;
+    }
+
+    #PageFooter {
+        height: auto;
+    }
+
+    #PageFooter .row > .nav li {
+        display: inline-block;
+        float: none;
+    }
+
+    #PageFooter .row > .nav {
+        float: none;
+        display: block;
+        text-align: center;
+        clear: left;
+        width: 100%;
+    }
+
+    #CacheResult {
+        position: static;
+        margin: 0;
+        padding: 0;
+    }
+
+    #SearchHeader {
+        margin-bottom: 0;
+    }
+
+    #CacheResult iframe {
+        min-height: 60rem;
+    }
+
+    #PageFooter {
+        position: static;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .search-info h1, .search-info .num-results {
+        float: none;
+        margin-top: 2em;
+    }
+
+    .search-info h1 {
+        margin: .5em 0;
+    }
 }
