@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatnoir 2 Redirect</title>
+    {{> bootstrap-head}}
+    <link href="{{contextPath}}/static/css/chatnoir2.css" rel="stylesheet">
+    <meta http-equiv="refresh" content="5; url={{uri}}">
+</head>
+<body class="cache-page">
+<div id="Main" class="container">
+    <div class="redirect-message">
+        <h1>You are leaving us! ;-(</h1>
+        <p>Redirecting to the <em>RealWebz™</em> at <a href="{{uri}}">{{uri}}</a></p>
+        <p class="timer-message">…in <span class="timer">5</span> seconds…</p>
+    </div>
+
+    <script>
+        if (top.location != location) {
+            top.location.href = location.href;
+        }
+
+        setInterval(function() {
+            var el = $('.timer');
+            el.text(Math.max(0, parseInt(el.text()) - 1));
+        }, 1000);
+    </script>
+</div>
+
+{{> jquery-foot}}
+{{> bootstrap-foot}}
+</body>
+</html>

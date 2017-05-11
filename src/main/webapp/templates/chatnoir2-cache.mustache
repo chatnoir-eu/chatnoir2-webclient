@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chatnoir 2 Search Results</title>
+    <title>Chatnoir 2 Cached Webpage</title>
     {{> bootstrap-head}}
     <link href="{{contextPath}}/static/css/chatnoir2.css" rel="stylesheet" />
 </head>
@@ -26,7 +26,7 @@
     </div>
 
     <div id="CacheResult">
-        <iframe src="{{contextPath}}/cache?docId={{doc-id}}&amp;raw=1{{#plainTextMode}}&amp;plain=1{{/plainTextMode}}&amp;i={{index}}"></iframe>
+        <iframe src="{{contextPath}}/cache?uuid={{doc-id}}&amp;raw{{#plainTextMode}}&amp;plain{{/plainTextMode}}"></iframe>
     </div>
 </div>
 

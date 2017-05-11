@@ -19,6 +19,7 @@ import de.webis.chatnoir2.webclient.hdfs.MapFileReader;
 import de.webis.chatnoir2.webclient.response.Renderer;
 import de.webis.chatnoir2.webclient.search.DocumentRetriever;
 import de.webis.chatnoir2.webclient.util.Configured;
+import org.apache.hadoop.io.MapFile;
 
 /**
  * Index Servlet for Chatnoir 2.
@@ -38,6 +39,8 @@ public class CacheServlet extends ChatNoirServlet
      * Default Mustache template.
      */
     private static final String TEMPLATE_INDEX = "/templates/chatnoir2-cache.mustache";
+
+    private static final String TEMPLATE_REDIRECT = "/templates/chatnoir2-cache-redirect.mustache";
 
     @Override
     public void init() throws ServletException
@@ -59,9 +62,10 @@ public class CacheServlet extends ChatNoirServlet
         super.doGet(request, response);
 
         String uuidParam  = request.getParameter("uuid");
-        String indexParam = request.getParameter("i");
+        String indexParam = request.getParameter("index");
+        String uriParam   = request.getParameter("uri");
         String docIDParam = request.getParameter("docId");
-        if (null == docIDParam && null == uuidParam || (null != uuidParam && null == indexParam)) {
+        if (null == docIDParam && null == uuidParam && uriParam == null) {
             getServletContext().getRequestDispatcher(SearchServlet.ROUTE).forward(request, response);
             return;
         }
@@ -109,11 +113,25 @@ public class CacheServlet extends ChatNoirServlet
             return;
         }
 
-        // retrieval by Elasticsearch index document ID ("raw" or with surrounding ChatNoir frame)
-        final DocumentRetriever.Document doc = retriever.getByIndexDocID(indexParam, docIDParam);
-        if (null == doc) {
-            redirectError(request, response);
-            return;
+        // retrieval by URI or Elasticsearch index document ID ("raw" or with surrounding ChatNoir frame)
+        final DocumentRetriever.Document doc;
+        if (null != uriParam) {
+            doc = retriever.getByURI(indexParam, uriParam);
+
+            // redirect into the open web if no cache entry found
+            if (null == doc) {
+                final HashMap<String, String> templateVars = new HashMap<>();
+                templateVars.put("uri", uriParam);
+                Renderer.render(getServletContext(), request, response, TEMPLATE_REDIRECT, templateVars);
+                return;
+            }
+        } else {
+            doc = retriever.getByIndexDocID(indexParam, docIDParam);
+
+            if (null == doc) {
+                redirectError(request, response);
+                return;
+            }
         }
 
         // "raw" HTML page
@@ -125,8 +143,7 @@ public class CacheServlet extends ChatNoirServlet
 
         // else: show framed page
         final HashMap<String, String> templateVars = new HashMap<>();
-        templateVars.put("doc-id", URLEncoder.encode(docIDParam, "UTF-8"));
-        templateVars.put("trec-id", doc.getRecordID());
+        templateVars.put("doc-id", URLEncoder.encode(doc.getDocUUID().toString(), "UTF-8"));
         templateVars.put("index", URLEncoder.encode(indexParam, "UTF-8"));
         if (plainTextMode) {
             templateVars.put("plainTextMode", "1");

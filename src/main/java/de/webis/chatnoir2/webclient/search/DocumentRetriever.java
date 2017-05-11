@@ -146,6 +146,7 @@ public class DocumentRetriever extends Configured
         }
         return getByUUID(indexName, docUUID);
     }
+
     public class Document
     {
         private UUID mDocUUID;
@@ -237,29 +238,23 @@ public class DocumentRetriever extends Configured
 
             Elements links = doc.select("link[href]");
             for (Element l : links) {
-                l.attr("href", rewriteURL(l.attr("href"), false, true));
+                l.attr("href", rewriteURL(l.attr("href"), false));
             }
 
             Elements images = doc.select("img[src]");
             for (Element img : images) {
-                img.attr("src", rewriteURL(img.attr("src"), false, true));
+                img.attr("src", rewriteURL(img.attr("src"), false));
             }
 
             Elements scripts = doc.select("script[src]");
             for (Element script : scripts) {
-                script.attr("src", rewriteURL(script.attr("src"), false, true));
+                script.attr("src", rewriteURL(script.attr("src"), false));
             }
 
             return doc.toString();
         }
 
-
-        private String rewriteURL(String uriStr, boolean redirectOther)
-        {
-            return rewriteURL(uriStr, redirectOther, false);
-        }
-
-        private String rewriteURL(String uriStr, boolean redirectOther, boolean skipMapFileCheck)
+        private String rewriteURL(String uriStr, boolean addRedirect)
         {
             try {
                 URI uri = new URI(uriStr);
@@ -282,19 +277,14 @@ public class DocumentRetriever extends Configured
                 }
                 // make sure we always have absolute URIs with scheme and hostname
                 uriStr = new URIBuilder(uri).setScheme(scheme).setPort(port).setHost(host).build().toString();
-            } catch (URISyntaxException ignored) {
-            }
+            } catch (URISyntaxException ignored) {}
 
-            if (!skipMapFileCheck) {
-                final UUID id = MapFileReader.getUUIDForUrl(uriStr, mIndexName);
+            if (addRedirect) {
                 try {
-                    if (null != id) {
-                        uriStr = CacheServlet.ROUTE + "?uuid=" + id.toString() + "&i=" + URLEncoder.encode(mIndexName, "UTF-8");
-                    } else if (redirectOther) {
-                        // TODO: don't hardcode path
-                        uriStr = "/redirect?uri=" + URLEncoder.encode(uriStr, "UTF-8");
-                    }
-                } catch (UnsupportedEncodingException ignored) {}
+                    uriStr = CacheServlet.ROUTE + "?uri=" + URLEncoder.encode(uriStr, "UTF-8")
+                            + "&index=" + URLEncoder.encode(mIndexName, "UTF-8") + "&raw";
+                } catch (UnsupportedEncodingException ignored) {
+                }
             }
 
             return uriStr;

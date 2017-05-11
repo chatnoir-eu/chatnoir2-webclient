@@ -256,3 +256,30 @@ body.cache-page {
     height: 100%;
     width: 100%;
 }
+
+.redirect-message {
+    text-align: center;
+    margin: 5em auto;
+    padding: 0 2em;
+    font-size: 1.3em;
+}
+
+.redirect-message p, .redirect-message h1 {
+    margin: 1.5em 0;
+}
+
+.redirect-message p a {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.redirect-message h1 {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.redirect-message .timer-message {
+    font-weight: bold;
+    font-size: 1.2em;
+}
