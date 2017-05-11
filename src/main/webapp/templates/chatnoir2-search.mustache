@@ -35,7 +35,7 @@
             {{#searchResults}}
                 <article class="search-result{{#groupingSuggested}} grouped{{/groupingSuggested}}" id="result-{{trecId}}"{{#metadata.has_explanation}} data-explanation="{{metadata.explanation}}"{{/metadata.has_explanation}}>
                     <header>
-                        <h2><a href="{{link}}">{{& title}}</a></h2>
+                        <h2><a href="{{contextPath}}/cache?docId={{id}}{{#indices-string}}&i={{.}}{{/indices-string}}">{{& title}}</a></h2>
                         <div class="meta">
                             <a href="{{link}}" class="link">{{#hostName}}{{hostName}}{{/hostName}}{{^hostName}}{{link}}{{/hostName}}</a>
                             <div class="dropdown">
@@ -43,7 +43,7 @@
                                     <span class="caret"></span>
                                 </button>
                                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
-                                    <li role="presentation" class="result-cache"><a role="menuitem" tabindex="-1" href="{{contextPath}}/cache?docId={{id}}{{#indices-string}}&i={{.}}{{/indices-string}}">Cache</a></li>
+                                    <li role="presentation" class="result-cache"><a role="menuitem" tabindex="-1" href="{{link}}">Web Link</a></li>
                                     <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{{contextPath}}/cache?docId={{id}}&plain=1{{#indices-urlstring}}&i={{.}}{{/indices-urlstring}}">Plaintext</a></li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="dropdown-header">TREC ID: {{trecId}}</li>
