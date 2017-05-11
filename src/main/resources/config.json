@@ -3,8 +3,8 @@
         "cluster_name"  : "betaweb",
         "host"          : "betaweb015.medien.uni-weimar.de",
         "port"          : 9300,
-        "indices"       : [ "webis_warc_clueweb12_007" ],
-        "default_index" : "webis_warc_clueweb12_007"
+        "indices"       : [ "webis_warc_clueweb12_008" ],
+        "default_index" : "webis_warc_clueweb12_008"
     },
 
     "hdfs" : {
@@ -12,7 +12,7 @@
     },
 
     "mapfiles" : {
-        "webis_warc_clueweb12_007" : {
+        "webis_warc_clueweb12_008" : {
             "path" : "/corpora/clueweb/12-mapfile",
             "partitions" : 100,
             "prefix" : "clueweb12"
