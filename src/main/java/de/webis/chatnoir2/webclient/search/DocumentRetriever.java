@@ -71,7 +71,7 @@ public class DocumentRetriever extends Configured
             return null;
         }
         final Map<String, Object> s = response.getSource();
-        return s.get(String.format("body_lang_%s", s.get("lang"))).toString();
+        return s.get(String.format("body_lang.%s", s.get("lang"))).toString();
     }
 
     /**

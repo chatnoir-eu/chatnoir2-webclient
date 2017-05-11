@@ -12,7 +12,7 @@
     },
 
     "mapfiles" : {
-        "webis_warc_clueweb12_004" : {
+        "webis_warc_clueweb12_007" : {
             "path" : "/corpora/clueweb/12-mapfile",
             "partitions" : 100,
             "prefix" : "clueweb12"
