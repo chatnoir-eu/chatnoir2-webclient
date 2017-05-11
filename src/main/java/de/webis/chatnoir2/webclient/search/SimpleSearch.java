@@ -114,30 +114,14 @@ public class SimpleSearch extends SearchProvider
 
     /**
      * Perform a simple search.
-     * Expects the following fields present:
-     *      'search_query' the terms to search for.
-     *      'start_at'     at what result offset to start
-     *      'num_results'  how many results to return
-     *
-     * @param searchParameters key-value pairs of search fields
      */
     @Override
-    public void doSearch(final HashMap<String, String> searchParameters) throws InvalidSearchFieldException
+    public void doSearch(String query, int from, int size)
     {
-        if (searchParameters.get("search_query") == null ||
-                searchParameters.get("start_at") == null ||
-                searchParameters.get("num_results") == null) {
-            throw new InvalidSearchFieldException();
-        }
-
-        final Integer from = Math.min(Integer.parseInt(searchParameters.get("start_at")), 1000);
-        final Integer size = Integer.parseInt(searchParameters.get("num_results"));
-
         final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
-        // run search
         mResponse = getClient().prepareSearch(mIndices)
-                .setQuery(buildPreQuery(searchParameters))
-                .setRescorer(buildRescorer(buildRescoreQuery(searchParameters)),
+                .setQuery(buildPreQuery(query))
+                .setRescorer(buildRescorer(buildRescoreQuery(query)),
                        simpleSearchConfig.getInteger("rescore_window", size))
                 .setFrom(from)
                 .setSize(size)
@@ -201,20 +185,20 @@ public class SimpleSearch extends SearchProvider
                 pr = String.format("%.03e", (Double) source.get("page_rank"));
             }
 
-            final SearchResultBuilder.SearchResult result = new SearchResultBuilder().
-                    id(hit.getId()).
-                    trecId(source.get("warc_trec_id").toString()).
-                    title(TextCleanser.cleanse(title, true)).
-                    link(source.get("warc_target_uri").toString()).
-                    snippet(TextCleanser.cleanse(snippet, true)).
-                    fullBody(source.get("body_lang.en").toString()).
-                    addMetadata("score", String.format("%.03f", hit.getScore())).
-                    addMetadata("page_rank", pr).
-                    addMetadata("spam_rank", (0 != (Integer) source.get("spam_rank")) ? source.get("spam_rank") : "none").
-                    addMetadata("explanation", explanation).
-                    addMetadata("has_explanation", mDoExplain).
-                    suggestGrouping(doGroup).
-                    build();
+            final SearchResultBuilder.SearchResult result = new SearchResultBuilder()
+                    .id(hit.getId())
+                    .trecId(source.get("warc_trec_id").toString())
+                    .title(TextCleanser.cleanse(title, true))
+                    .link(source.get("warc_target_uri").toString())
+                    .snippet(TextCleanser.cleanse(snippet, true))
+                    .fullBody(source.get("body_lang.en").toString())
+                    .addMetadata("score", String.format("%.03f", hit.getScore()))
+                    .addMetadata("page_rank", pr)
+                    .addMetadata("spam_rank", (0 != (Integer) source.get("spam_rank")) ? source.get("spam_rank") : "none")
+                    .addMetadata("explanation", explanation)
+                    .addMetadata("has_explanation", mDoExplain)
+                    .suggestGrouping(doGroup)
+                    .build();
             results.add(result);
         }
 
@@ -232,12 +216,11 @@ public class SimpleSearch extends SearchProvider
      *
      * @return assembled pre-query
      */
-    private QueryBuilder buildPreQuery(final HashMap<String, String> searchFields)
+    private QueryBuilder buildPreQuery(String userQueryString)
     {
         BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
         mainQuery.filter(QueryBuilders.termQuery("lang", "en"));
 
-        final String userQueryString = searchFields.get("search_query");
         final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
 
         final SimpleQueryStringBuilder searchQuery = QueryBuilders.simpleQueryStringQuery(userQueryString);
@@ -300,9 +283,8 @@ public class SimpleSearch extends SearchProvider
      *
      * @return rescore query
      */
-    private QueryBuilder buildRescoreQuery(final HashMap<String, String> searchFields)
+    private QueryBuilder buildRescoreQuery(String userQueryString)
     {
-        final String userQueryString = searchFields.get("search_query");
         final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
 
         // parse query string

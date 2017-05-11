@@ -14,7 +14,6 @@ import org.json.JSONObject;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
 
 /**
  * Public interface for search providers.
@@ -27,9 +26,11 @@ public abstract class SearchProvider extends Configured
     /**
      * Run a search based on given search fields.
      *
-     * @param searchFields key-value pairs of search fields
+     * @param query search query
+     * @param from first result to return
+     * @param size number of results to return
      */
-    public abstract void doSearch(HashMap<String, String> searchFields) throws InvalidSearchFieldException;
+    public abstract void doSearch(String query, int from, int size);
 
     /**
      * Return a list of SearchResult objects for the executed search.
@@ -44,8 +45,6 @@ public abstract class SearchProvider extends Configured
      * @return the number of results
      */
     public abstract long getTotalResultNumber();
-
-    public class InvalidSearchFieldException extends Exception {}
 
     /**
      * Parse an ElasticSearch search result explanation string and return a JSON representation of it.

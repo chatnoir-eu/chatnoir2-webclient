@@ -46,7 +46,7 @@ public class SearchServlet extends ChatNoirServlet
     /**
      * Number results to show per page.
      */
-    private int resultsPerPage = 10;
+    private int mResultsPerPage = 10;
 
     /**
      * Initialize servlet.
@@ -57,7 +57,7 @@ public class SearchServlet extends ChatNoirServlet
         try {
             // load configuration
             final ConfigLoader loader = ConfigLoader.getInstance();
-            resultsPerPage = loader.getConfig().get("serp").get("pagination").getInteger("results_per_page", resultsPerPage);
+            mResultsPerPage = loader.getConfig().get("serp").get("pagination").getInteger("results_per_page", mResultsPerPage);
         } catch (IOException | ConfigLoader.ParseException e) {
             e.printStackTrace();
         }
@@ -91,7 +91,6 @@ public class SearchServlet extends ChatNoirServlet
         templateVars.put("query-string", request.getAttribute("javax.servlet.forward.query_string"));
 
         final SimpleSearch search = new SimpleSearch(indices);
-        final HashMap<String, String> map = new HashMap<>();
         if (null != indices) {
             templateVars.put("indices", search.getEffectiveIndexList());
             templateVars.put("indices-string", String.join(",", search.getEffectiveIndexList()));
@@ -109,35 +108,27 @@ public class SearchServlet extends ChatNoirServlet
             } catch (NumberFormatException ignored) { }
         }
 
-        map.put("search_query", searchQueryString);
-        map.put("start_at", Integer.toString((currentPage - 1) * resultsPerPage));
-        map.put("num_results", Integer.toString(resultsPerPage));
+        final long startTime = System.nanoTime();
+        search.setExplain(null != getParameter("explain", request));
+        search.doSearch(searchQueryString, (currentPage - 1) * mResultsPerPage, mResultsPerPage);
+        final long elapsedTime = System.nanoTime() - startTime;
+        templateVars.put("query-time", String.format("%.1fms", elapsedTime * 0.000001));
 
-        try {
-            final long startTime = System.nanoTime();
-            search.setExplain(null != getParameter("explain", request));
-            search.doSearch(map);
-            final long elapsedTime = System.nanoTime() - startTime;
-            templateVars.put("query-time", String.format("%.1fms", elapsedTime * 0.000001));
+        numResults = search.getTotalResultNumber();
+        final long currentPageCapped = Math.max(1, Math.min((long) Math.ceil((double) numResults / mResultsPerPage), currentPage));
 
-            numResults = search.getTotalResultNumber();
-            final long currentPageCapped = Math.max(1, Math.min((long) Math.ceil((double) numResults / resultsPerPage), currentPage));
-
-            // if user navigated past last page
-            if (currentPage != currentPageCapped) {
-                response.sendRedirect(String.format("%s?q=%s&p=%d",
-                        request.getAttribute("javax.servlet.forward.request_uri"),
-                        URLEncoder.encode(request.getParameter("q"), "UTF-8"),
-                        currentPageCapped));
-                return;
-            }
-        } catch (SearchProvider.InvalidSearchFieldException e) {
-            e.printStackTrace();
+        // if user navigated past last page
+        if (currentPage != currentPageCapped) {
+            response.sendRedirect(String.format("%s?q=%s&p=%d",
+                    request.getAttribute("javax.servlet.forward.request_uri"),
+                    URLEncoder.encode(request.getParameter("q"), "UTF-8"),
+                    currentPageCapped));
+            return;
         }
 
         final SERPContext serpContext = new SERPContext();
         serpContext.setResults(search.getResults());
-        serpContext.setPagination(numResults, resultsPerPage, currentPage);
+        serpContext.setPagination(numResults, mResultsPerPage, currentPage);
 
         Renderer.render(getServletContext(), request, response, TEMPLATE_INDEX, templateVars, serpContext);
     }
