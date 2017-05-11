@@ -13,20 +13,20 @@
         <p>Redirecting to the <em>RealWebz™</em> at <a href="{{uri}}">{{uri}}</a></p>
         <p class="timer-message">…in <span class="timer">5</span> seconds…</p>
     </div>
-
-    <script>
-        if (top.location != location) {
-            top.location.href = location.href;
-        }
-
-        setInterval(function() {
-            var el = $('.timer');
-            el.text(Math.max(0, parseInt(el.text()) - 1));
-        }, 1000);
-    </script>
 </div>
 
 {{> jquery-foot}}
 {{> bootstrap-foot}}
+
+<script>
+    if (top.location != location) {
+        top.location.href = location.href;
+    }
+
+    setInterval(function() {
+        var el = $('.timer');
+        el.text(Math.max(0, parseInt(el.text()) - 1));
+    }, 1000);
+</script>
 </body>
 </html>

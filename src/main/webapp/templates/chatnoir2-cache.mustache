@@ -34,5 +34,15 @@
 
 {{> jquery-foot}}
 {{> bootstrap-foot}}
+
+<script>
+    $("#CacheResult iframe").load(function() {
+        var el = $(this).contents().find("html");
+        var newHeight = el.height() + 20;
+        if (newHeight > $("#CacheResult").height()) {
+            $(this).height(newHeight);
+        }
+    });
+</script>
 </body>
 </html>

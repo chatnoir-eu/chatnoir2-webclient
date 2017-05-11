@@ -233,8 +233,7 @@ body {
  * ===========================================================================*/
 
 body.cache-page {
-    height: 100%;
-    min-height: unset;
+    padding-bottom: 0;
 }
 
 .cache-page #Main {
@@ -246,13 +245,15 @@ body.cache-page {
     position: relative;
 }
 
+.cache-page #PageFooter {
+    position: static;
+}
+
 #CacheResult {
     width: 100%;
     height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding-top: 11rem;
+    position: relative;
+    top: -2.5rem;
 }
 
 #CacheResult iframe {
@@ -260,6 +261,8 @@ body.cache-page {
     border-bottom: .1rem solid #ddd;
     height: 100%;
     width: 100%;
+    height: 60rem;
+    margin-bottom: -1.5rem;
 }
 
 .redirect-message {
@@ -311,10 +314,6 @@ body.cache-page {
         font-size: 1em;
         line-height: 1em;
     }
-
-    #CacheResult {
-        padding-top: 19rem
-    }
 }
 
 @media screen and (max-width: 650px) {
@@ -338,12 +337,6 @@ body.cache-page {
         text-align: center;
         clear: left;
         width: 100%;
-    }
-
-    #CacheResult {
-        position: static;
-        margin: 0;
-        padding: 0;
     }
 
     #SearchHeader {
