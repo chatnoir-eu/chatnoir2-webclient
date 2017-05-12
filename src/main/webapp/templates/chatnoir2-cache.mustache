@@ -7,30 +7,11 @@
 </head>
 <body class="cache-page">
 <div id="Main" class="container">
-    <div id="SearchHeader" class="row">
-        <div id="Logo" class="col-sm-2">
-            <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
-                <img src="/static/img/chatnoir-logo.png" alt="ChatNoir Logo">
-            </a>
-        </div>
-        <div class="col-sm-8">
-            <form role="search" method="get" action="/">
-                <div class="input-group">
-                    <input type="text" class="form-control input-lg" placeholder="Search" name="q" id="SearchInput">
-                        <span class="input-group-btn">
-                            <button type="submit" class="btn btn-primary input-lg">Go!</button>
-                        </span>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <div id="CacheResult">
         <iframe src="{{contextPath}}/cache?uuid={{doc-id}}&amp;raw{{#plainTextMode}}&amp;plain{{/plainTextMode}}"></iframe>
     </div>
 </div>
-
-{{> chatnoir2-page-foot}}
 
 {{> jquery-foot}}
 {{> bootstrap-foot}}
@@ -40,7 +21,7 @@
         var el = $(this).contents().find("html");
         var newHeight = el.height() + 20;
         if (newHeight > $("#CacheResult").height()) {
-            $(this).height(newHeight);
+            //$(this).height(newHeight);
         }
     });
 </script>

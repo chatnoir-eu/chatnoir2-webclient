@@ -75,7 +75,7 @@ body {
 
 .index-page #Logo {
     text-align: center;
-    padding: 20rem 0 1rem 0;
+    padding: 20rem 1rem 1rem 1rem;
 }
 
 .index-page #SearchField {
@@ -89,6 +89,7 @@ body {
 .search-page #Logo {
     height: 12rem;
     width: auto;
+    float: left !important;
 }
 
 .search-page #Logo img {
@@ -232,39 +233,6 @@ body {
  * Cache template
  * ===========================================================================*/
 
-body.cache-page {
-    padding-bottom: 0;
-}
-
-.cache-page #Main {
-    min-height: 100%;
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
-    padding: 0;
-    position: relative;
-}
-
-.cache-page #PageFooter {
-    position: static;
-}
-
-#CacheResult {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    top: -2.5rem;
-}
-
-#CacheResult iframe {
-    border: none;
-    border-bottom: .1rem solid #ddd;
-    height: 100%;
-    width: 100%;
-    height: 60rem;
-    margin-bottom: -1.5rem;
-}
-
 .redirect-message {
     text-align: center;
     margin: 5em auto;
@@ -295,35 +263,38 @@ body.cache-page {
 /* ===========================================================================
  * Responsive changes
  * ===========================================================================*/
-@media screen and (max-width: 900px) {
-    .search-page #Logo, .cache-page #Logo {
-        width: 100%;
-    }
-
-    #SearchHeader {
-        height: auto;
-    }
-
-    #SearchHeader .col-sm-8 {
+@media screen and (max-width: 991px) {
+    #SearchHeader #SearchField {
         width: 100%;
         float: none;
         padding: 0;
+    }
+}
+
+@media screen and (max-width: 900px) {
+    .index-page #Logo {
+        padding-top: 23vw;
     }
 
     .search-info h1, .search-info .num-results {
         font-size: 1em;
         line-height: 1em;
     }
+
+    .search-page #SearchField form {
+        padding-left: 20rem;
+    }
 }
 
 @media screen and (max-width: 650px) {
-    body, body.cache-page {
-        padding-bottom: 0;
+    #SearchHeader {
         height: auto;
     }
 
     #PageFooter {
         height: auto;
+        position: absolute;
+        bottom: 0;
     }
 
     #PageFooter .row > .nav li {
@@ -347,8 +318,33 @@ body.cache-page {
         min-height: 60rem;
     }
 
-    #PageFooter {
-        position: static;
+    .search-page #Logo, .cache-page #Logo {
+        float: left;
+        height: 5.5rem;
+        width: auto;
+        padding: 0;
+        margin: 0;
+    }
+
+    .search-page #Logo a {
+        display: inline-block;
+        height: 100%;
+        position: relative;
+        z-index: 100000;
+    }
+
+    .search-page #Logo img, .cache-page #Logo img {
+        height: 100%;
+        padding: 2px 0;
+    }
+
+    .search-page #SearchField form {
+        margin-top: 0;
+        padding-left: 8.5rem;
+    }
+
+    .search-page #SearchHeader {
+        margin-top: 1rem;
     }
 }
 
