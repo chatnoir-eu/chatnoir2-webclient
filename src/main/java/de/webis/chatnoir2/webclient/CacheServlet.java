@@ -157,12 +157,7 @@ public class CacheServlet extends ChatNoirServlet
 
     private String generatePlainText(DocumentRetriever.Document doc) {
         try {
-            Document jsoupDoc = Jsoup.parse(doc.getBody());
-            Elements body = jsoupDoc.getElementsByTag("body");
-            if (body.size() > 0) {
-                return PlainTextParser.getPlainText(body.get(0));
-            }
-            return jsoupDoc.text();
+            return PlainTextParser.getPlainText(Jsoup.parse(doc.getBody()));
         } catch (Exception e) {
             return "";
         }

@@ -7,6 +7,7 @@
 
 package de.webis.chatnoir2.webclient.util;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.jsoup.helper.StringUtil;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
@@ -38,6 +39,7 @@ public class PlainTextParser {
         private static final int mMaxWidth = 80;
         private int mWidth                 = 0;
         private StringBuilder mFinalText   = new StringBuilder();
+        private String mTitle              = "";
         private String[] mAllowedBlockElements = {
                 "p",
                 "pre",
@@ -52,11 +54,19 @@ public class PlainTextParser {
         public void head(Node node, int depth) {
             String name = node.nodeName();
             if (node instanceof TextNode) {
-                append(((TextNode) node).text()); // TextNodes carry all user-readable text in the DOM.
+                append(((TextNode) node).text(), true); // TextNodes carry all user-readable text in the DOM.
             } else if (StringUtil.in(name, mAllowedBlockElements)) {
-                append("\n<" + name + ">");
+                append("\n<" + name + ">", false);
             } else if (StringUtil.in(name, mAllowedInlineElements)) {
-                append("<" + name + ">");
+                append("<" + name + ">", false);
+            } else if (name.equals("title")) {
+                StringBuilder sb = new StringBuilder();
+                for (Node child : node.childNodes()) {
+                    if (child instanceof TextNode) {
+                        sb.append(((TextNode) child).text());
+                    }
+                }
+                mTitle = sb.toString();
             }
         }
 
@@ -64,12 +74,12 @@ public class PlainTextParser {
         public void tail(Node node, int depth) {
             String name = node.nodeName();
              if (StringUtil.in(name, mAllowedBlockElements) || StringUtil.in(name, mAllowedInlineElements)) {
-                append("</" + name + ">");
+                append("</" + name + ">", false);
             }
         }
 
         // appends text to the string builder with a simple word wrap method
-        private void append(String text) {
+        private void append(String text, boolean escape) {
             if (text.startsWith("\n")) {
                 mWidth = 0; // reset counter if starts with a newline. only from formats above, not in natural text
             }
@@ -86,14 +96,23 @@ public class PlainTextParser {
                     if (!last) // insert a space if not the last word
                         word = word + " ";
                     if (word.length() + mWidth > mMaxWidth) { // wrap and reset counter
+                        if (escape) {
+                            word = StringEscapeUtils.escapeHtml(word);
+                        }
                         mFinalText.append("\n").append(word);
                         mWidth = word.length();
                     } else {
+                        if (escape) {
+                            word = StringEscapeUtils.escapeHtml(word);
+                        }
                         mFinalText.append(word);
                         mWidth += word.length();
                     }
                 }
             } else { // fits as is, without need to wrap text
+                if (escape) {
+                    text = StringEscapeUtils.escapeHtml(text);
+                }
                 mFinalText.append(text);
                 mWidth += text.length();
             }
@@ -101,7 +120,10 @@ public class PlainTextParser {
 
         @Override
         public String toString() {
-            return "<!doctype>\n<body>\n" + mFinalText.toString() + "\n</body>";
+            return "<!doctype html>\n" +
+                    "<meta charset=\"utf-8\">\n" +
+                    "<title>" + StringEscapeUtils.escapeHtml(mTitle) + "</title>\n" +
+                    "<body>\n" + mFinalText.toString() + "\n</body>";
         }
     }
 }
