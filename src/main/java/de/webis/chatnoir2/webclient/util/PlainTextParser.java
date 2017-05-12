@@ -47,7 +47,7 @@ public class PlainTextParser {
                 "ul", "ol", "dl", "li", "dt"
         };
         private String[] mAllowedInlineElements = {
-                "b", "i", "em", "strong", "code", "pre"
+                "b", "i", "em", "strong", "code"
         };
 
         // hit when the node is first seen
