@@ -128,7 +128,7 @@ public class CacheServlet extends ChatNoirServlet
         if (rawMode) {
             if (plainTextMode) {
                 String plainText = generatePlainText(doc);
-                response.setContentType("text/plain");
+                response.setContentType("text/html");
                 response.getWriter().print(plainText);
                 return;
             } else {
