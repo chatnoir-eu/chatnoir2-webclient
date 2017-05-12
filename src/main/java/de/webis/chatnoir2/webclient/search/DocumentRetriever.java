@@ -55,6 +55,11 @@ public class DocumentRetriever extends Configured
         mRewriteURIs = rewriteURIs;
     }
 
+    public boolean getRewriteURIs()
+    {
+        return mRewriteURIs;
+    }
+
     /**
      * Retrieve plain text rendering of a document from given Elasticsearch index.
      *
@@ -179,11 +184,6 @@ public class DocumentRetriever extends Configured
                     mBody = new String(Base64.getDecoder().decode(mBody), "ISO-8859-1");
                 } catch (UnsupportedEncodingException ignored) {}
             }
-        }
-
-        public boolean getURIsRewritten()
-        {
-            return mRewriteURIs;
         }
 
         public UUID getDocUUID()

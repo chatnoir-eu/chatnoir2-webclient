@@ -7,7 +7,22 @@
 </head>
 <body class="cache-page">
 <div id="Main" class="container">
-
+    <div id="CacheHeader">
+        <div id="Logo">
+            <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
+                <img src="/static/img/chatnoir-logo.png">
+            </a>
+        </div>
+        <div id="CacheMeta">
+            <h1>Cache Result for document <em>{{doc-id}}</em></h1>
+            <p>
+                <a href="/" class="back">Back to search</a> –
+                <a href="{{orig-uri}}" class="weblink" target="_blank">View original web page</a> –
+                <a href="/cache?uuid={{doc-id}}" class="html"{{^plainTextMode}} style="display: none"{{/plainTextMode}}>View original HTML</a>
+                <a href="/cache?uuid={{doc-id}}&amp;plain" class="plaintext"{{#plainTextMode}} style="display: none"{{/plainTextMode}}>View plain text</a>
+            </p>
+        </div>
+    </div>
     <div id="CacheResult">
         <iframe src="{{contextPath}}/cache?uuid={{doc-id}}&amp;raw{{#plainTextMode}}&amp;plain{{/plainTextMode}}"></iframe>
     </div>
@@ -17,12 +32,28 @@
 {{> bootstrap-foot}}
 
 <script>
-    $("#CacheResult iframe").load(function() {
-        var el = $(this).contents().find("html");
-        var newHeight = el.height() + 20;
-        if (newHeight > $("#CacheResult").height()) {
-            //$(this).height(newHeight);
-        }
+    var meta = $('#CacheMeta');
+    var result = $('#CacheResult');
+    var iframe = result.find('iframe');
+
+    if (document.referrer && document.referrer.indexOf(location.protocol + "//" + location.host) === 0) {
+        meta.find('a.back').attr("href", document.referrer)
+    }
+
+    $(iframe).load(function() {
+        meta.find('a.plaintext').click(function(e) {
+            e.preventDefault();
+            iframe.contents().get(0).location.href = this.href + "&raw";
+            $(this).hide();
+            meta.find('a.html').show();
+        });
+
+        meta.find('a.html').click(function(e) {
+            e.preventDefault();
+            iframe.contents().get(0).location.href = this.href + "&raw";
+            $(this).hide();
+            meta.find('a.plaintext').show();
+        });
     });
 </script>
 </body>

@@ -19,7 +19,10 @@ import de.webis.chatnoir2.webclient.hdfs.MapFileReader;
 import de.webis.chatnoir2.webclient.response.Renderer;
 import de.webis.chatnoir2.webclient.search.DocumentRetriever;
 import de.webis.chatnoir2.webclient.util.Configured;
-import org.apache.hadoop.io.MapFile;
+import de.webis.chatnoir2.webclient.util.PlainTextParser;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 /**
  * Index Servlet for Chatnoir 2.
@@ -80,42 +83,28 @@ public class CacheServlet extends ChatNoirServlet
 
         final DocumentRetriever retriever = new DocumentRetriever(true);
 
-        // retrieval by UUID (implicit "raw" mode)
+        // rendering modes
+        final boolean rawMode = (null != request.getParameter("raw"));
+        final boolean plainTextMode = (null != request.getParameter("plain"));
+
+
+        final DocumentRetriever.Document doc;
+
         if (null != uuidParam) {
             try {
-                final DocumentRetriever.Document doc = retriever.getByUUID(indexParam, UUID.fromString(uuidParam));
+                // retrieval by UUID (implicit "raw" mode)
+                doc = retriever.getByUUID(indexParam, UUID.fromString(uuidParam));
                 if (null == doc) {
                     throw new RuntimeException("Document not found");
                 }
-                response.setContentType("text/html");
-                response.getWriter().print(doc.getBody());
-                return;
             } catch (Exception e) {
                 // catch self-thrown exception as well as any UUID parsing errors
                 e.printStackTrace();
                 redirectError(request, response);
                 return;
             }
-        }
-
-        final boolean rawMode = (null != request.getParameter("raw"));
-
-        // "raw" plain text rendering
-        final boolean plainTextMode = (null != request.getParameter("plain"));
-        if (rawMode && plainTextMode) {
-            final String plainText = retriever.getPlainText(indexParam, docIDParam);
-            if (null == plainText) {
-                redirectError(request, response);
-                return;
-            }
-            response.setContentType("text/plain");
-            response.getWriter().print(plainText);
-            return;
-        }
-
-        // retrieval by URI or Elasticsearch index document ID ("raw" or with surrounding ChatNoir frame)
-        final DocumentRetriever.Document doc;
-        if (null != uriParam) {
+        } else if (null != uriParam) {
+            // retrieval by URI
             doc = retriever.getByURI(indexParam, uriParam);
 
             // redirect into the open web if no cache entry found
@@ -126,6 +115,7 @@ public class CacheServlet extends ChatNoirServlet
                 return;
             }
         } else {
+            // retrieval by or Elasticsearch index document ID
             doc = retriever.getByIndexDocID(indexParam, docIDParam);
 
             if (null == doc) {
@@ -134,16 +124,24 @@ public class CacheServlet extends ChatNoirServlet
             }
         }
 
-        // "raw" HTML page
+        // raw output without frame
         if (rawMode) {
-            response.setContentType("text/html");
-            response.getWriter().print(doc.getBody());
-            return;
+            if (plainTextMode) {
+                String plainText = generatePlainText(doc);
+                response.setContentType("text/plain");
+                response.getWriter().print(plainText);
+                return;
+            } else {
+                response.setContentType("text/html");
+                response.getWriter().print(doc.getBody());
+                return;
+            }
         }
 
         // else: show framed page
         final HashMap<String, String> templateVars = new HashMap<>();
         templateVars.put("doc-id", URLEncoder.encode(doc.getDocUUID().toString(), "UTF-8"));
+        templateVars.put("orig-uri", doc.getTargetURI());
         templateVars.put("index", URLEncoder.encode(indexParam, "UTF-8"));
         if (plainTextMode) {
             templateVars.put("plainTextMode", "1");
@@ -155,5 +153,18 @@ public class CacheServlet extends ChatNoirServlet
     {
         response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
         getServletContext().getRequestDispatcher(SearchServlet.ROUTE).forward(request, response);
+    }
+
+    private String generatePlainText(DocumentRetriever.Document doc) {
+        try {
+            Document jsoupDoc = Jsoup.parse(doc.getBody());
+            Elements body = jsoupDoc.getElementsByTag("body");
+            if (body.size() > 0) {
+                return PlainTextParser.getPlainText(body.get(0));
+            }
+            return jsoupDoc.text();
+        } catch (Exception e) {
+            return "";
+        }
     }
 }

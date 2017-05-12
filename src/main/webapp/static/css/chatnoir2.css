@@ -65,6 +65,13 @@ body {
     margin-left: 0;
 }
 
+#Logo a {
+     display: inline-block;
+     height: 100%;
+     position: relative;
+     z-index: 100000;
+ }
+
 /* ===========================================================================
  * Index template
  * ===========================================================================*/
@@ -233,6 +240,55 @@ body {
  * Cache template
  * ===========================================================================*/
 
+.cache-page #Main {
+    height: 100%;
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    position: absolute;
+}
+
+.cache-page #Logo {
+    float: left;
+}
+
+#CacheMeta {
+    float: left;
+    padding: 2rem;
+}
+
+#CacheMeta h1 {
+    font-size: 1.5rem;
+    font-weight: normal;
+}
+
+#CacheMeta h1 em {
+    font-style: normal;
+    font-weight: bold;
+}
+
+.cache-page #Logo img {
+    height: 12rem;
+    padding: 1.2rem;
+}
+
+#CacheHeader {
+    height: 10rem;
+}
+
+#CacheResult {
+    height: calc(100% - 11.3rem);
+    position: relative;
+    top: -1rem;
+}
+
+#CacheResult iframe {
+    width: 100%;
+    height: calc(100%  - 1px);
+    border: none;
+    border-top: 1px solid #aaa;
+}
+
 .redirect-message {
     text-align: center;
     margin: 5em auto;
@@ -286,6 +342,16 @@ body {
     }
 }
 
+@media screen and (max-width: 700px) {
+    #CacheHeader #Logo {
+        display: none;
+    }
+
+    #CacheHeader h1 {
+        margin-top: 0;
+    }
+}
+
 @media screen and (max-width: 650px) {
     #SearchHeader {
         height: auto;
@@ -324,13 +390,6 @@ body {
         width: auto;
         padding: 0;
         margin: 0;
-    }
-
-    .search-page #Logo a {
-        display: inline-block;
-        height: 100%;
-        position: relative;
-        z-index: 100000;
     }
 
     .search-page #Logo img, .cache-page #Logo img {
