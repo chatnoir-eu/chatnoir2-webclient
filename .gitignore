@@ -1,6 +1,13 @@
-.gradle
-.idea
 build
+out
+
+.project
+.classpath
+*.iml
+*.eml
+.idea
+.gradle
+gradle
 
 .directory
 Thumbs.db
@@ -10,7 +17,3 @@ desktop.ini
 *.tmp
 *~
 *.swp
-
-*.bin
-*.class
-*.jar
