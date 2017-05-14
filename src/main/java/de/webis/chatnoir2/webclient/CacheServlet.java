@@ -19,10 +19,7 @@ import de.webis.chatnoir2.webclient.hdfs.MapFileReader;
 import de.webis.chatnoir2.webclient.response.Renderer;
 import de.webis.chatnoir2.webclient.search.DocumentRetriever;
 import de.webis.chatnoir2.webclient.util.Configured;
-import de.webis.chatnoir2.webclient.util.PlainTextParser;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
+import de.webis.chatnoir2.webclient.util.PlainTextRenderer;
 
 /**
  * Index Servlet for Chatnoir 2.
@@ -127,7 +124,7 @@ public class CacheServlet extends ChatNoirServlet
         // raw output without frame
         if (rawMode) {
             if (plainTextMode) {
-                String plainText = generatePlainText(doc);
+                String plainText = PlainTextRenderer.getBasicHtml(doc.getBody());
                 response.setContentType("text/html");
                 response.getWriter().print(plainText);
                 return;
@@ -153,13 +150,5 @@ public class CacheServlet extends ChatNoirServlet
     {
         response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
         getServletContext().getRequestDispatcher(SearchServlet.ROUTE).forward(request, response);
-    }
-
-    private String generatePlainText(DocumentRetriever.Document doc) {
-        try {
-            return PlainTextParser.getPlainText(Jsoup.parse(doc.getBody()));
-        } catch (Exception e) {
-            return "";
-        }
     }
 }
