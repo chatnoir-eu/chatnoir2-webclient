@@ -47,8 +47,8 @@ public class PlainTextRenderer {
 
     /**
      * Convert an HTML string to basic HTML.
-     * Basic HTML only has a very limited set of tags (p, pre, h1-h6, ul, ol, dl, dt, dd, em, strong, i, b, code, br),
-     * no tag attributes, no styles and no scripts.
+     * Basic HTML only has a very limited set of tags (p, pre, blockquote, h1-h6, ul, ol, dl, dt,
+     * dd, em, strong, i, b, code, br), no tag attributes, no styles and no scripts.
      *
      * @param html HTML string
      * @return formatted text
@@ -105,7 +105,7 @@ public class PlainTextRenderer {
 
         private final String[] mAllowedBlockElements = {
                 "p",
-                "pre",
+                "pre", "blockquote",
                 "h1", "h2", "h3", "h4", "h5", "h6",
                 "ul", "ol", "dl", "dt", "dd", "li"
         };
@@ -116,7 +116,8 @@ public class PlainTextRenderer {
                 "br", "tr"
         };
         private final String[] mCollapseBreakElements = {
-                "div"
+                "article", "aside", "button", "caption", "div", "fieldset", "figcaption",
+                "figure", "footer", "form", "header", "hgroup", "output", "section", "table"
         };
         private final String[] mNoDoubleBreakElements = {
                 "li", "dt", "dd"
