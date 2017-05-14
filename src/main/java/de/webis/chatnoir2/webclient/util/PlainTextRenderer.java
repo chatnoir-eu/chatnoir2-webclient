@@ -63,28 +63,16 @@ public class PlainTextRenderer {
         try {
             Element doc = Jsoup.parse(html);
 
-            // get document title
-            if (basicHtml) {
-                Elements title = doc.getElementsByTag("title");
-                if (title.size() > 0) {
-                    StringBuilder sb = new StringBuilder();
-                    for (Node child : title.first().childNodes()) {
-                        if (child instanceof TextNode) {
-                            sb.append(((TextNode) child).text());
-                        }
-                    }
-                    formatter.mTitle = sb.toString();
-                }
+            // extract document title
+            Elements title = doc.getElementsByTag("title");
+            if (!title.isEmpty()) {
+                formatter.mTitle = title.first().text();
             }
 
             // traverse body
             NodeTraversor traversor = new NodeTraversor(formatter);
             Elements body = doc.getElementsByTag("body");
-            if (body.size() > 0) {
-                traversor.traverse(body.first());
-            } else {
-                traversor.traverse(doc);
-            }
+            traversor.traverse(!body.isEmpty() ? body.first() : doc);
 
             return formatter.toString();
         } catch (Exception e) {
