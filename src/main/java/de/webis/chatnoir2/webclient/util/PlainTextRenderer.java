@@ -59,14 +59,33 @@ public class PlainTextRenderer {
 
     private static String convert(String html, boolean basicHtml, int maxWidth) {
         FormattingVisitor formatter = new FormattingVisitor(basicHtml, maxWidth);
-        NodeTraversor traversor     = new NodeTraversor(formatter);
+
         try {
-            Element element = Jsoup.parse(html);
-            Elements body = element.getElementsByTag("body");
-            if (body.size() > 0) {
-                element = body.first();
+            Element doc = Jsoup.parse(html);
+
+            // get document title
+            if (basicHtml) {
+                Elements title = doc.getElementsByTag("title");
+                if (title.size() > 0) {
+                    StringBuilder sb = new StringBuilder();
+                    for (Node child : title.first().childNodes()) {
+                        if (child instanceof TextNode) {
+                            sb.append(((TextNode) child).text());
+                        }
+                    }
+                    formatter.mTitle = sb.toString();
+                }
             }
-            traversor.traverse(element);
+
+            // traverse body
+            NodeTraversor traversor = new NodeTraversor(formatter);
+            Elements body = doc.getElementsByTag("body");
+            if (body.size() > 0) {
+                traversor.traverse(body.first());
+            } else {
+                traversor.traverse(doc);
+            }
+
             return formatter.toString();
         } catch (Exception e) {
             return "";
@@ -114,6 +133,7 @@ public class PlainTextRenderer {
             mMaxWidth = maxWidth;
         }
 
+        @Override
         public void head(Node node, int depth) {
             String name = node.nodeName();
 
@@ -141,21 +161,10 @@ public class PlainTextRenderer {
                 if (mBasicHTML) {
                     append("<" + name + ">");
                 }
-            } else if (name.equals("title")) {
-                StringBuilder sb = new StringBuilder();
-                for (Node child : node.childNodes()) {
-                    if (child instanceof TextNode) {
-                        String text = ((TextNode) child).text();
-                        if (mBasicHTML) {
-                            text = StringEscapeUtils.escapeHtml(text);
-                        }
-                        sb.append(text);
-                    }
-                }
-                mTitle = sb.toString();
             }
         }
 
+        @Override
         public void tail(Node node, int depth) {
             String name = node.nodeName();
 
