@@ -409,7 +409,8 @@ public class SimpleSearch extends SearchProvider
         mainQuery.should(hostBooster);
 
         // Wikipedia boost
-        TermQueryBuilder wikiBooster = QueryBuilders.termQuery("warc_target_hostname.raw", "en.wikipedia.org");
+        TermQueryBuilder wikiBooster = QueryBuilders.termQuery("warc_target_hostname.raw",
+                mSearchLanguage + ".wikipedia.org");
         mainQuery.should(wikiBooster);
 
         return mainQuery;
