@@ -46,7 +46,9 @@
                                     <li role="presentation" class="result-cache"><a role="menuitem" tabindex="-1" href="{{link}}">Web Link</a></li>
                                     <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{{contextPath}}/cache?uuid={{id}}&plain=1">Plaintext</a></li>
                                     <li role="presentation" class="divider"></li>
-                                    <li role="presentation" class="dropdown-header">TREC ID: {{trecId}}</li>
+                                    <li role="presentation" class="dropdown-header">Index: {{index}}</li>
+                                    <li role="presentation" class="dropdown-header">Document ID: {{id}}</li>
+                                    {{#trecId}}<li role="presentation" class="dropdown-header">TREC ID: {{trecId}}</li>{{/trecId}}
                                     <li role="presentation" class="dropdown-header">Score: {{metadata.score}}</li>
                                     <li role="presentation" class="dropdown-header">Page Rank: {{metadata.page_rank}}</li>
                                     <li role="presentation" class="dropdown-header">Spam Rank: {{metadata.spam_rank}}</li>

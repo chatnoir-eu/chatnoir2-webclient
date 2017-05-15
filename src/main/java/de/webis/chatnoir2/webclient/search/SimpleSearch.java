@@ -177,7 +177,7 @@ public class SimpleSearch extends SearchProvider
             final SearchResultBuilder.SearchResult result = new SearchResultBuilder()
                     .index(hit.index())
                     .id(hit.getId())
-                    .trecId(source.get("warc_trec_id").toString())
+                    .trecId(source.containsKey("warc_trec_id") ? source.get("warc_trec_id").toString() : null)
                     .title(TextCleanser.cleanse(title, true))
                     .hostname(source.get("warc_target_hostname").toString())
                     .link(source.get("warc_target_uri").toString())
