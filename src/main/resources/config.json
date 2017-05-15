@@ -7,7 +7,7 @@
         "default_indices" : [ "webis_clueweb12" ],
         "index_aliases"   : [
             { "index" : "webis_warc_clueweb09_001", "alias" : "webis_clueweb09" },
-            { "index" : "webis_warc_clueweb12_008", "alias" : "webis_clueweb12" }
+            { "index" : "webis_warc_clueweb12_009", "alias" : "webis_clueweb12" }
         ]
     },
 
