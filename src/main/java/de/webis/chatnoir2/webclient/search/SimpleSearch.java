@@ -232,28 +232,35 @@ public class SimpleSearch extends SearchProvider
     private QueryBuilder buildPreQuery(StringBuffer userQueryString)
     {
         BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
-        mainQuery.filter(QueryBuilders.termQuery("lang", mSearchLanguage));
 
-        final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
-
+        // parse query string filters
         QueryBuilder queryStringFilter = parseQueryStringFilters(userQueryString);
         if (null != queryStringFilter) {
             mainQuery.filter(queryStringFilter);
         }
 
-        final SimpleQueryStringBuilder searchQuery = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());
-        searchQuery
-                .defaultOperator(Operator.AND)
-                .flags(SimpleQueryStringFlag.AND,
-                        SimpleQueryStringFlag.OR,
-                        SimpleQueryStringFlag.NOT,
-                        SimpleQueryStringFlag.WHITESPACE);
+        mainQuery.filter(QueryBuilders.termQuery("lang", mSearchLanguage));
 
-        final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
-        for (final ConfigLoader.Config field : mainFields) {
-            searchQuery.field(field.getString("name", ""));
+        final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
+
+        if (!userQueryString.toString().trim().isEmpty()) {
+            final SimpleQueryStringBuilder searchQuery = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());
+            searchQuery
+                    .defaultOperator(Operator.AND)
+                    .flags(SimpleQueryStringFlag.AND,
+                            SimpleQueryStringFlag.OR,
+                            SimpleQueryStringFlag.NOT,
+                            SimpleQueryStringFlag.WHITESPACE);
+
+            final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
+            for (final ConfigLoader.Config field : mainFields) {
+                searchQuery.field(field.getString("name", ""));
+            }
+            mainQuery.must(searchQuery);
+        } else {
+            MatchAllQueryBuilder searchQuery = QueryBuilders.matchAllQuery();
+            mainQuery.must(searchQuery);
         }
-        mainQuery.must(searchQuery);
 
         // add range filters (e.g. to filter by minimal content length)
         final ConfigLoader.Config[] rangeFilters = simpleSearchConfig.getArray("range_filters");
