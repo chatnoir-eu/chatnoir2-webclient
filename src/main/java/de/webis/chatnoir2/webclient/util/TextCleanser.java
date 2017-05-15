@@ -14,7 +14,7 @@ package de.webis.chatnoir2.webclient.util;
 public class TextCleanser
 {
     /**
-     * Cleanse the given string by removing any clutter such as runs of hyphens or spaces.
+     * Cleanse the given string by removing any clutter such as runs of special characters, hyphens or spaces.
      *
      * @param str String to cleanse
      * @return cleansed and more readable string
@@ -33,11 +33,22 @@ public class TextCleanser
      */
     public static String cleanse(String str, boolean html)
     {
+        str = cleanseEncodingErrors(str);
         str = specialChars(str, html);
         str = repeatedWords(str, html);
         str = whitespace(str, html);
 
         return str;
+    }
+
+    /**
+     * Remove question mark place holder characters caused by broken encoding.
+     *
+     * @param str String to cleanse
+     * @return cleansed string
+     */
+    public static String cleanseEncodingErrors(String str) {
+        return str.replace("\ufffd", "");
     }
 
     private static String whitespace(final String str, boolean html)

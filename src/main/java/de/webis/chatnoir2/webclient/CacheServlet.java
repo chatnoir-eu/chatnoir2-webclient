@@ -69,7 +69,7 @@ public class CacheServlet extends ChatNoirServlet
             return;
         }
 
-        final DocumentRetriever retriever = new DocumentRetriever(true);
+        final DocumentRetriever retriever = new DocumentRetriever(true, true);
 
         if (null == indexParam) {
             String[] effectiveIndices = retriever.getEffectiveIndices();

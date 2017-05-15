@@ -10,6 +10,7 @@ package de.webis.chatnoir2.webclient.search;
 import de.webis.WebisUUID;
 import de.webis.chatnoir2.webclient.CacheServlet;
 import de.webis.chatnoir2.webclient.hdfs.MapFileReader;
+import de.webis.chatnoir2.webclient.util.TextCleanser;
 import org.apache.http.client.utils.URIBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.json.JSONObject;
@@ -30,17 +31,19 @@ import java.util.*;
  */
 public class DocumentRetriever extends IndexRetrievalOperator
 {
-    private boolean mRewriteURIs;
+    private boolean mRewriteURIs = true;
+    private boolean mCleanEncodingErrors = true;
 
     public DocumentRetriever()
     {
-        this(false);
+        this(false, false);
     }
 
     /**
-     * @param rewriteURIs whether to rewrite URIs in the retrieved documents.
+     * @param rewriteURIs whether to rewrite URIs in the retrieved documents
+     * @param cleanEncodingErrors whether to clean up question marks caused by encoding errors
      */
-    public DocumentRetriever(final boolean rewriteURIs)
+    public DocumentRetriever(final boolean rewriteURIs, boolean cleanEncodingErrors)
     {
         super(null);
 
@@ -48,6 +51,7 @@ public class DocumentRetriever extends IndexRetrievalOperator
             MapFileReader.init();
         }
         mRewriteURIs = rewriteURIs;
+        mCleanEncodingErrors = cleanEncodingErrors;
     }
 
     public void setRewriteURIs(final boolean rewriteURIs)
@@ -58,6 +62,16 @@ public class DocumentRetriever extends IndexRetrievalOperator
     public boolean getRewriteURIs()
     {
         return mRewriteURIs;
+    }
+
+    public void setCleanEncodingErrors(final boolean cleanEncodingErrors)
+    {
+        mCleanEncodingErrors = cleanEncodingErrors;
+    }
+
+    public boolean getCleanEncodingErrors()
+    {
+        return mCleanEncodingErrors;
     }
 
     /**
@@ -238,10 +252,15 @@ public class DocumentRetriever extends IndexRetrievalOperator
 
         public String getBody()
         {
+            String body = mBody;
             if (mRewriteURIs) {
-                return rewriteURIs(mBody);
+                body = rewriteURIs(mBody);
             }
-            return mBody;
+            if (mCleanEncodingErrors) {
+                body = TextCleanser.cleanseEncodingErrors(body);
+            }
+
+            return body;
         }
 
         private String rewriteURIs(final String html)
