@@ -203,7 +203,9 @@ public class SimpleSearch extends SearchProvider
             }
             prevInGroup = inGroup;
         }
-        results.get(len - 1).moreSuggested = prevInGroup;
+        if (len > 0) {
+            results.get(len - 1).moreSuggested = prevInGroup;
+        }
 
         return results;
     }
