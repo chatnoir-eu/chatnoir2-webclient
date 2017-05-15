@@ -36,7 +36,11 @@ public class SimpleSearchApiModule extends ApiModuleBase
      */
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
-        final String searchQueryString = getTypedNestedParameter(String.class, "q", request);
+        String searchQueryString = getTypedNestedParameter(String.class, "query", request);
+        if (null == searchQueryString) {
+            searchQueryString = getTypedNestedParameter(String.class, "q", request);
+        }
+
         if (null == searchQueryString || searchQueryString.trim().isEmpty()) {
             final XContentBuilder errObj = generateErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "Empty search query");
             writeResponse(response, errObj, HttpServletResponse.SC_BAD_REQUEST);
