@@ -1,7 +1,7 @@
 /*
  * ChatNoir 2 Web frontend.
  *
- * Copyright (C) 2015 Webis Group @ Bauhaus University Weimar
+ * Copyright (C) 2015-2017 Webis Group @ Bauhaus University Weimar
  * Main Contributor: Janek Bevendorff
  */
 
@@ -13,11 +13,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * ChatNoir API module annotation
+ * ChatNoir API module annotation v1.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface ApiModule
+public @interface ApiModuleV1
 {
     /**
      * The URL patterns of the API module

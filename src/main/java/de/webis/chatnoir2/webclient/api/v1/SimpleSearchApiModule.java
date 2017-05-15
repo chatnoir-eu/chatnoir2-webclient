@@ -5,11 +5,12 @@
  * Main Contributor: Janek Bevendorff
  */
 
-package de.webis.chatnoir2.webclient.api;
+package de.webis.chatnoir2.webclient.api.v1;
 
-import de.webis.chatnoir2.webclient.ChatNoirServlet;
+import de.webis.chatnoir2.webclient.api.ApiModuleV1;
 import de.webis.chatnoir2.webclient.search.SearchResultBuilder;
 import de.webis.chatnoir2.webclient.search.SimpleSearch;
+import de.webis.chatnoir2.webclient.util.Configured;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -22,7 +23,7 @@ import java.util.HashMap;
 /**
  * Base class for ChatNoir REST API modules.
  */
-@ApiModule("_simple")
+@ApiModuleV1("_search")
 public class SimpleSearchApiModule extends ApiModuleBase
 {
     /**
@@ -32,48 +33,43 @@ public class SimpleSearchApiModule extends ApiModuleBase
      *
      * @param request HTTP request
      * @param response HTTP response
-     * @throws IOException
      */
     @SuppressWarnings("unchecked")
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
-        final String searchQueryString = ChatNoirServlet.getParameter("q", request);
+        final String searchQueryString = getTypedNestedParameter(String.class, "q", request);
         if (null == searchQueryString || searchQueryString.trim().isEmpty()) {
             final JSONObject errObj = generateErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "Empty search query");
             writeResponse(response, errObj, HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
 
-        final String indicesString = getParameter("i", request);
-        String[] indices = null;
-        if (null != indicesString) {
-            indices = indicesString.split(",");
+        final JSONArray indices = getTypedNestedParameter(JSONArray.class, "index", request);
+        String[] indicesStr = null;
+        if (null != indices) {
+            indicesStr = new String[indices.length()];
+            for (int i = 0; i < indices.length(); ++i) {
+                indicesStr[i] = indices.getString(i);
+            }
         }
 
-        final SimpleSearch search = new SimpleSearch(indices);
+        final SimpleSearch search = new SimpleSearch(indicesStr);
 
-        int from  = 0;
-        int size  = 10;
-
-        final String fromStr = ChatNoirServlet.getParameter("from", request);
-        if (null != fromStr) {
-            try {
-                from = Math.max(Integer.parseInt(fromStr), 1);
-            } catch (NumberFormatException ignored) { }
+        Integer from = getTypedNestedParameter(Integer.class, "from", request);
+        Integer size = getTypedNestedParameter(Integer.class, "size", request);
+        if (null == from || from < 1) {
+            from = 1;
         }
-        final String sizeStr = ChatNoirServlet.getParameter("size", request);
-        if (null != sizeStr) {
-            try {
-                size = Math.max(Integer.parseInt(sizeStr), 1);
-            } catch (NumberFormatException ignored) { }
+        if (null == size || size < 1) {
+            size = new Configured().getConf().get("serp").get("pagination").getInteger("results_per_page");
         }
 
         final JSONObject responseObj = new JSONObject();
 
-        final long startTime = System.nanoTime();
-        search.setExplain(null != ChatNoirServlet.getParameter("explain", request));
+        final long startTime = System.currentTimeMillis();
+        search.setExplain(null != getTypedNestedParameter(Boolean.class, "explain", request));
         search.doSearch(searchQueryString, from, size);
-        final long elapsedTime = System.nanoTime() - startTime;
+        final long elapsedTime = System.currentTimeMillis() - startTime;
 
         final ArrayList<SearchResultBuilder.SearchResult> results = search.getResults();
         final JSONArray resultsJson = new JSONArray();
@@ -95,7 +91,7 @@ public class SimpleSearchApiModule extends ApiModuleBase
         }
 
         final JSONObject searchMeta = new JSONObject();
-        searchMeta.put("query_time", Float.parseFloat(String.format("%.3f", elapsedTime * 0.000000001)));
+        searchMeta.put("query_time", elapsedTime);
         searchMeta.put("total_results", search.getTotalResultNumber());
         searchMeta.put("searched_indices", search.getEffectiveIndices());
 
@@ -112,10 +108,9 @@ public class SimpleSearchApiModule extends ApiModuleBase
      *
      * @param request HTTP request
      * @param response HTTP response
-     * @throws IOException
      */
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
-        rejectMethod(response);
+        doGet(request, response);
     }
 }

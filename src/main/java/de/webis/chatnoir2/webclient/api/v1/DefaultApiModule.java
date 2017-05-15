@@ -1,13 +1,14 @@
 /*
  * ChatNoir 2 Web frontend.
  *
- * Copyright (C) 2015 Webis Group @ Bauhaus University Weimar
+ * Copyright (C) 2015-2017 Webis Group @ Bauhaus University Weimar
  * Main Contributor: Janek Bevendorff
  */
 
 
-package de.webis.chatnoir2.webclient.api;
+package de.webis.chatnoir2.webclient.api.v1;
 
+import de.webis.chatnoir2.webclient.api.ApiModuleV1;
 import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,7 +18,7 @@ import java.io.IOException;
 /**
  * Default API module to serve generic API requests.
  */
-@ApiModule("_default")
+@ApiModuleV1("_default")
 public class DefaultApiModule extends ApiModuleBase
 {
     @Override

@@ -1,7 +1,7 @@
 /*
  * ChatNoir 2 Web frontend.
  *
- * Copyright (C) 2014 Webis Group @ Bauhaus University Weimar
+ * Copyright (C) 2014-2017 Webis Group @ Bauhaus University Weimar
  * Main Contributor: Janek Bevendorff
  */
 
@@ -20,7 +20,6 @@ import java.nio.charset.Charset;
  * Provides some basic functionality which is needed everywhere.
  *
  * @author Janek Bevendorff
- * @version 1
  */
 public abstract class ChatNoirServlet extends HttpServlet
 {
@@ -29,8 +28,6 @@ public abstract class ChatNoirServlet extends HttpServlet
      *
      * @param request   The HTTP request
      * @param response  The HTTP response
-     * @throws ServletException
-     * @throws IOException
      */
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
@@ -45,8 +42,6 @@ public abstract class ChatNoirServlet extends HttpServlet
      *
      * @param request   The HTTP request
      * @param response  The HTTP response
-     * @throws ServletException
-     * @throws IOException
      */
     @Override
     protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
@@ -63,7 +58,7 @@ public abstract class ChatNoirServlet extends HttpServlet
      * @param request request object
      * @return UTF-8 encoded String, null if parameter does not exist
      */
-    public static String getParameter(final String name, final HttpServletRequest request) {
+    protected String getParameter(final String name, final HttpServletRequest request) {
         try {
             return new String(request.getParameter(name).getBytes(Charset.defaultCharset()), "UTF-8");
         } catch (UnsupportedEncodingException | NullPointerException ignored) {
