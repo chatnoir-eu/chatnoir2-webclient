@@ -104,12 +104,11 @@ public class DocumentRetriever extends Configured
      */
     public Document getByIndexDocID(final String indexName, final String docID)
     {
-        final GetResponse response = getClient().prepareGet(indexName, "warcrecord", docID)
-                .execute()
-                .actionGet();
+        final GetResponse response = getClient().prepareGet(indexName, "warcrecord", docID).get();
         if (!response.isExists()) {
             return null;
         }
+
         String recordIDKey = "warc_record_id";
         if (indexName.contains("clueweb")) {
             recordIDKey = "warc_trec_id";

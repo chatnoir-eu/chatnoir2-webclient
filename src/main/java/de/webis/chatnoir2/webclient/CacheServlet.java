@@ -71,11 +71,12 @@ public class CacheServlet extends ChatNoirServlet
         }
 
         if (null == indexParam) {
-            indexParam = new Configured().getConf().get("cluster").getString("default_index");
-            if (null == indexParam) {
+            String[] defaultIndices = new Configured().getConf().get("cluster").getStringArray("default_indices");
+            if (defaultIndices.length == 0) {
                 redirectError(request, response);
                 return;
             }
+            indexParam = defaultIndices[0];
         }
 
         final DocumentRetriever retriever = new DocumentRetriever(true);
