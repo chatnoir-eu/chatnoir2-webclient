@@ -17,9 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Base class for ChatNoir REST API modules.
@@ -47,11 +45,9 @@ public class SimpleSearchApiModule extends ApiModuleBase
         }
 
         final String indicesString = getParameter("i", request);
-        final List<String> indices;
+        String[] indices = null;
         if (null != indicesString) {
-            indices = Arrays.asList(indicesString.split(","));
-        } else {
-            indices = null;
+            indices = indicesString.split(",");
         }
 
         final SimpleSearch search = new SimpleSearch(indices);
@@ -101,7 +97,7 @@ public class SimpleSearchApiModule extends ApiModuleBase
         final JSONObject searchMeta = new JSONObject();
         searchMeta.put("query_time", Float.parseFloat(String.format("%.3f", elapsedTime * 0.000000001)));
         searchMeta.put("total_results", search.getTotalResultNumber());
-        searchMeta.put("searched_indices", search.getEffectiveIndexList());
+        searchMeta.put("searched_indices", search.getEffectiveIndices());
 
         responseObj.put("results", resultsJson);
         responseObj.put("meta", searchMeta);

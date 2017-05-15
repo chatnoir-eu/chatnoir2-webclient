@@ -14,13 +14,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.response.Renderer;
-import de.webis.chatnoir2.webclient.search.SearchProvider;
 import de.webis.chatnoir2.webclient.search.SearchResultBuilder;
 import de.webis.chatnoir2.webclient.search.SimpleSearch;
 
@@ -76,12 +74,10 @@ public class SearchServlet extends ChatNoirServlet
         }
 
         final String indicesString = getParameter("i", request);
-        final List<String> indices;
+        String[] indices = null;
         if (null != indicesString) {
             System.out.println(indicesString);
-            indices = Arrays.asList(indicesString.split(","));
-        } else {
-            indices = null;
+            indices = indicesString.split(",");
         }
 
         final HashMap<String, Object> templateVars = new HashMap<>();
@@ -92,9 +88,9 @@ public class SearchServlet extends ChatNoirServlet
 
         final SimpleSearch search = new SimpleSearch(indices);
         if (null != indices) {
-            templateVars.put("indices", search.getEffectiveIndexList());
-            templateVars.put("indices-string", String.join(",", search.getEffectiveIndexList()));
-            templateVars.put("indices-urlstring", URLEncoder.encode(String.join(",", search.getEffectiveIndexList()), "UTF-8"));
+            templateVars.put("indices", search.getEffectiveIndices());
+            templateVars.put("indices-string", String.join(",", search.getEffectiveIndices()));
+            templateVars.put("indices-urlstring", URLEncoder.encode(String.join(",", search.getEffectiveIndices()), "UTF-8"));
         }
 
 

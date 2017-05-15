@@ -10,7 +10,6 @@ package de.webis.chatnoir2.webclient.search;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.TextCleanser;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.RangeQueryBuilder;
@@ -27,7 +26,6 @@ import java.util.*;
  * Provider for simple universal search.
  *
  * @author Janek Bevendorff
- * @version 1
  */
 public class SimpleSearch extends SearchProvider
 {
@@ -42,11 +40,6 @@ public class SimpleSearch extends SearchProvider
     private int mTitleLength = 70;
 
     /**
-     * Array of mIndices to search.
-     */
-    private String[] mIndices;
-
-    /**
      * Whether to explain query.
      */
     private boolean mDoExplain = false;
@@ -56,53 +49,29 @@ public class SimpleSearch extends SearchProvider
      */
     private SearchResponse mResponse = new SearchResponse();
 
+    /**
+     * Current search language.
+     */
     private String mSearchLanguage = "en";
 
     /**
-     * Constructor.
-     *
-     * @param indices List of index names to search (null means use default from config).
-     *                Indices that are not present in the config will be ignored.
+     * Config object shortcut.
      */
-    public SimpleSearch(final List<String> indices)
+    private final ConfigLoader.Config mSimpleSearchConfig;
+
+    public SimpleSearch(final String[] indices)
     {
-        ConfigLoader.Config config = getConf();
+        super(indices);
 
-        mSnippetLength = config.get("serp").getInteger("snippet_length", mSnippetLength);
-        mTitleLength   = config.get("serp").getInteger("title_length", mTitleLength);
+        mSnippetLength = getConf().get("serp").getInteger("snippet_length", mSnippetLength);
+        mTitleLength   = getConf().get("serp").getInteger("title_length", mTitleLength);
 
-        final ArrayList<String> allowedIndices = new ArrayList<>(Arrays.asList(config.get("cluster").getStringArray("indices")));
-        boolean useDefaultIndex = true;
-        if (null != indices) {
-            final ArrayList<String> usedIndices = new ArrayList<>();
-            for (final String index : indices) {
-                if (allowedIndices.contains(index.trim())) {
-                    usedIndices.add(index.trim());
-                }
-            }
-            if (!usedIndices.isEmpty()) {
-                this.mIndices = usedIndices.toArray(new String[usedIndices.size()]);
-                useDefaultIndex = false;
-            }
-        }
-        if (useDefaultIndex) {
-            this.mIndices = new String[]{config.get("cluster").getString("default_index", allowedIndices.get(0))};
-        }
+        mSimpleSearchConfig = getConf().get("search").get("default_simple");
     }
 
     public SimpleSearch()
     {
         this(null);
-    }
-
-    /**
-     * Get a List of all mIndices that are allowed by the config and are therefore actually used.
-     *
-     * @return List of index names
-     */
-    public List<String> getEffectiveIndexList()
-    {
-        return Arrays.asList(this.mIndices);
     }
 
     /**
@@ -120,12 +89,15 @@ public class SimpleSearch extends SearchProvider
     @Override
     public void doSearch(String query, int from, int size)
     {
-        final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
         StringBuffer queryBuffer = new StringBuffer(query);
-        mResponse = getClient().prepareSearch(mIndices)
-                .setQuery(buildPreQuery(queryBuffer))
-                .setRescorer(buildRescorer(buildRescoreQuery(queryBuffer)),
-                       simpleSearchConfig.getInteger("rescore_window", size))
+
+        QueryBuilder preQuery = buildPreQuery(queryBuffer);
+        QueryBuilder rescoreQuery = buildRescoreQuery(queryBuffer);
+
+        mResponse = getClient().prepareSearch(getEffectiveIndices())
+                .setQuery(preQuery)
+                .setRescorer(buildRescorer(rescoreQuery),
+                        mSimpleSearchConfig.getInteger("rescore_window", size))
                 .setFrom(from)
                 .setSize(size)
                 .highlighter(new HighlightBuilder()
@@ -133,7 +105,7 @@ public class SimpleSearch extends SearchProvider
                         .field("body_lang." + mSearchLanguage, mSnippetLength, 1)
                         .encoder("html"))
                 .setExplain(mDoExplain)
-                .setTerminateAfter(simpleSearchConfig.getInteger("node_limit", 200000))
+                .setTerminateAfter(mSimpleSearchConfig.getInteger("node_limit", 200000))
                 .setProfile(false)
                 .get();
     }
@@ -241,8 +213,6 @@ public class SimpleSearch extends SearchProvider
 
         mainQuery.filter(QueryBuilders.termQuery("lang", mSearchLanguage));
 
-        final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
-
         if (!userQueryString.toString().trim().isEmpty()) {
             final SimpleQueryStringBuilder searchQuery = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());
             searchQuery
@@ -253,7 +223,7 @@ public class SimpleSearch extends SearchProvider
                             SimpleQueryStringFlag.PHRASE,
                             SimpleQueryStringFlag.WHITESPACE);
 
-            final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
+            final ConfigLoader.Config[] mainFields = mSimpleSearchConfig.getArray("main_fields");
             for (final ConfigLoader.Config field : mainFields) {
                 searchQuery.field(field.getString("name", ""));
             }
@@ -264,7 +234,7 @@ public class SimpleSearch extends SearchProvider
         }
 
         // add range filters (e.g. to filter by minimal content length)
-        final ConfigLoader.Config[] rangeFilters = simpleSearchConfig.getArray("range_filters");
+        final ConfigLoader.Config[] rangeFilters = mSimpleSearchConfig.getArray("range_filters");
         for (final ConfigLoader.Config filterConfig : rangeFilters) {
             final RangeQueryBuilder rangeFilter = QueryBuilders.rangeQuery(filterConfig.getString("name", ""));
             if (null != filterConfig.getDouble("gt")) {
@@ -298,9 +268,7 @@ public class SimpleSearch extends SearchProvider
      */
     private QueryBuilder parseQueryStringFilters(StringBuffer queryString)
     {
-        final ConfigLoader.Config conf = getConf().get("search").get("default_simple");
-
-        ConfigLoader.Config[] filterConf = conf.getArray("query_filters");
+        ConfigLoader.Config[] filterConf = mSimpleSearchConfig.getArray("query_filters");
         if (filterConf.length == 0) {
             return null;
         }
@@ -311,46 +279,57 @@ public class SimpleSearch extends SearchProvider
             String filterField = c.getString("field");
 
             int pos = queryString.indexOf(filterKey + ":");
-            if (-1 != pos) {
-                int filterStartPos = pos;
-                pos +=  filterKey.length() + 1;
-                int hostStartPos = pos;
-                while (Character.isWhitespace(queryString.charAt(pos))) {
-                    // skip initial white space
-                    ++pos;
+            if (-1 == pos) {
+                continue;
+            }
+
+            int filterStartPos = pos;
+            pos +=  filterKey.length() + 1;
+            int valueStartPos = pos;
+            while (Character.isWhitespace(queryString.charAt(pos))) {
+                // skip initial white space
+                ++pos;
+            }
+            while (pos < queryString.length() && !Character.isWhitespace(queryString.charAt(pos))) {
+                // walk up to the next white space or string end
+                ++pos;
+            }
+            String filterValue = queryString.substring(valueStartPos, pos).trim();
+
+            // strip filter from query string
+            queryString.replace(filterStartPos, pos, "");
+
+            // trim whitespace
+            int trimEnd = 0;
+            for (int i = 0; i < queryString.length(); ++i) {
+                if (!Character.isWhitespace(queryString.charAt(i))) {
+                    break;
                 }
-                while (pos < queryString.length() && !Character.isWhitespace(queryString.charAt(pos))) {
-                    // walk up to the next white space or string end
-                    ++pos;
+                ++trimEnd;
+            }
+            queryString.replace(0, trimEnd, "");
+            int trimStart = queryString.length();
+            for (int i = queryString.length(); i > 0; --i) {
+                if (!Character.isWhitespace(queryString.charAt(i - 1))) {
+                    break;
                 }
-                String filterValue = queryString.substring(hostStartPos, pos).trim();
+                --trimStart;
+            }
+            queryString.replace(trimStart, queryString.length(), "");
+
+            // apply filters
+            if (null != filterField && !filterField.startsWith("#")) {
                 TermQueryBuilder termQuery = QueryBuilders.termQuery(filterField, filterValue);
 
-                if (filterKey.equals("lang")) {
+                if (filterField.equals("lang")) {
                     mSearchLanguage = filterValue;
                 }
 
                 filterQuery.filter(termQuery);
-                queryString.replace(filterStartPos, pos, "");
-
-                // trim whitespace
-                int trimEnd = 0;
-                for (int i = 0; i < queryString.length(); ++i) {
-                    if (!Character.isWhitespace(queryString.charAt(i))) {
-                        break;
-                    }
-                    ++trimEnd;
+            } else if (null != filterField) {
+                if (filterField.equals("#index")) {
+                    setActiveIndices(filterValue.split(","));
                 }
-                queryString.replace(0, trimEnd, "");
-
-                int trimStart = queryString.length();
-                for (int i = queryString.length(); i > 0; --i) {
-                    if (!Character.isWhitespace(queryString.charAt(i - 1))) {
-                        break;
-                    }
-                    --trimStart;
-                }
-                queryString.replace(trimStart, queryString.length(), "");
             }
         }
 
@@ -434,31 +413,6 @@ public class SimpleSearch extends SearchProvider
         mainQuery.should(wikiBooster);
 
         return mainQuery;
-    }
-
-    /**
-     * Helper method for mapping a string to members of {@link FieldValueFactorFunction.Modifier}.
-     *
-     * @param modifier modifier String representation
-     * @return correct enum value
-     */
-    private FieldValueFactorFunction.Modifier mapStringToFunctionModifier(String modifier)
-    {
-        modifier = modifier.toUpperCase();
-        switch (modifier) {
-            case "LOG":
-            case "LOG1P":
-            case "LOG2P":
-            case "LN":
-            case "LN1P":
-            case "LN2P":
-            case "SQUARE":
-            case "SQRT":
-            case "RECIPROCAL":
-                return FieldValueFactorFunction.Modifier.valueOf(modifier);
-            default:
-                return FieldValueFactorFunction.Modifier.NONE;
-        }
     }
 
     /**
