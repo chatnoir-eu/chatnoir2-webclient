@@ -64,8 +64,7 @@ public class CacheServlet extends ChatNoirServlet
         String uuidParam  = request.getParameter("uuid");
         String indexParam = request.getParameter("index");
         String uriParam   = request.getParameter("uri");
-        String docIDParam = request.getParameter("docId");
-        if (null == docIDParam && null == uuidParam && uriParam == null) {
+        if (null == uuidParam && uriParam == null) {
             getServletContext().getRequestDispatcher(SearchServlet.ROUTE).forward(request, response);
             return;
         }
@@ -90,15 +89,22 @@ public class CacheServlet extends ChatNoirServlet
         final boolean rawMode = (null != request.getParameter("raw"));
         final boolean plainTextMode = (null != request.getParameter("plain"));
 
-
-        final DocumentRetriever.Document doc;
-
+        DocumentRetriever.Document doc = null;
         if (null != uuidParam) {
             try {
-                // retrieval by UUID
-                doc = retriever.getByUUID(indexParam, UUID.fromString(uuidParam));
+                // first try direct retrieval by UUID
+                try {
+                    doc = retriever.getByUUID(indexParam, UUID.fromString(uuidParam));
+                } catch (IllegalArgumentException ignored) {}
+
+                // if document not found, try retrieval by Elasticsearch document ID
                 if (null == doc) {
-                    throw new RuntimeException("Document not found");
+                    doc = retriever.getByIndexDocID(indexParam, uuidParam);
+
+                    if (null == doc) {
+                        redirectError(request, response);
+                        return;
+                    }
                 }
             } catch (Exception e) {
                 // catch self-thrown exception as well as any UUID parsing errors
@@ -106,7 +112,7 @@ public class CacheServlet extends ChatNoirServlet
                 redirectError(request, response);
                 return;
             }
-        } else if (null != uriParam) {
+        } else {
             // retrieval by URI
             doc = retriever.getByURI(indexParam, uriParam);
 
@@ -115,14 +121,6 @@ public class CacheServlet extends ChatNoirServlet
                 final HashMap<String, String> templateVars = new HashMap<>();
                 templateVars.put("uri", uriParam);
                 Renderer.render(getServletContext(), request, response, TEMPLATE_REDIRECT, templateVars);
-                return;
-            }
-        } else {
-            // retrieval by or Elasticsearch index document ID
-            doc = retriever.getByIndexDocID(indexParam, docIDParam);
-
-            if (null == doc) {
-                redirectError(request, response);
                 return;
             }
         }
@@ -143,8 +141,8 @@ public class CacheServlet extends ChatNoirServlet
 
         // else: show framed page
         final HashMap<String, String> templateVars = new HashMap<>();
-        templateVars.put("doc-id", doc.getDocUUID().toString());
-        templateVars.put("doc-id-urlenc", URLEncoder.encode(doc.getDocUUID().toString(), "UTF-8"));
+        templateVars.put("uuid", doc.getDocUUID().toString());
+        templateVars.put("uuid-urlstring", URLEncoder.encode(doc.getDocUUID().toString(), "UTF-8"));
         templateVars.put("orig-uri", doc.getTargetURI());
         templateVars.put("index", URLEncoder.encode(indexParam, "UTF-8"));
         if (plainTextMode) {

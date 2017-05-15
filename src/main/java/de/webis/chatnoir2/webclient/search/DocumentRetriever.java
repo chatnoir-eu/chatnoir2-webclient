@@ -105,7 +105,7 @@ public class DocumentRetriever extends IndexRetrievalOperator
      * Retrieve document by its index-internal Elasticsearch document ID.
      *
      * @param indexName name of the index from which to retrieve the document
-     * @param docID Elasticsearch Flake ID
+     * @param docID Elasticsearch document ID
      * @return retrieved document, null if no matching document exists
      */
     public Document getByIndexDocID(final String indexName, final String docID)
