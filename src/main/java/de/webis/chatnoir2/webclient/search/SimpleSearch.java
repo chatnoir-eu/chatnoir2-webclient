@@ -55,6 +55,11 @@ public class SimpleSearch extends SearchProvider
     private String mSearchLanguage = "en";
 
     /**
+     * Whether query filters block result grouping.
+     */
+    private boolean mFiltersBlockGrouping = false;
+
+    /**
      * Config object shortcut.
      */
     private final ConfigLoader.Config mSimpleSearchConfig;
@@ -149,7 +154,7 @@ public class SimpleSearch extends SearchProvider
             // group consecutive results with same host
             final String currentHost = (String) source.get("warc_target_hostname");
             boolean doGroup = false;
-            if (previousHost.equals(currentHost)) {
+            if (!mFiltersBlockGrouping && previousHost.equals(currentHost)) {
                 doGroup = true;
             }
             previousHost = currentHost;
@@ -281,6 +286,8 @@ public class SimpleSearch extends SearchProvider
      */
     private QueryBuilder parseQueryStringFilters(StringBuffer queryString)
     {
+        mFiltersBlockGrouping = false;
+
         ConfigLoader.Config[] filterConf = mSimpleSearchConfig.getArray("query_filters");
         if (filterConf.length == 0) {
             return null;
@@ -290,10 +297,15 @@ public class SimpleSearch extends SearchProvider
         for (ConfigLoader.Config c: filterConf) {
             String filterKey = c.getString("keyword");
             String filterField = c.getString("field");
+            boolean blockGrouping = c.getBoolean("block_grouping", false);
 
             int pos = queryString.indexOf(filterKey + ":");
             if (-1 == pos) {
                 continue;
+            }
+
+            if (blockGrouping) {
+                mFiltersBlockGrouping = true;
             }
 
             int filterStartPos = pos;

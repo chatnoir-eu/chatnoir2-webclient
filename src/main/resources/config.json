@@ -60,9 +60,9 @@
                 { "name" : "warc_trec_id", "boost" : 100000.0 }
             ],
             "query_filters" : [
-                { "keyword" : "site", "field": "warc_target_hostname.raw" },
-                { "keyword" : "lang", "field": "lang" },
-                { "keyword" : "index", "field": "#index" }
+                { "keyword" : "site", "field" : "warc_target_hostname.raw", "block_grouping" : true },
+                { "keyword" : "lang", "field" : "lang" },
+                { "keyword" : "index", "field" : "#index" }
             ],
             "tie_breaker" : 0.7,
             "function_scores" : {
