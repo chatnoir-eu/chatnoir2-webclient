@@ -7,9 +7,13 @@
 
 package de.webis.chatnoir2.webclient.search;
 
+import de.webis.chatnoir2.webclient.resources.ConfigLoader;
+import de.webis.chatnoir2.webclient.util.Configured;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Search result DTO builder.
@@ -36,6 +40,21 @@ public class SearchResultBuilder
      */
     public SearchResult build() {
         return searchResult;
+    }
+
+    public SearchResultBuilder index(String index)
+    {
+        ConfigLoader.Config[] conf = new Configured().getConf().get("cluster").getArray("index_aliases");
+        if (conf.length != 0) {
+            for (ConfigLoader.Config c: conf) {
+                if (c.getString("index").equals(index)) {
+                    index = c.getString("alias");
+                    break;
+                }
+            }
+        }
+        searchResult.index = index;
+        return this;
     }
 
     public SearchResultBuilder id(final String id)
@@ -97,6 +116,7 @@ public class SearchResultBuilder
      */
     public class SearchResult
     {
+        protected String index = "";
         protected String id = "";
         protected String trecId = "";
         protected String title = "";

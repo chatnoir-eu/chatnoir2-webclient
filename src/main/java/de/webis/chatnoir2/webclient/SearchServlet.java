@@ -73,10 +73,9 @@ public class SearchServlet extends ChatNoirServlet
             return;
         }
 
-        final String indicesString = getParameter("i", request);
+        String indicesString = getParameter("index", request);
         String[] indices = null;
         if (null != indicesString) {
-            System.out.println(indicesString);
             indices = indicesString.split(",");
         }
 
@@ -87,12 +86,6 @@ public class SearchServlet extends ChatNoirServlet
         templateVars.put("query-string", request.getAttribute("javax.servlet.forward.query_string"));
 
         final SimpleSearch search = new SimpleSearch(indices);
-        if (null != indices) {
-            templateVars.put("indices", search.getEffectiveIndices());
-            templateVars.put("indices-string", String.join(",", search.getEffectiveIndices()));
-            templateVars.put("indices-urlstring", URLEncoder.encode(String.join(",", search.getEffectiveIndices()), "UTF-8"));
-        }
-
 
         int currentPage  = 1;
         long numResults  = 0;
@@ -109,6 +102,11 @@ public class SearchServlet extends ChatNoirServlet
         search.doSearch(searchQueryString, (currentPage - 1) * mResultsPerPage, mResultsPerPage);
         final long elapsedTime = System.nanoTime() - startTime;
         templateVars.put("query-time", String.format("%.1fms", elapsedTime * 0.000001));
+
+        templateVars.put("indices", search.getEffectiveIndices());
+        indicesString = String.join(",", search.getEffectiveIndices());
+        templateVars.put("indices-string", indicesString);
+        templateVars.put("indices-urlstring", URLEncoder.encode(indicesString, "UTF-8"));
 
         numResults = search.getTotalResultNumber();
         final long currentPageCapped = Math.max(1, Math.min((long) Math.ceil((double) numResults / mResultsPerPage), currentPage));

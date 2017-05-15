@@ -67,6 +67,7 @@ public class SimpleSearch extends SearchProvider
         mTitleLength   = getConf().get("serp").getInteger("title_length", mTitleLength);
 
         mSimpleSearchConfig = getConf().get("search").get("default_simple");
+        setActiveIndices(indices);
     }
 
     public SimpleSearch()
@@ -171,6 +172,7 @@ public class SimpleSearch extends SearchProvider
             }
 
             final SearchResultBuilder.SearchResult result = new SearchResultBuilder()
+                    .index(hit.index())
                     .id(hit.getId())
                     .trecId(source.get("warc_trec_id").toString())
                     .title(TextCleanser.cleanse(title, true))

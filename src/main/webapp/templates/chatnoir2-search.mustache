@@ -17,7 +17,7 @@
                 <form role="search" action="/" method="get">
                     <div class="input-group">
                         <input type="text" class="form-control input-lg" placeholder="Search" name="q" value="{{search-query}}" id="SearchInput">
-                        {{#indices-string}}<input type="hidden" name="i" value="{{.}}">{{/indices-string}}
+                        {{#indices-string}}<input type="hidden" name="index" value="{{.}}">{{/indices-string}}
                         <span class="input-group-btn">
                             <button type="submit" class="btn btn-primary input-lg">Go!</button>
                         </span>
@@ -35,7 +35,7 @@
             {{#searchResults}}
                 <article class="search-result{{#groupingSuggested}} grouped{{/groupingSuggested}}" id="result-{{trecId}}"{{#metadata.has_explanation}} data-explanation="{{metadata.explanation}}"{{/metadata.has_explanation}}>
                     <header>
-                        <h2><a href="{{contextPath}}/cache?docId={{id}}{{#indices-string}}&i={{.}}{{/indices-string}}">{{& title}}</a></h2>
+                        <h2><a href="{{contextPath}}/cache?docId={{id}}{{#index}}&index={{.}}{{/index}}">{{& title}}</a></h2>
                         <div class="meta">
                             <a href="{{link}}" class="link">{{#hostName}}{{hostName}}{{/hostName}}{{^hostName}}{{link}}{{/hostName}}</a>
                             <div class="dropdown">
@@ -44,7 +44,7 @@
                                 </button>
                                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
                                     <li role="presentation" class="result-cache"><a role="menuitem" tabindex="-1" href="{{link}}">Web Link</a></li>
-                                    <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{{contextPath}}/cache?docId={{id}}&plain=1{{#indices-urlstring}}&i={{.}}{{/indices-urlstring}}">Plaintext</a></li>
+                                    <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{{contextPath}}/cache?docId={{id}}&plain=1">Plaintext</a></li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="dropdown-header">TREC ID: {{trecId}}</li>
                                     <li role="presentation" class="dropdown-header">Score: {{metadata.score}}</li>
@@ -52,7 +52,7 @@
                                     <li role="presentation" class="dropdown-header">Spam Rank: {{metadata.spam_rank}}</li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="result-explain">
-                                    <a role="menuitem" class="result-explain" tabindex="-1" href="{{page-url}}?q={{{search-query-urlencoded}}}&p={{#currentPage}}{{.}}{{/currentPage}}&explain#result-{{trecId}}">Explain</a>
+                                    <a role="menuitem" class="result-explain" tabindex="-1" href="{{page-url}}?q={{{search-query-urlencoded}}}&p={{#currentPage}}{{.}}{{/currentPage}}{{#indices-urlstring}}&index={{.}}{{/indices-urlstring}}&explain#result-{{trecId}}">Explain</a>
                                     </li>
                                 </ul>
                             </div>
@@ -69,7 +69,7 @@
                 <ul class="pagination">
                     {{#pagination}}
                         <li{{#active}} class="active"{{/active}}>
-                                <a href="{{page-url}}?q={{{search-query-urlencoded}}}&p={{pagenumber}}{{#isExplainMode}}&explain{{/isExplainMode}}{{#indices-urlstring}}&i={{.}}{{/indices-urlstring}}" {{#hiddenlabel}} title="{{hiddenlabel}}"{{/hiddenlabel}}>
+                                <a href="{{page-url}}?q={{{search-query-urlencoded}}}&p={{pagenumber}}{{#isExplainMode}}&explain{{/isExplainMode}}{{#indices-urlstring}}&index={{.}}{{/indices-urlstring}}" {{#hiddenlabel}} title="{{hiddenlabel}}"{{/hiddenlabel}}>
                                 {{label}}{{#ariahiddenlabel}} <span aria-hidden="true">{{ariahiddenlabel}}</span>{{/ariahiddenlabel}}
                                 {{#hiddenlabel}} <span class="sr-only">{{hiddenlabel}}</span>{{/hiddenlabel}}
                         </a>
