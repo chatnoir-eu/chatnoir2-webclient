@@ -37,7 +37,7 @@
                     <header>
                         <h2><a href="{{contextPath}}/cache?uuid={{id}}{{#index}}&index={{.}}{{/index}}">{{& title}}</a></h2>
                         <div class="meta">
-                            <a href="{{link}}" class="link">{{#hostName}}{{hostName}}{{/hostName}}{{^hostName}}{{link}}{{/hostName}}</a>
+                            <a href="{{link}}" class="link">{{#hostname}}{{hostname}}{{/hostname}}{{^hostname}}{{link}}{{/hostname}}</a>
                             <div class="dropdown">
                                 <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
                                     <span class="caret"></span>
@@ -60,6 +60,12 @@
                     </header>
                     {{^groupingSuggested}}{{& snippet}}{{/groupingSuggested}}
                 </article>
+                {{#moreSuggested}}
+                    <div class="more-from-host">
+                        <a href="{{page-url}}?q=site:{{hostname}}+{{{search-query-urlencoded}}}">More results from {{hostname}}</a>
+                    </div>
+                {{/moreSuggested}}
+
             {{/searchResults}}
             {{^searchResults}}
                 <div class="no-results">No results found… ;-(</div>

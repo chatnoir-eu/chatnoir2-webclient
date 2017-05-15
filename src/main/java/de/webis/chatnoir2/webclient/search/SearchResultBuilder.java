@@ -69,6 +69,12 @@ public class SearchResultBuilder
         return this;
     }
 
+    public SearchResultBuilder hostname(final String hostname)
+    {
+        searchResult.hostname = hostname;
+        return this;
+    }
+
     public SearchResultBuilder title(final String title)
     {
         searchResult.title = title;
@@ -93,15 +99,15 @@ public class SearchResultBuilder
         return this;
     }
 
-    public SearchResultBuilder rawHTML(final String rawHTML)
-    {
-        searchResult.rawHTML = rawHTML;
-        return this;
-    }
-
     public SearchResultBuilder addMetadata(final String key, final Object value)
     {
         searchResult.metadata.put(key, value);
+        return this;
+    }
+
+    public SearchResultBuilder suggestMore(final boolean suggestMore)
+    {
+        searchResult.moreSuggested = suggestMore;
         return this;
     }
 
@@ -120,10 +126,11 @@ public class SearchResultBuilder
         protected String id = "";
         protected String trecId = "";
         protected String title = "";
+        protected String hostname = "";
         protected String link = "";
         protected String snippet = "";
         protected String fullBody = "";
-        protected String rawHTML = "";
+        protected boolean moreSuggested = false;
         protected boolean groupingSuggested = false;
         protected final HashMap<String, Object> metadata = new HashMap<>();
 
@@ -142,6 +149,11 @@ public class SearchResultBuilder
             return title;
         }
 
+        public String hostname()
+        {
+            return hostname;
+        }
+
         public String link()
         {
             return link;
@@ -157,25 +169,13 @@ public class SearchResultBuilder
             return fullBody;
         }
 
-        public String rawHTML()
-        {
-            return rawHTML;
-        }
-
         public boolean groupingSuggested() { return groupingSuggested; }
+
+        public boolean moreSuggested() { return moreSuggested; }
 
         public HashMap<String, Object> metaData()
         {
             return metadata;
-        }
-
-        public String hostName()
-        {
-            try {
-                return new URI(this.link).getHost();
-            } catch (URISyntaxException e) {
-                return "unknown";
-            }
         }
     }
 }

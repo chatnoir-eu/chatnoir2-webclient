@@ -147,8 +147,8 @@ public class SimpleSearch extends SearchProvider
             }
 
             // group consecutive results with same host
-            boolean doGroup = false;
             final String currentHost = (String) source.get("warc_target_hostname");
+            boolean doGroup = false;
             if (previousHost.equals(currentHost)) {
                 doGroup = true;
             }
@@ -174,6 +174,7 @@ public class SimpleSearch extends SearchProvider
                     .id(hit.getId())
                     .trecId(source.get("warc_trec_id").toString())
                     .title(TextCleanser.cleanse(title, true))
+                    .hostname(source.get("warc_target_hostname").toString())
                     .link(source.get("warc_target_uri").toString())
                     .snippet(TextCleanser.cleanse(snippet, true))
                     .fullBody(source.get("body_lang." + mSearchLanguage).toString())
@@ -186,6 +187,18 @@ public class SimpleSearch extends SearchProvider
                     .build();
             results.add(result);
         }
+
+        // add "more from host" suggestions at end of groups
+        boolean prevInGroup = false;
+        int len = results.size();
+        for (int i = 0; i < len; ++i) {
+            boolean inGroup = results.get(i).groupingSuggested();
+            if (prevInGroup && !inGroup) {
+                results.get(Math.max(0, i - 1)).moreSuggested = true;
+            }
+            prevInGroup = inGroup;
+        }
+        results.get(len - 1).moreSuggested = prevInGroup;
 
         return results;
     }
