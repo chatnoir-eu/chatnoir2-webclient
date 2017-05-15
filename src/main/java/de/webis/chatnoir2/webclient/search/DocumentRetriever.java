@@ -232,23 +232,23 @@ public class DocumentRetriever extends Configured
             org.jsoup.nodes.Document doc = Jsoup.parse(html);
 
             Elements anchors = doc.select("a[href]");
-            for (Element a : anchors) {
-                a.attr("href", rewriteURL(a.attr("href"), true));
+            for (Element l : anchors) {
+                l.attr("href", rewriteURL(l.attr("href"), true));
             }
 
-            Elements links = doc.select("link[href]");
-            for (Element l : links) {
+            Elements elements = doc.select("link[href]");
+            for (Element l : elements) {
                 l.attr("href", rewriteURL(l.attr("href"), false));
             }
 
-            Elements images = doc.select("img[src]");
-            for (Element img : images) {
+            elements = doc.select("img[src], script[src], iframe[src], video[src], audio[src]");
+            for (Element img : elements) {
                 img.attr("src", rewriteURL(img.attr("src"), false));
             }
 
-            Elements scripts = doc.select("script[src]");
-            for (Element script : scripts) {
-                script.attr("src", rewriteURL(script.attr("src"), false));
+            elements = doc.select("object[data]");
+            for (Element img : elements) {
+                img.attr("data", rewriteURL(img.attr("data"), false));
             }
 
             // remove base tags
