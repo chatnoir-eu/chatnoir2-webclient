@@ -403,8 +403,8 @@ public class SimpleSearch extends SearchProvider
         mainQuery.must(simpleQuery);
 
         // general host boost
-        SimpleQueryStringBuilder hostBooster = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());
-        hostBooster.field("warc_target_hostname");
+        MatchQueryBuilder hostBooster = QueryBuilders.matchQuery("warc_target_hostname",
+                userQueryString.toString());
         hostBooster.boost(20.0f);
         mainQuery.should(hostBooster);
 
