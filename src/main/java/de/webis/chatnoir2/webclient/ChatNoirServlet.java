@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 /**
  * Base servlet class for ChatNoir servlets.
@@ -64,7 +65,7 @@ public abstract class ChatNoirServlet extends HttpServlet
      */
     public static String getParameter(final String name, final HttpServletRequest request) {
         try {
-            return new String(request.getParameter(name).getBytes("ISO-8859-1"), "UTF-8");
+            return new String(request.getParameter(name).getBytes(Charset.defaultCharset()), "UTF-8");
         } catch (UnsupportedEncodingException | NullPointerException ignored) {
             return null;
         }
