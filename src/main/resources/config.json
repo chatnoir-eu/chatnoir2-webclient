@@ -50,6 +50,9 @@
             "additional_fields" : [
                 { "name" : "warc_trec_id", "boost" : 100000.0 }
             ],
+            "query_filters" : [
+                { "keyword" : "site", "field": "warc_target_hostname.raw" }
+            ],
             "tie_breaker" : 0.7,
             "function_scores" : {
                 "score_mode" : "multiply",

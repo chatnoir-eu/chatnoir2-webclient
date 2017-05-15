@@ -119,9 +119,10 @@ public class SimpleSearch extends SearchProvider
     public void doSearch(String query, int from, int size)
     {
         final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
+        StringBuffer queryBuffer = new StringBuffer(query);
         mResponse = getClient().prepareSearch(mIndices)
-                .setQuery(buildPreQuery(query))
-                .setRescorer(buildRescorer(buildRescoreQuery(query)),
+                .setQuery(buildPreQuery(queryBuffer))
+                .setRescorer(buildRescorer(buildRescoreQuery(queryBuffer)),
                        simpleSearchConfig.getInteger("rescore_window", size))
                 .setFrom(from)
                 .setSize(size)
@@ -216,14 +217,19 @@ public class SimpleSearch extends SearchProvider
      *
      * @return assembled pre-query
      */
-    private QueryBuilder buildPreQuery(String userQueryString)
+    private QueryBuilder buildPreQuery(StringBuffer userQueryString)
     {
         BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
         mainQuery.filter(QueryBuilders.termQuery("lang", "en"));
 
         final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
 
-        final SimpleQueryStringBuilder searchQuery = QueryBuilders.simpleQueryStringQuery(userQueryString);
+        QueryBuilder queryStringFilter = parseQueryStringFilters(userQueryString);
+        if (null != queryStringFilter) {
+            mainQuery.filter(queryStringFilter);
+        }
+
+        final SimpleQueryStringBuilder searchQuery = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());
         searchQuery
                 .defaultOperator(Operator.AND)
                 .flags(SimpleQueryStringFlag.AND,
@@ -264,6 +270,64 @@ public class SimpleSearch extends SearchProvider
     }
 
     /**
+     * Parse configured filters from the query string such as site:example.com
+     * and delete the filters from the given query StringBuffer.
+     *
+     * @param queryString user query string
+     * @return filter query
+     */
+    private QueryBuilder parseQueryStringFilters(StringBuffer queryString)
+    {
+        final ConfigLoader.Config conf = getConf().get("search").get("default_simple");
+
+        ConfigLoader.Config[] filterConf = conf.getArray("query_filters");
+        if (filterConf.length == 0) {
+            return null;
+        }
+
+        BoolQueryBuilder filterQuery = QueryBuilders.boolQuery();
+        for (ConfigLoader.Config c: filterConf) {
+            String filterKey = c.getString("keyword");
+            String filterField = c.getString("field");
+
+            int pos = queryString.indexOf(filterKey + ":");
+            if (-1 != pos) {
+                int filterStartPos = pos;
+                pos +=  filterKey.length() + 1;
+                int hostStartPos = pos;
+                while (pos < queryString.length() && !Character.isWhitespace(queryString.charAt(pos))) {
+                    ++pos;
+                }
+                String hostName = queryString.substring(hostStartPos, pos).trim();
+                TermQueryBuilder termQuery = QueryBuilders.termQuery(filterField, hostName);
+                filterQuery.filter(termQuery);
+                queryString.replace(filterStartPos, pos, "");
+
+                // trim whitespace
+                int trimEnd = 0;
+                for (int i = 0; i < queryString.length(); ++i) {
+                    if (!Character.isWhitespace(queryString.charAt(i))) {
+                        break;
+                    }
+                    ++trimEnd;
+                }
+                queryString.replace(0, trimEnd, "");
+
+                int trimStart = queryString.length();
+                for (int i = queryString.length(); i > 0; --i) {
+                    if (!Character.isWhitespace(queryString.charAt(i - 1))) {
+                        break;
+                    }
+                    --trimStart;
+                }
+                queryString.replace(trimStart, queryString.length(), "");
+            }
+        }
+
+        return filterQuery;
+    }
+
+    /**
      * Build query rescorer used to run more expensive query on pre-query results.
      *
      * @param mainQuery query to rescore
@@ -283,12 +347,12 @@ public class SimpleSearch extends SearchProvider
      *
      * @return rescore query
      */
-    private QueryBuilder buildRescoreQuery(String userQueryString)
+    private QueryBuilder buildRescoreQuery(StringBuffer userQueryString)
     {
         final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
 
         // parse query string
-        final SimpleQueryStringBuilder simpleQuery = QueryBuilders.simpleQueryStringQuery(userQueryString);
+        final SimpleQueryStringBuilder simpleQuery = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());
         simpleQuery.minimumShouldMatch("30%");
 
         final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
@@ -319,7 +383,7 @@ public class SimpleSearch extends SearchProvider
         for (Object[] o : proximityFields) {
             final MatchPhraseQueryBuilder proximityQuery = QueryBuilders.matchPhraseQuery(
                     (String) o[0],
-                    userQueryString
+                    userQueryString.toString()
             );
             proximityQuery
                     .slop((Integer) o[1])
@@ -330,7 +394,7 @@ public class SimpleSearch extends SearchProvider
         mainQuery.must(simpleQuery);
 
         // general host boost
-        SimpleQueryStringBuilder hostBooster = QueryBuilders.simpleQueryStringQuery(userQueryString);
+        SimpleQueryStringBuilder hostBooster = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());
         hostBooster.field("warc_target_hostname");
         hostBooster.boost(20.0f);
         mainQuery.should(hostBooster);
