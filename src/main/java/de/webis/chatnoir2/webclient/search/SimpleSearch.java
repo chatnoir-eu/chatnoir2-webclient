@@ -344,11 +344,11 @@ public class SimpleSearch extends SearchProvider
      */
     private QueryRescorerBuilder buildRescorer(final QueryBuilder mainQuery)
     {
-        final QueryRescorerBuilder resorer = RescoreBuilder.queryRescorer(mainQuery);
-        resorer.setQueryWeight(0.1f).
+        final QueryRescorerBuilder rescorer = RescoreBuilder.queryRescorer(mainQuery);
+        rescorer.setQueryWeight(0.1f).
                 setRescoreQueryWeight(1.0f).
                 setScoreMode(QueryRescoreMode.Total);
-        return resorer;
+        return rescorer;
     }
 
     /**
