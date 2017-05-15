@@ -3,8 +3,8 @@
         "cluster_name"  : "betaweb",
         "host"          : "betaweb015.medien.uni-weimar.de",
         "port"          : 9300,
-        "indices"       : [ "webis_warc_clueweb12_008" ],
-        "default_index" : "webis_warc_clueweb12_008"
+        "indices"       : [ "webis_warc_clueweb12_008", "webis_warc_clueweb09_001" ],
+        "default_index" : "webis_warc_clueweb09_001"
     },
 
     "hdfs" : {
@@ -16,6 +16,11 @@
             "path" : "/corpora/clueweb/12-mapfile",
             "partitions" : 100,
             "prefix" : "clueweb12"
+        },
+        "webis_warc_clueweb09_001" : {
+            "path" : "/corpora/clueweb/09-mapfile",
+            "partitions" : 200,
+            "prefix" : "clueweb09"
         }
     },
 
@@ -51,7 +56,8 @@
                 { "name" : "warc_trec_id", "boost" : 100000.0 }
             ],
             "query_filters" : [
-                { "keyword" : "site", "field": "warc_target_hostname.raw" }
+                { "keyword" : "site", "field": "warc_target_hostname.raw" },
+                { "keyword" : "lang", "field": "lang" }
             ],
             "tie_breaker" : 0.7,
             "function_scores" : {

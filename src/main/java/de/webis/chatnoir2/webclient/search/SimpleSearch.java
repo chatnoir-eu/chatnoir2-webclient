@@ -56,6 +56,8 @@ public class SimpleSearch extends SearchProvider
      */
     private SearchResponse mResponse = new SearchResponse();
 
+    private String mSearchLanguage = "en";
+
     /**
      * Constructor.
      *
@@ -127,8 +129,8 @@ public class SimpleSearch extends SearchProvider
                 .setFrom(from)
                 .setSize(size)
                 .highlighter(new HighlightBuilder()
-                        .field("title_lang.en", mTitleLength, 1)
-                        .field("body_lang.en", mSnippetLength, 1)
+                        .field("title_lang." + mSearchLanguage, mTitleLength, 1)
+                        .field("body_lang." + mSearchLanguage, mSnippetLength, 1)
                         .encoder("html"))
                 .setExplain(mDoExplain)
                 .setTerminateAfter(simpleSearchConfig.getInteger("node_limit", 200000))
@@ -145,7 +147,7 @@ public class SimpleSearch extends SearchProvider
             final Map<String, Object> source = hit.getSource();
 
             String snippet = "";
-            if (null != hit.getHighlightFields().get("body_lang.en")) {
+            if (null != hit.getHighlightFields().get("body_lang." + mSearchLanguage)) {
                 final Text[] fragments = hit.getHighlightFields().get("body_lang.en").fragments();
                 if (1 >= fragments.length) {
                     snippet = fragments[0].string();
@@ -153,16 +155,16 @@ public class SimpleSearch extends SearchProvider
             }
 
             // use meta description or first body part if no highlighted snippet available
-            if (snippet.equals("") && !source.get("meta_desc_lang.en").toString().equals("")) {
-                snippet = truncateSnippet(source.get("meta_desc_lang.en").toString(), mSnippetLength);
+            if (snippet.equals("") && !source.get("meta_desc_lang." + mSearchLanguage).toString().equals("")) {
+                snippet = truncateSnippet(source.get("meta_desc_lang." + mSearchLanguage).toString(), mSnippetLength);
             } else if (snippet.equals("")) {
-                snippet = truncateSnippet(source.get("body_lang.en").toString(), mSnippetLength);
+                snippet = truncateSnippet(source.get("body_lang." + mSearchLanguage).toString(), mSnippetLength);
             }
 
             // use highlighted title if available
-            String title = truncateSnippet(source.get("title_lang.en").toString(), mTitleLength);
-            if (null != hit.getHighlightFields().get("title_lang.en")) {
-                final Text[] fragments = hit.getHighlightFields().get("title_lang.en").fragments();
+            String title = truncateSnippet(source.get("title_lang." + mSearchLanguage).toString(), mTitleLength);
+            if (null != hit.getHighlightFields().get("title_lang." + mSearchLanguage)) {
+                final Text[] fragments = hit.getHighlightFields().get("title_lang." + mSearchLanguage).fragments();
                 if (1 >= fragments.length) {
                     title = fragments[0].string();
                 }
@@ -181,9 +183,19 @@ public class SimpleSearch extends SearchProvider
             }
             previousHost = currentHost;
 
-            String pr = String.format("%.03f", (Double) source.get("page_rank"));
-            if (0.001 > (Double) source.get("page_rank")) {
-                pr = String.format("%.03e", (Double) source.get("page_rank"));
+            Double prDouble = (Double) source.get("page_rank");
+            String pageRank = "none";
+            if (null != prDouble) {
+                pageRank = String.format("%.03f", prDouble);
+                if (0.001 > prDouble) {
+                    pageRank = String.format("%.03e", (Double) source.get("page_rank"));
+                }
+            }
+
+            Integer spamRankInt = (Integer) source.get("spam_rank");
+            String spamRank = "none";
+            if (null != spamRankInt) {
+                spamRank = (0 != spamRankInt) ? source.get("spam_rank").toString() : "none";
             }
 
             final SearchResultBuilder.SearchResult result = new SearchResultBuilder()
@@ -192,10 +204,10 @@ public class SimpleSearch extends SearchProvider
                     .title(TextCleanser.cleanse(title, true))
                     .link(source.get("warc_target_uri").toString())
                     .snippet(TextCleanser.cleanse(snippet, true))
-                    .fullBody(source.get("body_lang.en").toString())
+                    .fullBody(source.get("body_lang." + mSearchLanguage).toString())
                     .addMetadata("score", String.format("%.03f", hit.getScore()))
-                    .addMetadata("page_rank", pr)
-                    .addMetadata("spam_rank", (0 != (Integer) source.get("spam_rank")) ? source.get("spam_rank") : "none")
+                    .addMetadata("page_rank", pageRank)
+                    .addMetadata("spam_rank", spamRank)
                     .addMetadata("explanation", explanation)
                     .addMetadata("has_explanation", mDoExplain)
                     .suggestGrouping(doGroup)
@@ -220,7 +232,7 @@ public class SimpleSearch extends SearchProvider
     private QueryBuilder buildPreQuery(StringBuffer userQueryString)
     {
         BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
-        mainQuery.filter(QueryBuilders.termQuery("lang", "en"));
+        mainQuery.filter(QueryBuilders.termQuery("lang", mSearchLanguage));
 
         final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
 
@@ -295,11 +307,21 @@ public class SimpleSearch extends SearchProvider
                 int filterStartPos = pos;
                 pos +=  filterKey.length() + 1;
                 int hostStartPos = pos;
-                while (pos < queryString.length() && !Character.isWhitespace(queryString.charAt(pos))) {
+                while (Character.isWhitespace(queryString.charAt(pos))) {
+                    // skip initial white space
                     ++pos;
                 }
-                String hostName = queryString.substring(hostStartPos, pos).trim();
-                TermQueryBuilder termQuery = QueryBuilders.termQuery(filterField, hostName);
+                while (pos < queryString.length() && !Character.isWhitespace(queryString.charAt(pos))) {
+                    // walk up to the next white space or string end
+                    ++pos;
+                }
+                String filterValue = queryString.substring(hostStartPos, pos).trim();
+                TermQueryBuilder termQuery = QueryBuilders.termQuery(filterField, filterValue);
+
+                if (filterKey.equals("lang")) {
+                    mSearchLanguage = filterValue;
+                }
+
                 filterQuery.filter(termQuery);
                 queryString.replace(filterStartPos, pos, "");
 
