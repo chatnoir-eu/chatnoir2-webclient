@@ -91,26 +91,19 @@ public class CacheServlet extends ChatNoirServlet
 
         DocumentRetriever.Document doc = null;
         if (null != uuidParam) {
+            // first try direct retrieval by UUID
             try {
-                // first try direct retrieval by UUID
-                try {
-                    doc = retriever.getByUUID(indexParam, UUID.fromString(uuidParam));
-                } catch (IllegalArgumentException ignored) {}
+                doc = retriever.getByUUID(indexParam, UUID.fromString(uuidParam));
+            } catch (IllegalArgumentException ignored) {}
 
-                // if document not found, try retrieval by Elasticsearch document ID
+            // if document not found, try retrieval by Elasticsearch document ID
+            if (null == doc) {
+                doc = retriever.getByIndexDocID(indexParam, uuidParam);
+
                 if (null == doc) {
-                    doc = retriever.getByIndexDocID(indexParam, uuidParam);
-
-                    if (null == doc) {
-                        redirectError(request, response);
-                        return;
-                    }
+                    redirectError(request, response);
+                    return;
                 }
-            } catch (Exception e) {
-                // catch self-thrown exception as well as any UUID parsing errors
-                e.printStackTrace();
-                redirectError(request, response);
-                return;
             }
         } else {
             // retrieval by URI
