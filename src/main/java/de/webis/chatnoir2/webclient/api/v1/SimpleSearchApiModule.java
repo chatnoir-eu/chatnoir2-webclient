@@ -11,8 +11,8 @@ import de.webis.chatnoir2.webclient.api.ApiModuleV1;
 import de.webis.chatnoir2.webclient.search.SearchResultBuilder;
 import de.webis.chatnoir2.webclient.search.SimpleSearch;
 import de.webis.chatnoir2.webclient.util.Configured;
+import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -34,12 +34,11 @@ public class SimpleSearchApiModule extends ApiModuleBase
      * @param request HTTP request
      * @param response HTTP response
      */
-    @SuppressWarnings("unchecked")
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
         final String searchQueryString = getTypedNestedParameter(String.class, "q", request);
         if (null == searchQueryString || searchQueryString.trim().isEmpty()) {
-            final JSONObject errObj = generateErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "Empty search query");
+            final XContentBuilder errObj = generateErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "Empty search query");
             writeResponse(response, errObj, HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
@@ -64,41 +63,45 @@ public class SimpleSearchApiModule extends ApiModuleBase
             size = new Configured().getConf().get("serp").get("pagination").getInteger("results_per_page");
         }
 
-        final JSONObject responseObj = new JSONObject();
-
         final long startTime = System.currentTimeMillis();
         search.setExplain(null != getTypedNestedParameter(Boolean.class, "explain", request));
         search.doSearch(searchQueryString, from, size);
         final long elapsedTime = System.currentTimeMillis() - startTime;
 
         final ArrayList<SearchResultBuilder.SearchResult> results = search.getResults();
-        final JSONArray resultsJson = new JSONArray();
-        for (final SearchResultBuilder.SearchResult result : results) {
-            final JSONObject current = new JSONObject();
-            current.put("id", result.id());
-            current.put("trec_id", result.trecId());
-            current.put("link", result.link());
-            current.put("title", result.title());
-            current.put("snippet", result.snippet());
-            final HashMap<String, Object> resMeta = result.metaData();
-            for (final String key : resMeta.keySet()) {
-                if (key.equals("explanation") && null == resMeta.get(key)) {
-                    continue;
-                }
-                current.put(key, resMeta.get(key));
-            }
-            resultsJson.put(current);
-        }
 
-        final JSONObject searchMeta = new JSONObject();
-        searchMeta.put("query_time", elapsedTime);
-        searchMeta.put("total_results", search.getTotalResultNumber());
-        searchMeta.put("searched_indices", search.getEffectiveIndices());
+        final XContentBuilder jb = getResponseBuilder();
+        jb.startObject()
+                .startObject("meta")
+                    .field("query_time", elapsedTime)
+                    .field("total_results", search.getTotalResultNumber())
+                    .array("indices", search.getEffectiveIndices())
+                .endObject()
+                .startArray("results");
 
-        responseObj.put("results", resultsJson);
-        responseObj.put("meta", searchMeta);
+                    for (final SearchResultBuilder.SearchResult result : results) {
+                        jb.startObject()
+                                .field("uuid", result.id())
+                                .field("trec_id", result.trecId())
+                                .field("hostname", result.hostname())
+                                .field("link", result.link())
+                                .field("title", result.title())
+                                .field("snippet", result.snippet())
+                                .startObject("meta_data");
+                                    final HashMap<String, Object> resMeta = result.metaData();
+                                    for (final String key : resMeta.keySet()) {
+                                        if (key.equals("explanation") && null == resMeta.get(key)) {
+                                            continue;
+                                        }
+                                        jb.field(key, resMeta.get(key));
+                                    }
+                                jb.endObject();
+                        jb.endObject();
+                    }
+                jb.endArray()
+        .endObject();
 
-        writeResponse(response, responseObj);
+        writeResponse(response, jb);
     }
 
     /**

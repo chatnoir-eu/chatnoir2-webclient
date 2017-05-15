@@ -54,6 +54,7 @@ public abstract class SearchProvider extends IndexRetrievalOperator
 
     /**
      * Parse an ElasticSearch search result explanation string and return a JSON representation of it.
+     * TODO: port this to XContentBuilder
      *
      * @param explanation the raw explanation string
      * @return the parsed JSON

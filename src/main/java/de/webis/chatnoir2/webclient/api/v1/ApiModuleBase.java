@@ -7,10 +7,11 @@
 
 package de.webis.chatnoir2.webclient.api.v1;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import de.webis.chatnoir2.webclient.ChatNoirServlet;
 import de.webis.chatnoir2.webclient.resources.ApiKeyManager;
 import org.apache.commons.lang.math.NumberUtils;
+import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -21,7 +22,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Base class for ChatNoir REST API modules.
@@ -30,6 +30,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
 {
     private HttpServletRequest mLastRequest = null;
     private JSONObject mParsedPayload = null;
+    private boolean mPrettyPrint = false;
 
     /**
      * Check if request is a valid request or write an error response if not.
@@ -41,11 +42,18 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      */
     public boolean validateRequest(final HttpServletRequest request, final HttpServletResponse response)
     {
+        // do some general setup
+        Boolean prettyPrint = getTypedNestedParameter(Boolean.class, "pretty", request);
+        if (null != prettyPrint && prettyPrint) {
+            setPrettyPrint(true);
+        }
+
+        // validate request
         final String keyParameter = getTypedNestedParameter(String.class, "apiKey", request);
         if (null != keyParameter && ApiKeyManager.getInstance().isApiKeyValid(keyParameter)) {
             return true;
         } else {
-            final JSONObject errorResponse = generateErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid API key");
+            final XContentBuilder errorResponse = generateErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid API key");
             try {
                 writeResponse(response, errorResponse, HttpServletResponse.SC_UNAUTHORIZED);
             } catch (IOException ignored) { }
@@ -60,15 +68,21 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      * @param errorMessage error description
      * @return generated JSONObject
      */
-    @SuppressWarnings("unchecked")
-    public final JSONObject generateErrorResponse(final int errorCode, final String errorMessage)
+    public final XContentBuilder generateErrorResponse(final int errorCode, final String errorMessage)
     {
-        final JSONObject responseObj = new JSONObject();
-        final JSONObject errorObj = new JSONObject();
-        errorObj.put("code", errorCode);
-        errorObj.put("msg", errorMessage);
-        responseObj.put("error", errorObj);
-        return responseObj;
+        try {
+            final XContentBuilder jb = getResponseBuilder();
+            jb.startObject()
+                    .startObject("error")
+                        .field("code", errorCode)
+                        .field("message", errorMessage)
+                    .endObject()
+            .endObject();
+
+            return jb;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**
@@ -78,37 +92,55 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      */
     public final void rejectMethod(final HttpServletResponse response)
     {
-        final JSONObject errorObj = generateErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "Unsupported request method");
+        final XContentBuilder errorObj = generateErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "Unsupported request method");
         try {
             writeResponse(response, errorObj, HttpServletResponse.SC_BAD_REQUEST);
         } catch (IOException ignored) { }
     }
 
     /**
-     * Write API output to HTTP response with default status code 200.
+     * Set whether JSON responses should be nicely formatted or not.
      *
-     * @param response HTTP response object
-     * @param responseObject JSON answer
-     * @throws IOException
+     * @param prettyPrint whether to pretty-print responses
      */
-    public void writeResponse(final HttpServletResponse response, final JSONObject responseObject) throws IOException
-    {
-        writeResponse(response, responseObject, HttpServletResponse.SC_OK);
+    public void setPrettyPrint(boolean prettyPrint) {
+        mPrettyPrint = prettyPrint;
+    }
+
+    /**
+     * Get whether JSON responses should be nicely formatted or not.
+     *
+     * @return whether to pretty-print responses
+     */
+    public boolean getPrettyPrint() {
+        return mPrettyPrint;
     }
 
     /**
      * Write API output to HTTP response with default status code 200.
      *
      * @param response HTTP response object
-     * @param responseObject JSON answer
+     * @param responseBuilder response XContent builder
+     * @throws IOException
+     */
+    public void writeResponse(final HttpServletResponse response, final XContentBuilder responseBuilder) throws IOException
+    {
+        writeResponse(response, responseBuilder, HttpServletResponse.SC_OK);
+    }
+
+    /**
+     * Write API output to HTTP response with default status code 200.
+     *
+     * @param response HTTP response object
+     * @param responseBuilder response XContent builder
      * @param responseCode HTTP response status code
      * @throws IOException
      */
-    public void writeResponse(final HttpServletResponse response, final JSONObject responseObject, final int responseCode) throws IOException
+    public void writeResponse(final HttpServletResponse response, final XContentBuilder responseBuilder, final int responseCode) throws IOException
     {
         response.setStatus(responseCode);
         response.setContentType("application/json");
-        response.getWriter().write(responseObject.toString());
+        response.getWriter().write(responseBuilder.string());
         response.getWriter().flush();
     }
 
@@ -133,6 +165,24 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      */
     @Override
     public abstract void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException;
+
+    /**
+     * Get configured response builder.
+     *
+     * @return response builder
+     */
+    protected XContentBuilder getResponseBuilder()
+    {
+        try {
+            if (getPrettyPrint()) {
+                return XContentFactory.jsonBuilder().prettyPrint();
+            }
+            return XContentFactory.jsonBuilder();
+        } catch (Exception e) {
+            // should never happen
+            return null;
+        }
+    }
 
     /**
      * Return and parse POST data payload.
@@ -222,8 +272,9 @@ public abstract class ApiModuleBase extends ChatNoirServlet
             }
             // if a Boolean is wanted, check if we can convert the value
             if (type.isAssignableFrom(Boolean.class) &&
-                    new ArrayList(Arrays.asList("true", "false", "1", "0")).contains(value.toLowerCase())) {
-                return (T) Boolean.valueOf(value.equalsIgnoreCase("true") ||
+                    new ArrayList(Arrays.asList("true", "false", "1", "0", "")).contains(value.toLowerCase())) {
+                return (T) Boolean.valueOf(value.isEmpty() ||
+                        value.equalsIgnoreCase("true") ||
                         value.equalsIgnoreCase("1"));
             }
             // convert to correct Number if dealing with numeric types
