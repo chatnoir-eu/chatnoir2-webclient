@@ -70,16 +70,21 @@ public class CacheServlet extends ChatNoirServlet
             return;
         }
 
+        final DocumentRetriever retriever = new DocumentRetriever(true);
+
         if (null == indexParam) {
-            String[] defaultIndices = new Configured().getConf().get("cluster").getStringArray("default_indices");
-            if (defaultIndices.length == 0) {
+            String[] effectiveIndices = retriever.getEffectiveIndices();
+            if (effectiveIndices.length == 0) {
                 redirectError(request, response);
                 return;
             }
-            indexParam = defaultIndices[0];
+            indexParam = effectiveIndices[0];
         }
 
-        final DocumentRetriever retriever = new DocumentRetriever(true);
+        if (!retriever.isIndexAllowed(indexParam)) {
+            redirectError(request, response);
+            return;
+        }
 
         // rendering modes
         final boolean rawMode = (null != request.getParameter("raw"));
@@ -90,7 +95,7 @@ public class CacheServlet extends ChatNoirServlet
 
         if (null != uuidParam) {
             try {
-                // retrieval by UUID (implicit "raw" mode)
+                // retrieval by UUID
                 doc = retriever.getByUUID(indexParam, UUID.fromString(uuidParam));
                 if (null == doc) {
                     throw new RuntimeException("Document not found");
@@ -138,7 +143,8 @@ public class CacheServlet extends ChatNoirServlet
 
         // else: show framed page
         final HashMap<String, String> templateVars = new HashMap<>();
-        templateVars.put("doc-id", URLEncoder.encode(doc.getDocUUID().toString(), "UTF-8"));
+        templateVars.put("doc-id", doc.getDocUUID().toString());
+        templateVars.put("doc-id-urlenc", URLEncoder.encode(doc.getDocUUID().toString(), "UTF-8"));
         templateVars.put("orig-uri", doc.getTargetURI());
         templateVars.put("index", URLEncoder.encode(indexParam, "UTF-8"));
         if (plainTextMode) {

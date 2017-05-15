@@ -65,9 +65,7 @@ public class SimpleSearch extends SearchProvider
 
         mSnippetLength = getConf().get("serp").getInteger("snippet_length", mSnippetLength);
         mTitleLength   = getConf().get("serp").getInteger("title_length", mTitleLength);
-
         mSimpleSearchConfig = getConf().get("search").get("default_simple");
-        setActiveIndices(indices);
     }
 
     public SimpleSearch()

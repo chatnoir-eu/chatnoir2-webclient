@@ -10,7 +10,6 @@ package de.webis.chatnoir2.webclient.search;
 import de.webis.WebisUUID;
 import de.webis.chatnoir2.webclient.CacheServlet;
 import de.webis.chatnoir2.webclient.hdfs.MapFileReader;
-import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.http.client.utils.URIBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.json.JSONObject;
@@ -25,12 +24,11 @@ import java.net.URLEncoder;
 import java.util.*;
 
 /**
- * Provider for single-document retrieval by TREC ID
+ * Provider for single-document retrieval.
  *
  * @author Janek Bevendorff
- * @version 1
  */
-public class DocumentRetriever extends Configured
+public class DocumentRetriever extends IndexRetrievalOperator
 {
     private boolean mRewriteURIs;
 
@@ -44,6 +42,8 @@ public class DocumentRetriever extends Configured
      */
     public DocumentRetriever(final boolean rewriteURIs)
     {
+        super(null);
+
         if (!MapFileReader.isInitialized()) {
             MapFileReader.init();
         }
@@ -65,13 +65,15 @@ public class DocumentRetriever extends Configured
      *
      * @param indexName index to retrieve the document from
      * @param docID Elasticsearch Flake ID of the document
-     * @return plain text rendering of the requested document, null if it does not exit
+     * @return plain text rendering of the requested document, null if it does not exist
      */
     public String getPlainText(final String indexName, final String docID)
     {
-        final GetResponse response = getClient().prepareGet(indexName, "warcrecord", docID)
-                .execute()
-                .actionGet();
+        if (!isIndexAllowed(indexName)) {
+            return null;
+        }
+
+        final GetResponse response = getClient().prepareGet(indexName, "warcrecord", docID).get();
         if (!response.isExists()) {
             return null;
         }
@@ -88,6 +90,10 @@ public class DocumentRetriever extends Configured
      */
     public Document getByUUID(final String indexName, final UUID docUUID)
     {
+        if (!isIndexAllowed(indexName)) {
+            return null;
+        }
+
         final JSONObject doc = MapFileReader.getDocument(docUUID, indexName);
         if (null == doc) {
             return null;
@@ -104,6 +110,10 @@ public class DocumentRetriever extends Configured
      */
     public Document getByIndexDocID(final String indexName, final String docID)
     {
+        if (!isIndexAllowed(indexName)) {
+            return null;
+        }
+
         final GetResponse response = getClient().prepareGet(indexName, "warcrecord", docID).get();
         if (!response.isExists()) {
             return null;
@@ -126,6 +136,10 @@ public class DocumentRetriever extends Configured
      */
     public Document getByWarcID(final String indexName, final String warcID)
     {
+        if (!isIndexAllowed(indexName)) {
+            return null;
+        }
+
         try {
             String prefix = getConf().get("mapfiles").get(indexName).getString("prefix");
             final UUID uuid = WebisUUID.generateUUID(prefix, warcID);
@@ -144,6 +158,10 @@ public class DocumentRetriever extends Configured
      */
     public Document getByURI(final String indexName, final String uri)
     {
+        if (!isIndexAllowed(indexName)) {
+            return null;
+        }
+
         final UUID docUUID = MapFileReader.getUUIDForUrl(uri, indexName);
         if (null == docUUID) {
             return null;

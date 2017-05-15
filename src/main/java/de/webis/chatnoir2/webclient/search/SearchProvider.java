@@ -7,7 +7,6 @@
 
 package de.webis.chatnoir2.webclient.search;
 
-import de.webis.chatnoir2.webclient.util.Configured;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -18,80 +17,16 @@ import java.util.*;
  *
  * @author Janek Bevendorff
  */
-public abstract class SearchProvider extends Configured
+public abstract class SearchProvider extends IndexRetrievalOperator
 {
-    /**
-     * List of allowed indices.
-     */
-    private ArrayList<String> mAllowedIndices;
-
-    /**
-     * List of default indices.
-     */
-    private ArrayList<String> mDefaultIndices;
-
-    /**
-     * Effective list of indices to search.
-     */
-    private ArrayList<String> mActiveIndices;
-
-    /**
-     * @param indices Array of index names to search (null means use default from config).
-     *                Indices that are not present in the config will be ignored.
-     */
-    public SearchProvider(String[] indices)
+    public SearchProvider(final String[] indices)
     {
-        mAllowedIndices = new ArrayList<>(Arrays.asList(getConf().get("cluster").getStringArray("indices")));
-        mActiveIndices = new ArrayList<>();
-        mDefaultIndices = new ArrayList<>(Arrays.asList(getConf().get("cluster").getStringArray("default_indices")));
-        if (mDefaultIndices.isEmpty()) {
-            mDefaultIndices.addAll(mAllowedIndices);
-        }
-
-        setActiveIndices(indices);
+        super(indices);
     }
 
-    /**
-     * Searches pre-defined default indices (from global config).
-     */
     public SearchProvider()
     {
         this(null);
-    }
-
-    /**
-     * Select effective search indices from a given array of candidates.
-     * If none of the candidates is an allowed index (from global settings),
-     * the default indices will be chosen.
-     *
-     * @param candidateIndices candidate indices to choose from
-     */
-    public void setActiveIndices(String[] candidateIndices) {
-        mActiveIndices.clear();
-
-        if (null == candidateIndices) {
-            mActiveIndices.addAll(mDefaultIndices);
-            return;
-        }
-
-        for (String corpus : candidateIndices) {
-            if (mAllowedIndices.contains(corpus.trim())){
-                mActiveIndices.add(corpus.trim());
-            }
-        }
-        if (mActiveIndices.isEmpty()) {
-            mActiveIndices.addAll(mDefaultIndices);
-        }
-    }
-
-    /**
-     * Get a List of all effectively active indices for search.
-     *
-     * @return List of index names
-     */
-    public String[] getEffectiveIndices()
-    {
-        return mActiveIndices.toArray(new String[mActiveIndices.size()]);
     }
 
     /**

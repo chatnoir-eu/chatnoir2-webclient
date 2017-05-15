@@ -18,13 +18,13 @@
             <p>
                 <a href="/" class="back">Back to search</a> –
                 <a href="{{orig-uri}}" class="weblink" target="_blank">View original web page</a> –
-                <a href="/cache?uuid={{doc-id}}" class="html"{{^plainTextMode}} style="display: none"{{/plainTextMode}}>View original HTML</a>
-                <a href="/cache?uuid={{doc-id}}&amp;plain" class="plaintext"{{#plainTextMode}} style="display: none"{{/plainTextMode}}>View plain text</a>
+                <a href="/cache?uuid={{doc-id-urlenc}}&amp;index={{index}}" class="html"{{^plainTextMode}} style="display: none"{{/plainTextMode}}>View original HTML</a>
+                <a href="/cache?uuid={{doc-id-urlenc}}&amp;index={{index}}&amp;plain" class="plaintext"{{#plainTextMode}} style="display: none"{{/plainTextMode}}>View plain text</a>
             </p>
         </div>
     </div>
     <div id="CacheResult">
-        <iframe src="{{contextPath}}/cache?uuid={{doc-id}}&amp;raw{{#plainTextMode}}&amp;plain{{/plainTextMode}}"></iframe>
+        <iframe src="{{contextPath}}/cache?uuid={{doc-id-urlenc}}&amp;index={{index}}&amp;raw{{#plainTextMode}}&amp;plain{{/plainTextMode}}"></iframe>
     </div>
 </div>
 
