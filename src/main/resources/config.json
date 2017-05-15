@@ -3,11 +3,12 @@
         "cluster_name"    : "betaweb",
         "host"            : "betaweb015.medien.uni-weimar.de",
         "port"            : 9300,
-        "indices"         : [ "webis_clueweb09", "webis_clueweb12" ],
+        "indices"         : [ "webis_clueweb09", "webis_clueweb12", "webis_commoncrawl15" ],
         "default_indices" : [ "webis_clueweb12" ],
         "index_aliases"   : [
             { "index" : "webis_warc_clueweb09_001", "alias" : "webis_clueweb09" },
-            { "index" : "webis_warc_clueweb12_009", "alias" : "webis_clueweb12" }
+            { "index" : "webis_warc_clueweb12_009", "alias" : "webis_clueweb12" },
+            { "index" : "webis_warc_commoncrawl15_001", "alias" : "webis_commoncrawl15" }
         ]
     },
 
