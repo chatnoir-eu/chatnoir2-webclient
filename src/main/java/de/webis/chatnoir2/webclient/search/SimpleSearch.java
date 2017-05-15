@@ -250,6 +250,7 @@ public class SimpleSearch extends SearchProvider
                     .flags(SimpleQueryStringFlag.AND,
                             SimpleQueryStringFlag.OR,
                             SimpleQueryStringFlag.NOT,
+                            SimpleQueryStringFlag.PHRASE,
                             SimpleQueryStringFlag.WHITESPACE);
 
             final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
