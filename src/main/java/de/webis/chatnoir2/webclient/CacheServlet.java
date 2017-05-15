@@ -1,7 +1,7 @@
 /*
  * ChatNoir 2 Web frontend.
  *
- * Copyright (C) 2014 Webis Group @ Bauhaus University Weimar
+ * Copyright (C) 2014-2017 Webis Group @ Bauhaus University Weimar
  * Main Contributor: Janek Bevendorff
  */
 
@@ -18,7 +18,6 @@ import java.util.*;
 import de.webis.chatnoir2.webclient.hdfs.MapFileReader;
 import de.webis.chatnoir2.webclient.response.Renderer;
 import de.webis.chatnoir2.webclient.search.DocumentRetriever;
-import de.webis.chatnoir2.webclient.util.Configured;
 import de.webis.chatnoir2.webclient.util.PlainTextRenderer;
 
 /**
