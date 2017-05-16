@@ -9,6 +9,7 @@ package de.webis.chatnoir2.webclient.search;
 
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.TextCleanser;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.*;
@@ -131,20 +132,27 @@ public class SimpleSearch extends SearchProvider
             }
 
             // use meta description or first body part if no highlighted snippet available
-            if (snippet.equals("") && !source.get("meta_desc_lang." + mSearchLanguage).toString().equals("")) {
-                snippet = truncateSnippet(source.get("meta_desc_lang." + mSearchLanguage).toString(), mSnippetLength);
-            } else if (snippet.equals("")) {
-                snippet = truncateSnippet(source.get("body_lang." + mSearchLanguage).toString(), mSnippetLength);
+            if (snippet.isEmpty()) {
+                if (!source.get("meta_desc_lang." + mSearchLanguage).toString().isEmpty()) {
+                    snippet = StringEscapeUtils.escapeHtml(
+                            truncateSnippet((String) source.get("meta_desc_lang." + mSearchLanguage), mSnippetLength));
+                } else {
+                    snippet = StringEscapeUtils.escapeHtml(
+                            truncateSnippet((String) source.get("body_lang." + mSearchLanguage), mSnippetLength));
+                }
             }
+            snippet = TextCleanser.cleanse(snippet, true);
 
             // use highlighted title if available
-            String title = truncateSnippet(source.get("title_lang." + mSearchLanguage).toString(), mTitleLength);
+            String title = StringEscapeUtils.escapeHtml(
+                    truncateSnippet((String) source.get("title_lang." + mSearchLanguage), mTitleLength));
             if (null != hit.getHighlightFields().get("title_lang." + mSearchLanguage)) {
                 final Text[] fragments = hit.getHighlightFields().get("title_lang." + mSearchLanguage).fragments();
                 if (1 >= fragments.length) {
                     title = fragments[0].string();
                 }
             }
+            title = TextCleanser.cleanse(title, true);
 
             JSONArray explanation = null;
             if (null != hit.explanation()) {
@@ -164,10 +172,10 @@ public class SimpleSearch extends SearchProvider
                     .index(hit.index())
                     .documentId(hit.getId())
                     .trecId((String) source.get("warc_trec_id"))
-                    .title(TextCleanser.cleanse(title, true))
+                    .title(title)
                     .targetHostname((String) source.get("warc_target_hostname"))
                     .targetUri((String) source.get("warc_target_uri"))
-                    .snippet(TextCleanser.cleanse(snippet, true))
+                    .snippet(snippet)
                     .fullBody((String) source.get("body_lang." + mSearchLanguage))
                     .pageRank((Double) source.get("page_rank"))
                     .spamRank((Integer) source.get("spam_rank"))
