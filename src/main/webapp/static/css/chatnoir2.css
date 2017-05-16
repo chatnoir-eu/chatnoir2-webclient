@@ -265,6 +265,7 @@ body {
 #CacheMeta h1 {
     font-size: 1.5rem;
     font-weight: normal;
+    margin-top: .9em;
 }
 
 #CacheMeta h1 em {
@@ -289,9 +290,9 @@ body {
 
 #CacheResult iframe {
     width: 100%;
-    height: calc(100%  - 1px);
+    height: calc(100%  - 2px);
     border: none;
-    border-top: 1px solid #aaa;
+    border-top: 2px solid #428bca;
 }
 
 .redirect-message {
