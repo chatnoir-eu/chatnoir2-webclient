@@ -33,8 +33,8 @@ public class ExplanationXContent implements ToXContent
 
         try {
             builder.startObject()
-                .field("value", explanation.getValue())
-                .field("description", explanation.getDescription());
+                .field("description", explanation.getDescription())
+                .field("value", explanation.getValue());
 
                 Explanation[] details = explanation.getDetails();
                 if (details.length > 0) {
