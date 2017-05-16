@@ -90,6 +90,7 @@ public class SimpleSearchApiModule extends ApiModuleBase
                     builder.startObject()
                         .field("score", result.score())
                         .field("uuid", result.documentId())
+                        .field("index", result.index())
                         .field("trec_id", result.trecId())
                         .field("target_hostname", result.targetHostname())
                         .field("target_uri", result.targetUri())
