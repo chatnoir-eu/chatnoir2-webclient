@@ -237,6 +237,14 @@ public abstract class ApiModuleBase extends ChatNoirServlet
                 }
 
                 if (i == nameSplit.length - 1) {
+                    if (body.get(nameSplit[i]) == null) {
+                        return null;
+                    }
+
+                    if (type.isAssignableFrom(Boolean.class)) {
+                        // check boolean parameters first
+                        return (T) evaluatesTrue(body.get(nameSplit[i]).toString());
+                    }
                     if (type.isInstance(body.get(nameSplit[i]))) {
                         // return if parameter already has correct type
                         return (T) body.get(nameSplit[i]);
@@ -268,11 +276,8 @@ public abstract class ApiModuleBase extends ChatNoirServlet
                 return (T) value;
             }
             // if a Boolean is wanted, check if we can convert the value
-            if (type.isAssignableFrom(Boolean.class) &&
-                    new ArrayList(Arrays.asList("true", "false", "1", "0", "")).contains(value.toLowerCase())) {
-                return (T) Boolean.valueOf(value.isEmpty() ||
-                        value.equalsIgnoreCase("true") ||
-                        value.equalsIgnoreCase("1"));
+            if (type.isAssignableFrom(Boolean.class)) {
+                return (T) evaluatesTrue(value);
             }
             // convert to correct Number if dealing with numeric types
             if (NumberUtils.isNumber(value)) {
@@ -297,12 +302,30 @@ public abstract class ApiModuleBase extends ChatNoirServlet
         return null;
     }
 
+    private Boolean evaluatesTrue(String value)
+    {
+        if (value == null || value.equalsIgnoreCase("false") ||
+                value.equalsIgnoreCase("null") || value.equalsIgnoreCase("none")) {
+            return false;
+        }
+
+        try {
+            if (Double.parseDouble(value) == 0.0) {
+                return false;
+            }
+        } catch (NumberFormatException ignored) {}
+
+
+        // something else which is not 0.0, false, none or null (we count empty as true)
+        return true;
+    }
+
     /**
-     * Check whether a boolean parameter exists and contains a true value.
+     * Check whether a boolean parameter exists and a value that evaluates to true.
      *
      * @param name parameter name
      * @param request HTTP request
-     * @return whether parameter is set and true
+     * @return whether parameter is set and evaluates to true
      */
     public boolean isNestedParameterSet(String name, HttpServletRequest request)
     {
