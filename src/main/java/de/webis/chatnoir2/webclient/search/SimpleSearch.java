@@ -19,9 +19,8 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.elasticsearch.search.rescore.RescoreBuilder;
-import org.json.JSONArray;
-
 import java.util.*;
+
 
 /**
  * Provider for simple universal search.
@@ -99,7 +98,8 @@ public class SimpleSearch extends SearchProvider
         QueryBuilder preQuery = buildPreQuery(queryBuffer);
         QueryBuilder rescoreQuery = buildRescoreQuery(queryBuffer);
 
-        mResponse = getClient().prepareSearch(getEffectiveIndices())
+        mResponse = getClient().
+                prepareSearch(getEffectiveIndices())
                 .setQuery(preQuery)
                 .setRescorer(buildRescorer(rescoreQuery),
                         mSimpleSearchConfig.getInteger("rescore_window", size))
@@ -154,11 +154,6 @@ public class SimpleSearch extends SearchProvider
             }
             title = TextCleanser.cleanse(title, true);
 
-            JSONArray explanation = null;
-            if (null != hit.explanation()) {
-                explanation = parseExplanationStringToJson(hit.explanation().toString());
-            }
-
             // group consecutive results with same host
             final String currentHost = (String) source.get("warc_target_hostname");
             boolean doGroup = false;
@@ -180,6 +175,7 @@ public class SimpleSearch extends SearchProvider
                     .pageRank((Double) source.get("page_rank"))
                     .spamRank((Integer) source.get("spam_rank"))
                     .isGroupingSuggested(doGroup)
+                    .explanation(hit.explanation())
                     .build();
             results.add(result);
         }

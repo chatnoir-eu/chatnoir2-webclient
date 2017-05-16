@@ -234,9 +234,7 @@ public class SearchServlet extends ChatNoirServlet
          */
         public boolean isExplainMode()
         {
-            // TODO: re-implement this
-            return false;
-            //return (0 != results.size()) && ((Boolean) results.get(0).metaData().get("has_explanation"));
+            return 0 != results.size() && results.get(0).explanation() != null;
         }
 
         /**

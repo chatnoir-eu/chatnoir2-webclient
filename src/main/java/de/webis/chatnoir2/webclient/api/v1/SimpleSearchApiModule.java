@@ -11,6 +11,8 @@ import de.webis.chatnoir2.webclient.api.ApiModuleV1;
 import de.webis.chatnoir2.webclient.search.SearchResultBuilder;
 import de.webis.chatnoir2.webclient.search.SimpleSearch;
 import de.webis.chatnoir2.webclient.util.Configured;
+import de.webis.chatnoir2.webclient.util.ExplanationXContent;
+import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.json.JSONArray;
 
@@ -66,39 +68,43 @@ public class SimpleSearchApiModule extends ApiModuleBase
             size = new Configured().getConf().get("serp").get("pagination").getInteger("results_per_page");
         }
 
+        boolean doExplain = isNestedParameterSet("explain", request);
+
         final long startTime = System.currentTimeMillis();
-        search.setExplain(null != getTypedNestedParameter(Boolean.class, "explain", request));
+        search.setExplain(doExplain);
         search.doSearch(searchQueryString, from, size);
         final long elapsedTime = System.currentTimeMillis() - startTime;
 
         final ArrayList<SearchResultBuilder.SearchResult> results = search.getResults();
 
-        final XContentBuilder jb = getResponseBuilder();
-        jb.startObject()
-                .startObject("meta")
-                    .field("query_time", elapsedTime)
-                    .field("total_results", search.getTotalResultNumber())
-                    .array("indices", search.getEffectiveIndices())
-                .endObject()
-                .startArray("results");
+        final XContentBuilder builder = getResponseBuilder();
+        builder.startObject()
+            .startObject("meta")
+                .field("query_time", elapsedTime)
+                .field("total_results", search.getTotalResultNumber())
+                .array("indices", search.getEffectiveIndices())
+            .endObject()
+            .startArray("results");
 
-                    for (final SearchResultBuilder.SearchResult result : results) {
-                        jb.startObject()
-                                .field("score", result.score())
-                                .field("uuid", result.documentId())
-                                .field("trec_id", result.trecId())
-                                .field("target_hostname", result.targetHostname())
-                                .field("target_uri", result.targetUri())
-                                .field("page_rank", result.pageRank())
-                                .field("spam_rank", result.spamRank())
-                                .field("title", result.title())
-                                .field("snippet", result.snippet());
-                        jb.endObject();
-                    }
-                jb.endArray()
+                for (final SearchResultBuilder.SearchResult result : results) {
+                    builder.startObject()
+                        .field("score", result.score())
+                        .field("uuid", result.documentId())
+                        .field("trec_id", result.trecId())
+                        .field("target_hostname", result.targetHostname())
+                        .field("target_uri", result.targetUri())
+                        .field("page_rank", result.pageRank())
+                        .field("spam_rank", result.spamRank())
+                        .field("title", result.title())
+                        .field("snippet", result.snippet())
+                        .field("explanation");
+                            new ExplanationXContent(result.explanation()).toXContent(builder, ToXContent.EMPTY_PARAMS);
+                    builder.endObject();
+                }
+            builder.endArray()
         .endObject();
 
-        writeResponse(response, jb);
+        writeResponse(response, builder);
     }
 
     /**

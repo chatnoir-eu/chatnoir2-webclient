@@ -33,7 +33,7 @@
 
         <section id="SearchResults">
             {{#searchResults}}
-                <article class="search-result{{#isGroupingSuggested}} grouped{{/isGroupingSuggested}}" id="result-{{trecId}}"{{#hasExplanation}} data-explanation="{{explanation}}"{{/hasExplanation}}>
+                <article class="search-result{{#isGroupingSuggested}} grouped{{/isGroupingSuggested}}" id="result-{{documentId}}"{{#explanation}} data-explanation="{{explanationString}}"{{/explanation}}>
                     <header>
                         <h2><a href="{{contextPath}}/cache?uuid={{documentIdUrlEnc}}{{#indexUrlEnc}}&index={{.}}{{/indexUrlEnc}}">{{& title}}</a></h2>
                         <div class="meta">
@@ -44,7 +44,7 @@
                                 </button>
                                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
                                     <li role="presentation" class="result-cache"><a role="menuitem" tabindex="-1" href="{{targetUri}}">Web Link</a></li>
-                                    <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{{contextPath}}/cache?uuid={{id}}&plain=1">Plaintext</a></li>
+                                    <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{{contextPath}}/cache?uuid={{documentId}}&amp;index={{index}}&amp;plain">Plaintext</a></li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="dropdown-header">Index: {{index}}</li>
                                     <li role="presentation" class="dropdown-header">Document ID: {{documentId}}</li>
@@ -54,7 +54,7 @@
                                     <li role="presentation" class="dropdown-header">Spam Rank: {{spamRankFormatted}}</li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="result-explain">
-                                    <a role="menuitem" class="result-explain" tabindex="-1" href="{{pageUrl}}?q={{{searchQueryUrlEnc}}}&p={{#currentPage}}{{.}}{{/currentPage}}{{#indicesUrlEnc}}&index={{.}}{{/indicesUrlEnc}}&explain#result-{{trecId}}">Explain</a>
+                                    <a role="menuitem" class="result-explain" tabindex="-1" href="{{pageUrl}}?q={{{searchQueryUrlEnc}}}&p={{#currentPage}}{{.}}{{/currentPage}}{{#indicesUrlEnc}}&index={{.}}{{/indicesUrlEnc}}&explain#result-{{documentId}}">Explain</a>
                                     </li>
                                 </ul>
                             </div>

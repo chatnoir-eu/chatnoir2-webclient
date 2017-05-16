@@ -43,10 +43,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
     public boolean validateRequest(final HttpServletRequest request, final HttpServletResponse response)
     {
         // do some general setup
-        Boolean prettyPrint = getTypedNestedParameter(Boolean.class, "pretty", request);
-        if (null != prettyPrint && prettyPrint) {
-            setPrettyPrint(true);
-        }
+        setPrettyPrint(isNestedParameterSet("pretty", request));
 
         // validate request
         final String keyParameter = getTypedNestedParameter(String.class, "apiKey", request);
@@ -298,5 +295,21 @@ public abstract class ApiModuleBase extends ChatNoirServlet
 
         // no valid parameter or conversion found
         return null;
+    }
+
+    /**
+     * Check whether a boolean parameter exists and contains a true value.
+     *
+     * @param name parameter name
+     * @param request HTTP request
+     * @return whether parameter is set and true
+     */
+    public boolean isNestedParameterSet(String name, HttpServletRequest request)
+    {
+        Boolean param = getTypedNestedParameter(Boolean.class, name, request);
+        if (param == null) {
+            return getTypedNestedParameter(Object.class, name, request) != null;
+        }
+        return param;
     }
 }

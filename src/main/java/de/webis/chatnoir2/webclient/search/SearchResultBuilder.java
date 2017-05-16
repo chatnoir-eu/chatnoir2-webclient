@@ -9,11 +9,17 @@ package de.webis.chatnoir2.webclient.search;
 
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.Configured;
+import de.webis.chatnoir2.webclient.util.ExplanationXContent;
+import org.apache.lucene.search.Explanation;
+import org.elasticsearch.common.xcontent.ToXContent;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 /**
  * Search result builder.
@@ -133,6 +139,12 @@ public class SearchResultBuilder
         return this;
     }
 
+    public SearchResultBuilder explanation(@Nullable Explanation explanation)
+    {
+        mSearchResult.setExplanation(explanation);
+        return this;
+    }
+
     /**
      * Search result.
      */
@@ -151,6 +163,7 @@ public class SearchResultBuilder
         private String mFullBody = null;
         private boolean mMoreSuggested = false;
         private boolean mGroupingSuggested = false;
+        private Explanation mExplanation = null;
 
         public Float score()
         {
@@ -332,6 +345,28 @@ public class SearchResultBuilder
         public void setGroupingSuggested(boolean groupingSuggested)
         {
             mGroupingSuggested = groupingSuggested;
+        }
+
+        @CheckForNull
+        public Explanation explanation()
+        {
+            return mExplanation;
+        }
+
+        public String explanationString()
+        {
+            if (null != mExplanation) {
+                try {
+                    return new ExplanationXContent(mExplanation).toXContent(jsonBuilder(), ToXContent.EMPTY_PARAMS).string();
+                } catch (IOException ignored) {}
+            }
+
+            return "";
+        }
+
+        public void setExplanation(@Nullable Explanation explanation)
+        {
+            mExplanation = explanation;
         }
     }
 }

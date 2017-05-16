@@ -53,18 +53,20 @@ ChatNoir.isExplainMode = function () {
 };
 
 ChatNoir.renderExplanationTree = function (explanation) {
-    var htmlString = '<ul>';
-    for (var i = 0; i < explanation.length; ++i) {
-        if (explanation[i] instanceof Array) {
-            htmlString += ChatNoir.renderExplanationTree(explanation[i]);
-        } else if (explanation[i] instanceof Object) {
-            for (var j in explanation[i]) {
-                htmlString += '<li><span class="key text-primary">' + j + '</span> ' +
-                '<span class="text-muted"> = </span><span class="value">' + explanation[i][j] + '</span>';
+    var htmlString = "";
+
+    if (explanation instanceof Object && null !== explanation) {
+        htmlString += '<ul><li><span class="key text-primary">' + explanation["description"] + '</span> ' +
+            '<span class="text-muted"> = </span><span class="value">' + explanation["value"] + '</span>';
+
+        if ("details" in explanation) {
+            for (var i in explanation["details"]) {
+                htmlString += ChatNoir.renderExplanationTree(explanation["details"][i]);
             }
         }
+
+        htmlString += '</ul>';
     }
-    htmlString += '</ul>';
 
     return htmlString;
 };
@@ -88,26 +90,26 @@ $.fn.bootstrapExplanationModal = function (clickElementSelector) {
 
 $.fn.toggleExplanationModal = function () {
     var hash = window.location.hash;
-    var trecId = hash.substr(8);
+    var documentId = hash.substr(8);
     var jsonExplanation = $(hash).data('explanation');
     this.find('.modal-title').html('Explain search results');
-    this.addExplanationTree(jsonExplanation, trecId);
+    this.addExplanationTree(jsonExplanation, documentId);
     this.modal('show');
 };
 
-$.fn.addExplanationTree = function (jsonExplanation, trecId) {
+$.fn.addExplanationTree = function (jsonExplanation, documentId) {
     var body = this.find('.modal-body > div');
-    body.find('#explanation-' + trecId).remove();
+    body.find('#explanation-' + documentId).remove();
     this.adjustExplanationPaneWidth();
 
     var origHtml = body.html();
     if ('&nbsp;' === origHtml) {
         origHtml = '';
     }
-    var addHtml = '<div class="explanation-tree" id="explanation-' + trecId +
+    var addHtml = '<div class="explanation-tree" id="explanation-' + documentId +
         '" style="width: 0; overflow: hidden;"><div style="width: 45em"><h5>' +
         '<button type="button" class="close" aria-label="Remove"><span aria-hidden="true">&times;</span></button>' +
-        'Explanation for result <strong>' + trecId + '</strong></h5>' +
+        'Explanation for result <strong>' + documentId + '</strong></h5>' +
         ChatNoir.renderExplanationTree(jsonExplanation) + '</div></div>';
     body.html(addHtml + origHtml);
 
