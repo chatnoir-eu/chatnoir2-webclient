@@ -22,6 +22,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -254,12 +256,12 @@ public class DocumentRetriever extends IndexRetrievalOperator
         {
             String body = mBody;
             if (mRewriteURIs) {
-                body = rewriteURIs(mBody);
+                body = rewriteURIs(body);
             }
             if (mCleanEncodingErrors) {
                 body = TextCleanser.cleanseEncodingErrors(body);
             }
-
+            System.out.println(body);
             return body;
         }
 
@@ -267,9 +269,9 @@ public class DocumentRetriever extends IndexRetrievalOperator
         {
             org.jsoup.nodes.Document doc = Jsoup.parse(html);
 
-            Elements anchors = doc.select("a[href]");
-            for (Element l : anchors) {
-                l.attr("href", rewriteURL(l.attr("href"), true));
+            Elements anchors = doc.select("a[href], area[href]");
+            for (Element a : anchors) {
+                a.attr("href", rewriteURL(a.attr("href"), true));
             }
 
             Elements elements = doc.select("link[href]");
@@ -318,7 +320,16 @@ public class DocumentRetriever extends IndexRetrievalOperator
                     host = thisURI.getHost();
                 }
                 // make sure we always have absolute URIs with scheme and hostname
-                uriStr = new URIBuilder(uri).setScheme(scheme).setPort(port).setHost(host).build().toString();
+                Path p1 = Paths.get("/", thisURI.getPath());
+                Path p2 = Paths.get(uri.getPath());
+
+                uriStr = new URIBuilder(uri)
+                        .setScheme(scheme)
+                        .setPort(port)
+                        .setHost(host)
+                        .setPath(p1.resolveSibling(p2).normalize().toString())
+                        .build()
+                        .toString();
             } catch (URISyntaxException ignored) {}
 
             if (addRedirect) {
