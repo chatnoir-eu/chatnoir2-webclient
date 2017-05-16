@@ -261,7 +261,7 @@ public class DocumentRetriever extends IndexRetrievalOperator
             if (mCleanEncodingErrors) {
                 body = TextCleanser.cleanseEncodingErrors(body);
             }
-            System.out.println(body);
+
             return body;
         }
 
@@ -269,30 +269,42 @@ public class DocumentRetriever extends IndexRetrievalOperator
         {
             org.jsoup.nodes.Document doc = Jsoup.parse(html);
 
-            Elements anchors = doc.select("a[href], area[href]");
-            for (Element a : anchors) {
-                a.attr("href", rewriteURL(a.attr("href"), true));
+            // save attribute values, delete the attributes and add them again
+            // to circumvent problems with uppercase attribute names
+            // see https://github.com/jhy/jsoup/issues/815
+            String attrValue;
+            Elements elements = doc.select("a[href], area[href]");
+            for (Element e : elements) {
+                attrValue = rewriteURL(e.attr("href"), true);
+                e.removeAttr("href");
+                e.attr("href", attrValue);
             }
 
-            Elements elements = doc.select("link[href]");
-            for (Element l : elements) {
-                l.attr("href", rewriteURL(l.attr("href"), false));
+            elements = doc.select("link[href]");
+            for (Element e : elements) {
+                attrValue = rewriteURL(e.attr("href"), false);
+                e.removeAttr("href");
+                e.attr("href", attrValue);
             }
 
             elements = doc.select("img[src], script[src], iframe[src], video[src], audio[src]");
-            for (Element img : elements) {
-                img.attr("src", rewriteURL(img.attr("src"), false));
+            for (Element e : elements) {
+                attrValue = rewriteURL(e.attr("src"), false);
+                e.removeAttr("src");
+                e.attr("src", attrValue);
             }
 
             elements = doc.select("object[data]");
-            for (Element img : elements) {
-                img.attr("data", rewriteURL(img.attr("data"), false));
+            for (Element e : elements) {
+                attrValue = rewriteURL(e.attr("data"), false);
+                e.removeAttr("data");
+                e.attr("data", attrValue);
             }
 
             // remove base tags
-            Elements bases = doc.select("head base");
-            for (Element base: bases) {
-                base.remove();
+            elements = doc.select("head base");
+            for (Element e: elements) {
+                e.remove();
             }
 
             return doc.toString();
