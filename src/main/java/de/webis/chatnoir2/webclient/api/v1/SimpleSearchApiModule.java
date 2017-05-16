@@ -18,7 +18,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Base class for ChatNoir REST API modules.
@@ -85,21 +84,15 @@ public class SimpleSearchApiModule extends ApiModuleBase
 
                     for (final SearchResultBuilder.SearchResult result : results) {
                         jb.startObject()
-                                .field("uuid", result.id())
+                                .field("score", result.score())
+                                .field("uuid", result.documentId())
                                 .field("trec_id", result.trecId())
-                                .field("hostname", result.hostname())
-                                .field("link", result.link())
+                                .field("target_hostname", result.targetHostname())
+                                .field("target_uri", result.targetUri())
+                                .field("page_rank", result.pageRank())
+                                .field("spam_rank", result.spamRank())
                                 .field("title", result.title())
-                                .field("snippet", result.snippet())
-                                .startObject("meta_data");
-                                    final HashMap<String, Object> resMeta = result.metaData();
-                                    for (final String key : resMeta.keySet()) {
-                                        if (key.equals("explanation") && null == resMeta.get(key)) {
-                                            continue;
-                                        }
-                                        jb.field(key, resMeta.get(key));
-                                    }
-                                jb.endObject();
+                                .field("snippet", result.snippet());
                         jb.endObject();
                     }
                 jb.endArray()

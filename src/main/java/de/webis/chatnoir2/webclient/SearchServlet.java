@@ -1,7 +1,7 @@
 /*
  * ChatNoir 2 Web frontend.
  *
- * Copyright (C) 2014 Webis Group @ Bauhaus University Weimar
+ * Copyright (C) 2014-2017 Webis Group @ Bauhaus University Weimar
  * Main Contributor: Janek Bevendorff
  */
 
@@ -80,16 +80,14 @@ public class SearchServlet extends ChatNoirServlet
         }
 
         final HashMap<String, Object> templateVars = new HashMap<>();
-        templateVars.put("search-query", searchQueryString);
-        templateVars.put("search-query-urlencoded", URLEncoder.encode(searchQueryString, "UTF-8"));
-        templateVars.put("page-url", request.getAttribute("javax.servlet.forward.request_uri"));
-        templateVars.put("query-string", request.getAttribute("javax.servlet.forward.query_string"));
+        templateVars.put("searchQuery", searchQueryString);
+        templateVars.put("searchQueryUrlEnc", URLEncoder.encode(searchQueryString, "UTF-8"));
+        templateVars.put("pageUrl", request.getAttribute("javax.servlet.forward.request_uri"));
+        templateVars.put("queryString", request.getAttribute("javax.servlet.forward.query_string"));
 
         final SimpleSearch search = new SimpleSearch(indices);
 
-        int currentPage  = 1;
-        long numResults  = 0;
-
+        int currentPage = 1;
         final String pageNumber = getParameter("p", request);
         if (null != pageNumber) {
             try {
@@ -101,14 +99,14 @@ public class SearchServlet extends ChatNoirServlet
         search.setExplain(null != getParameter("explain", request));
         search.doSearch(searchQueryString, (currentPage - 1) * mResultsPerPage, mResultsPerPage);
         final long elapsedTime = System.nanoTime() - startTime;
-        templateVars.put("query-time", String.format("%.1fms", elapsedTime * 0.000001));
+        templateVars.put("queryTime", String.format("%.1fms", elapsedTime * 0.000001));
 
         templateVars.put("indices", search.getEffectiveIndices());
         indicesString = String.join(",", search.getEffectiveIndices());
-        templateVars.put("indices-string", indicesString);
-        templateVars.put("indices-urlstring", URLEncoder.encode(indicesString, "UTF-8"));
+        templateVars.put("indicesString", indicesString);
+        templateVars.put("indicesUrlEnc", URLEncoder.encode(indicesString, "UTF-8"));
 
-        numResults = search.getTotalResultNumber();
+        long numResults = search.getTotalResultNumber();
         final long currentPageCapped = Math.max(1, Math.min((long) Math.ceil((double) numResults / mResultsPerPage), currentPage));
 
         // if user navigated past last page
@@ -181,25 +179,25 @@ public class SearchServlet extends ChatNoirServlet
             // go to first page
             if (5 < currentPage) {
                 final HashMap<String, String> page = new HashMap<>();
-                page.put("pagenumber", Integer.toString(1));
-                page.put("ariahiddenlabel", "←");
-                page.put("hiddenlabel", "First");
+                page.put("pageNumber", Integer.toString(1));
+                page.put("ariaHiddenLabel", "←");
+                page.put("hiddenLabel", "First");
                 pagination.add(page);
             }
 
             // go to previous page
             if (1 != currentPage) {
                 final HashMap<String, String> page = new HashMap<>();
-                page.put("pagenumber", Long.toString(currentPage - 1));
-                page.put("ariahiddenlabel", "«");
-                page.put("hiddenlabel", "Previous");
+                page.put("pageNumber", Long.toString(currentPage - 1));
+                page.put("ariaHiddenLabel", "«");
+                page.put("hiddenLabel", "Previous");
                 pagination.add(page);
             }
 
             // page numbers
             for (long i = startingPage; i <= displayPages; ++i) {
                 final HashMap<String, String> page = new HashMap<>();
-                page.put("pagenumber", Long.toString(i));
+                page.put("pageNumber", Long.toString(i));
                 page.put("label", Long.toString(i));
                 if (i == currentPage) {
                     page.put("active", "1");
@@ -210,9 +208,9 @@ public class SearchServlet extends ChatNoirServlet
             // go to next page
             if (numPages != currentPage) {
                 final HashMap<String, String> page = new HashMap<>();
-                page.put("pagenumber", Long.toString(currentPage + 1));
-                page.put("ariahiddenlabel", "»");
-                page.put("hiddenlabel", "Next");
+                page.put("pageNumber", Long.toString(currentPage + 1));
+                page.put("ariaHiddenLabel", "»");
+                page.put("hiddenLabel", "Next");
                 pagination.add(page);
             }
 
@@ -236,7 +234,9 @@ public class SearchServlet extends ChatNoirServlet
          */
         public boolean isExplainMode()
         {
-            return (0 != results.size()) && ((Boolean) results.get(0).metaData().get("has_explanation"));
+            // TODO: re-implement this
+            return false;
+            //return (0 != results.size()) && ((Boolean) results.get(0).metaData().get("has_explanation"));
         }
 
         /**
@@ -246,10 +246,10 @@ public class SearchServlet extends ChatNoirServlet
         public HashMap<String, String> paginationInfo()
         {
             HashMap<String, String> paginationInfo = new HashMap<>();
-            paginationInfo.put("current-page", Long.toString(currentPage));
-            paginationInfo.put("results-range-start", Long.toString(1 + (currentPage - 1) * resultsPerPage));
-            paginationInfo.put("results-range-end", Long.toString(Math.min((currentPage - 1) * resultsPerPage + resultsPerPage, numResults)));
-            paginationInfo.put("num-results", Long.toString(numResults));
+            paginationInfo.put("currentPage", Long.toString(currentPage));
+            paginationInfo.put("resultsRangeStart", Long.toString(1 + (currentPage - 1) * resultsPerPage));
+            paginationInfo.put("resultsRangeEnd", Long.toString(Math.min((currentPage - 1) * resultsPerPage + resultsPerPage, numResults)));
+            paginationInfo.put("numResults", Long.toString(numResults));
 
             return paginationInfo;
         }

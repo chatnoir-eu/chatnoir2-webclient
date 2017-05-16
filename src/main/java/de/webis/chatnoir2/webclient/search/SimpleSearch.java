@@ -159,36 +159,19 @@ public class SimpleSearch extends SearchProvider
             }
             previousHost = currentHost;
 
-            Double prDouble = (Double) source.get("page_rank");
-            String pageRank = "none";
-            if (null != prDouble) {
-                pageRank = String.format("%.03f", prDouble);
-                if (0.001 > prDouble) {
-                    pageRank = String.format("%.03e", (Double) source.get("page_rank"));
-                }
-            }
-
-            Integer spamRankInt = (Integer) source.get("spam_rank");
-            String spamRank = "none";
-            if (null != spamRankInt) {
-                spamRank = (0 != spamRankInt) ? source.get("spam_rank").toString() : "none";
-            }
-
             final SearchResultBuilder.SearchResult result = new SearchResultBuilder()
+                    .score(hit.getScore())
                     .index(hit.index())
-                    .id(hit.getId())
-                    .trecId(source.containsKey("warc_trec_id") ? source.get("warc_trec_id").toString() : null)
+                    .documentId(hit.getId())
+                    .trecId((String) source.get("warc_trec_id"))
                     .title(TextCleanser.cleanse(title, true))
-                    .hostname(source.get("warc_target_hostname").toString())
-                    .link(source.get("warc_target_uri").toString())
+                    .targetHostname((String) source.get("warc_target_hostname"))
+                    .targetUri((String) source.get("warc_target_uri"))
                     .snippet(TextCleanser.cleanse(snippet, true))
-                    .fullBody(source.get("body_lang." + mSearchLanguage).toString())
-                    .addMetadata("score", String.format("%.03f", hit.getScore()))
-                    .addMetadata("page_rank", pageRank)
-                    .addMetadata("spam_rank", spamRank)
-                    .addMetadata("explanation", explanation)
-                    .addMetadata("has_explanation", mDoExplain)
-                    .suggestGrouping(doGroup)
+                    .fullBody((String) source.get("body_lang." + mSearchLanguage))
+                    .pageRank((Double) source.get("page_rank"))
+                    .spamRank((Integer) source.get("spam_rank"))
+                    .isGroupingSuggested(doGroup)
                     .build();
             results.add(result);
         }
@@ -197,14 +180,14 @@ public class SimpleSearch extends SearchProvider
         boolean prevInGroup = false;
         int len = results.size();
         for (int i = 0; i < len; ++i) {
-            boolean inGroup = results.get(i).groupingSuggested();
+            boolean inGroup = results.get(i).isGroupingSuggested();
             if (prevInGroup && !inGroup) {
-                results.get(Math.max(0, i - 1)).moreSuggested = true;
+                results.get(Math.max(0, i - 1)).setMoreSuggested(true);
             }
             prevInGroup = inGroup;
         }
         if (len > 0) {
-            results.get(len - 1).moreSuggested = prevInGroup;
+            results.get(len - 1).setMoreSuggested(prevInGroup);
         }
 
         return results;

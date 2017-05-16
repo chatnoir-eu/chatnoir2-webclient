@@ -134,8 +134,8 @@ public class CacheServlet extends ChatNoirServlet
         // else: show framed page
         final HashMap<String, String> templateVars = new HashMap<>();
         templateVars.put("uuid", doc.getDocUUID().toString());
-        templateVars.put("uuid-urlstring", URLEncoder.encode(doc.getDocUUID().toString(), "UTF-8"));
-        templateVars.put("orig-uri", doc.getTargetURI());
+        templateVars.put("uuidUrlEnc", URLEncoder.encode(doc.getDocUUID().toString(), "UTF-8"));
+        templateVars.put("origUri", doc.getTargetURI());
         templateVars.put("index", URLEncoder.encode(indexParam, "UTF-8"));
         if (plainTextMode) {
             templateVars.put("plainTextMode", "1");

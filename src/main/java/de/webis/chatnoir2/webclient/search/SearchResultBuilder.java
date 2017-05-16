@@ -1,7 +1,7 @@
 /*
  * ChatNoir 2 Web frontend.
  *
- * Copyright (C) 2014 Webis Group @ Bauhaus University Weimar
+ * Copyright (C) 2014-2017 Webis Group @ Bauhaus University Weimar
  * Main Contributor: Janek Bevendorff
  */
 
@@ -10,172 +10,328 @@ package de.webis.chatnoir2.webclient.search;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.Configured;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 /**
- * Search result DTO builder.
+ * Search result builder.
  *
  * @author Janek Bevendorff
- * @version 1
  */
 public class SearchResultBuilder
 {
     /**
-     * {@link de.webis.chatnoir2.webclient.search.SearchResultBuilder.SearchResult} to build.
+     * Builder for {@link SearchResultBuilder.SearchResult}.
      */
-    protected final SearchResult searchResult;
+    protected final SearchResult mSearchResult;
 
     public SearchResultBuilder()
     {
-        searchResult = new SearchResult();
+        mSearchResult = new SearchResult();
     }
 
     /**
-     * Get built {@link de.webis.chatnoir2.webclient.search.SearchResultBuilder.SearchResult}.
-     *
-     * @return SearchResult
+     * @return configured {@link SearchResultBuilder.SearchResult}
      */
-    public SearchResult build() {
-        return searchResult;
+    public SearchResult build()
+    {
+        return mSearchResult;
+    }
+
+    public SearchResultBuilder score(float score)
+    {
+        mSearchResult.setScore(score);
+        return this;
     }
 
     public SearchResultBuilder index(String index)
     {
         ConfigLoader.Config[] conf = new Configured().getConf().get("cluster").getArray("index_aliases");
         if (conf.length != 0) {
-            for (ConfigLoader.Config c: conf) {
-                if (c.getString("index").equals(index)) {
-                    index = c.getString("alias");
+            for (ConfigLoader.Config c : conf) {
+                if (c.getString("index", "").equals(index)) {
+                    index = c.getString("alias", "");
                     break;
                 }
             }
         }
-        searchResult.index = index;
+        mSearchResult.mIndex = index;
         return this;
     }
 
-    public SearchResultBuilder id(final String id)
+    public SearchResultBuilder documentId(String documentId)
     {
-        searchResult.id = id;
+        mSearchResult.setDocumentId(documentId);
         return this;
     }
 
-    public SearchResultBuilder trecId(final String trecId)
+    public SearchResultBuilder trecId(@Nullable String trecId)
     {
-        searchResult.trecId = trecId;
+        mSearchResult.setTrecId(trecId);
         return this;
     }
 
-    public SearchResultBuilder hostname(final String hostname)
+    public SearchResultBuilder title(String title)
     {
-        searchResult.hostname = hostname;
+        mSearchResult.setTitle(title);
         return this;
     }
 
-    public SearchResultBuilder title(final String title)
+    public SearchResultBuilder spamRank(@Nullable Integer spamRank)
     {
-        searchResult.title = title;
+        mSearchResult.setSpamRank(spamRank);
         return this;
     }
 
-    public SearchResultBuilder link(final String link)
+    public SearchResultBuilder pageRank(@Nullable Double pageRank)
     {
-        searchResult.link = link;
+        mSearchResult.setPageRank(pageRank);
         return this;
     }
 
-    public SearchResultBuilder snippet(final String snippet)
+    public SearchResultBuilder targetHostname(String targetHostname)
     {
-        searchResult.snippet = snippet;
+        mSearchResult.setTargetHostname(targetHostname);
         return this;
     }
 
-    public SearchResultBuilder fullBody(final String fullBody)
+    public SearchResultBuilder targetUri(String targetUri)
     {
-        searchResult.fullBody = fullBody;
+        mSearchResult.setTargetUri(targetUri);
         return this;
     }
 
-    public SearchResultBuilder addMetadata(final String key, final Object value)
+    public SearchResultBuilder snippet(String snippet)
     {
-        searchResult.metadata.put(key, value);
+        mSearchResult.setSnippet(snippet);
         return this;
     }
 
-    public SearchResultBuilder suggestMore(final boolean suggestMore)
+    public SearchResultBuilder fullBody(@Nullable String fullBody)
     {
-        searchResult.moreSuggested = suggestMore;
-        return this;
-    }
-
-    public SearchResultBuilder suggestGrouping(final boolean group)
-    {
-        searchResult.groupingSuggested = group;
+        mSearchResult.setFullBody(fullBody);
         return this;
     }
 
     /**
-     * Search result DTO.
+     * Whether displaying a "more like this" or "more from this host" link is suggested
+     */
+    public SearchResultBuilder isMoreSuggested(boolean moreSuggested)
+    {
+        mSearchResult.setMoreSuggested(moreSuggested);
+        return this;
+    }
+
+    /**
+     * Whether grouping with previous result is suggested
+     */
+    public SearchResultBuilder isGroupingSuggested(boolean groupingSuggested)
+    {
+        mSearchResult.setGroupingSuggested(groupingSuggested);
+        return this;
+    }
+
+    /**
+     * Search result.
      */
     public class SearchResult
     {
-        protected String index = "";
-        protected String id = "";
-        protected String trecId = "";
-        protected String title = "";
-        protected String hostname = "";
-        protected String link = "";
-        protected String snippet = "";
-        protected String fullBody = "";
-        protected boolean moreSuggested = false;
-        protected boolean groupingSuggested = false;
-        protected final HashMap<String, Object> metadata = new HashMap<>();
+        private float mScore = 0.0f;
+        private String mIndex = "";
+        private String mDocumentId = "";
+        private String mTrecId = null;
+        private String mTitle = "";
+        private Integer mSpamRank = null;
+        private Double mPageRank = null;
+        private String mTargetHostname = "";
+        private String mTargetUri = "";
+        private String mSnippet = "";
+        private String mFullBody = null;
+        private boolean mMoreSuggested = false;
+        private boolean mGroupingSuggested = false;
 
-        public String id()
+        public Float score()
         {
-            return id;
+            return mScore;
         }
 
+        public String scoreFormatted()
+        {
+            return String.format("%.03f", mScore);
+        }
+
+        public void setScore(float score)
+        {
+            mScore = score;
+        }
+
+        public String index()
+        {
+            return mIndex;
+        }
+
+        public String indexUrlEnc()
+        {
+            try {
+                return URLEncoder.encode(mIndex, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                return "";
+            }
+        }
+
+        public void setIndex(String index)
+        {
+            mIndex = index;
+        }
+
+        public String documentId()
+        {
+            return mDocumentId;
+        }
+
+        public String documentIdUrlEnc()
+        {
+            try {
+                return URLEncoder.encode(mDocumentId, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                return "";
+            }
+        }
+
+        public void setDocumentId(String documentId)
+        {
+            mDocumentId = documentId;
+        }
+
+        @CheckForNull
         public String trecId()
         {
-            return trecId;
+            return mTrecId;
+        }
+
+        public void setTrecId(@Nullable String trecId)
+        {
+            mTrecId = trecId;
         }
 
         public String title()
         {
-            return title;
+            return mTitle;
         }
 
-        public String hostname()
+        public void setTitle(String title)
         {
-            return hostname;
+            mTitle = title;
         }
 
-        public String link()
+        @CheckForNull
+        public Integer spamRank()
         {
-            return link;
+            return mSpamRank;
+        }
+
+        public String spamRankFormatted()
+        {
+            if (null != mSpamRank && 0 != mSpamRank) {
+                return mSpamRank.toString();
+            }
+            return "none";
+        }
+
+        public void setSpamRank(@Nullable Integer spamRank)
+        {
+            mSpamRank = spamRank;
+        }
+
+        @CheckForNull
+        public Double pageRank()
+        {
+            return mPageRank;
+        }
+
+        public String pageRankFormatted()
+        {
+            if (null != mPageRank) {
+                if (0.001 > mPageRank) {
+                    return String.format("%.03e", mPageRank);
+                }
+                return String.format("%.03f", mPageRank);
+            }
+            return "none";
+        }
+
+        public void setPageRank(@Nullable Double pageRank)
+        {
+            mPageRank = pageRank;
+        }
+
+        public String targetHostname()
+        {
+            return mTargetHostname;
+        }
+
+        public void setTargetHostname(String targetHostname)
+        {
+            mTargetHostname = targetHostname;
+        }
+
+        public String targetUri()
+        {
+            return mTargetUri;
+        }
+
+        public void setTargetUri(String targetUri)
+        {
+            mTargetUri = targetUri;
         }
 
         public String snippet()
         {
-            return snippet;
+            return mSnippet;
         }
 
+        public void setSnippet(String snippet)
+        {
+            mSnippet = snippet;
+        }
+
+        @CheckForNull
         public String fullBody()
         {
-            return fullBody;
+            return mFullBody;
         }
 
-        public boolean groupingSuggested() { return groupingSuggested; }
-
-        public boolean moreSuggested() { return moreSuggested; }
-
-        public HashMap<String, Object> metaData()
+        public void setFullBody(@Nullable String fullBody)
         {
-            return metadata;
+            mFullBody = fullBody;
+        }
+
+        /**
+         * @return whether displaying a "more like this" or "more from this host" link is suggested
+         */
+        public boolean isMoreSuggested()
+        {
+            return mMoreSuggested;
+        }
+
+        public void setMoreSuggested(boolean moreSuggested)
+        {
+            mMoreSuggested = moreSuggested;
+        }
+
+        /**
+         * @return whether grouping with previous result is suggested
+         */
+        public boolean isGroupingSuggested()
+        {
+            return mGroupingSuggested;
+        }
+
+        public void setGroupingSuggested(boolean groupingSuggested)
+        {
+            mGroupingSuggested = groupingSuggested;
         }
     }
 }

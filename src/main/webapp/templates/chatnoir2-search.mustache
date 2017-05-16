@@ -16,8 +16,8 @@
             <div class="col-sm-8" id="SearchField">
                 <form role="search" action="/" method="get">
                     <div class="input-group">
-                        <input type="text" class="form-control input-lg" placeholder="Search" name="q" value="{{search-query}}" id="SearchInput">
-                        {{#indices-string}}<input type="hidden" name="index" value="{{.}}">{{/indices-string}}
+                        <input type="text" class="form-control input-lg" placeholder="Search" name="q" value="{{searchQuery}}" id="SearchInput">
+                        {{#indicesString}}<input type="hidden" name="index" value="{{.}}">{{/indicesString}}
                         <span class="input-group-btn">
                             <button type="submit" class="btn btn-primary input-lg">Go!</button>
                         </span>
@@ -27,46 +27,46 @@
         </div>
 
         <div class="search-info">
-            {{#paginationInfo.num-results}}<div class="num-results">Total results: {{paginationInfo.num-results}} (retrieved in {{query-time}})</div>{{/paginationInfo.num-results}}
-            <h1>Search results {{#resultsFound}}{{paginationInfo.results-range-start}}-{{paginationInfo.results-range-end}} {{/resultsFound}}for <em>{{search-query}}</em></h1>
+            {{#paginationInfo.numResults}}<div class="num-results">Total results: {{paginationInfo.numResults}} (retrieved in {{queryTime}})</div>{{/paginationInfo.numResults}}
+            <h1>Search results {{#resultsFound}}{{paginationInfo.resultsRangeStart}}-{{paginationInfo.resultsRangeEnd}} {{/resultsFound}}for <em>{{search-query}}</em></h1>
         </div>
 
         <section id="SearchResults">
             {{#searchResults}}
-                <article class="search-result{{#groupingSuggested}} grouped{{/groupingSuggested}}" id="result-{{trecId}}"{{#metadata.has_explanation}} data-explanation="{{metadata.explanation}}"{{/metadata.has_explanation}}>
+                <article class="search-result{{#isGroupingSuggested}} grouped{{/isGroupingSuggested}}" id="result-{{trecId}}"{{#hasExplanation}} data-explanation="{{explanation}}"{{/hasExplanation}}>
                     <header>
-                        <h2><a href="{{contextPath}}/cache?uuid={{id}}{{#index}}&index={{.}}{{/index}}">{{& title}}</a></h2>
+                        <h2><a href="{{contextPath}}/cache?uuid={{documentIdUrlEnc}}{{#indexUrlEnc}}&index={{.}}{{/indexUrlEnc}}">{{& title}}</a></h2>
                         <div class="meta">
-                            <a href="{{link}}" class="link">{{#hostname}}{{hostname}}{{/hostname}}{{^hostname}}{{link}}{{/hostname}}</a>
+                            <a href="{{targetUri}}" class="link">{{#targetHostname}}{{targetHostname}}{{/targetHostname}}{{^targetHostname}}{{targetUri}}{{/targetHostname}}</a>
                             <div class="dropdown">
                                 <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
                                     <span class="caret"></span>
                                 </button>
                                 <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
-                                    <li role="presentation" class="result-cache"><a role="menuitem" tabindex="-1" href="{{link}}">Web Link</a></li>
+                                    <li role="presentation" class="result-cache"><a role="menuitem" tabindex="-1" href="{{targetUri}}">Web Link</a></li>
                                     <li role="presentation" class="result-plaintext"><a role="menuitem" tabindex="-1" href="{{contextPath}}/cache?uuid={{id}}&plain=1">Plaintext</a></li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="dropdown-header">Index: {{index}}</li>
-                                    <li role="presentation" class="dropdown-header">Document ID: {{id}}</li>
+                                    <li role="presentation" class="dropdown-header">Document ID: {{documentId}}</li>
                                     {{#trecId}}<li role="presentation" class="dropdown-header">TREC ID: {{trecId}}</li>{{/trecId}}
-                                    <li role="presentation" class="dropdown-header">Score: {{metadata.score}}</li>
-                                    <li role="presentation" class="dropdown-header">Page Rank: {{metadata.page_rank}}</li>
-                                    <li role="presentation" class="dropdown-header">Spam Rank: {{metadata.spam_rank}}</li>
+                                    <li role="presentation" class="dropdown-header">Score: {{scoreFormatted}}</li>
+                                    <li role="presentation" class="dropdown-header">Page Rank: {{pageRankFormatted}}</li>
+                                    <li role="presentation" class="dropdown-header">Spam Rank: {{spamRankFormatted}}</li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="result-explain">
-                                    <a role="menuitem" class="result-explain" tabindex="-1" href="{{page-url}}?q={{{search-query-urlencoded}}}&p={{#currentPage}}{{.}}{{/currentPage}}{{#indices-urlstring}}&index={{.}}{{/indices-urlstring}}&explain#result-{{trecId}}">Explain</a>
+                                    <a role="menuitem" class="result-explain" tabindex="-1" href="{{pageUrl}}?q={{{searchQueryUrlEnc}}}&p={{#currentPage}}{{.}}{{/currentPage}}{{#indicesUrlEnc}}&index={{.}}{{/indicesUrlEnc}}&explain#result-{{trecId}}">Explain</a>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                     </header>
-                    {{^groupingSuggested}}{{& snippet}}{{/groupingSuggested}}
+                    {{^isGroupingSuggested}}{{& snippet}}{{/isGroupingSuggested}}
                 </article>
-                {{#moreSuggested}}
+                {{#isMoreSuggested}}
                     <div class="more-from-host">
-                        <a href="{{page-url}}?q=site:{{hostname}}+{{{search-query-urlencoded}}}">More results from {{hostname}}</a>
+                        <a href="{{pageUrl}}?q=site:{{targetHostname}}+{{{searchQueryUrlEnc}}}">More results from {{targetHostname}}</a>
                     </div>
-                {{/moreSuggested}}
+                {{/isMoreSuggested}}
 
             {{/searchResults}}
             {{^searchResults}}
@@ -77,9 +77,9 @@
                 <ul class="pagination">
                     {{#pagination}}
                         <li{{#active}} class="active"{{/active}}>
-                                <a href="{{page-url}}?q={{{search-query-urlencoded}}}&p={{pagenumber}}{{#isExplainMode}}&explain{{/isExplainMode}}{{#indices-urlstring}}&index={{.}}{{/indices-urlstring}}" {{#hiddenlabel}} title="{{hiddenlabel}}"{{/hiddenlabel}}>
-                                {{label}}{{#ariahiddenlabel}} <span aria-hidden="true">{{ariahiddenlabel}}</span>{{/ariahiddenlabel}}
-                                {{#hiddenlabel}} <span class="sr-only">{{hiddenlabel}}</span>{{/hiddenlabel}}
+                                <a href="{{pageUrl}}?q={{{searchQueryUrlEnc}}}&p={{pageNumber}}{{#isExplainMode}}&explain{{/isExplainMode}}{{#indicesUrlEnc}}&index={{.}}{{/indicesUrlEnc}}" {{#hiddenLabel}} title="{{hiddenLabel}}"{{/hiddenLabel}}>
+                                {{label}}{{#ariaHiddenLabel}} <span aria-hidden="true">{{ariaHiddenLabel}}</span>{{/ariaHiddenLabel}}
+                                {{#hiddenLabel}} <span class="sr-only">{{hiddenLabel}}</span>{{/hiddenLabel}}
                         </a>
                         </li>
                     {{/pagination}}
