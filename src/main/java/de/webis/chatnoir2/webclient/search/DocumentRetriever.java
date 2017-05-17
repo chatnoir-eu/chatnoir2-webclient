@@ -287,7 +287,7 @@ public class DocumentRetriever extends IndexRetrievalOperator
                 e.attr("href", attrValue);
             }
 
-            elements = doc.select("img[src], script[src], iframe[src], video[src], audio[src]");
+            elements = doc.select("img[src], script[src], iframe[src], video[src], audio[src], input[type='image'][src]");
             for (Element e : elements) {
                 attrValue = rewriteURL(e.attr("src"), false);
                 e.removeAttr("src");
