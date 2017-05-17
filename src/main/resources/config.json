@@ -26,6 +26,11 @@
             "path" : "/corpora/clueweb/09-mapfile",
             "partitions" : 200,
             "prefix" : "clueweb09"
+        },
+        "webis_commoncrawl15" : {
+            "path" : "/corpora/corpus-commoncrawl/CC-MAIN-2015-11-mapfile",
+            "partitions" : 100,
+            "prefix" : "commoncrawl"
         }
     },
 
@@ -40,22 +45,22 @@
     "search" : {
         "default_simple" : {
             "main_fields" : [
-                { "name" : "title_lang.en",            "boost" : 30.0 },
+                { "name" : "title_lang.%lang%", "boost" : 30.0 },
                 {
-                    "name" : "body_lang.en",
+                    "name" : "body_lang.%lang%",
                     "boost" : 30.0,
                     "proximity_matching" : true,
                     "proximity_slop" : 4,
                     "proximity_boost" : 4000.0,
                     "proximity_cutoff_frequency" : 0.001
                 },
-                { "name" : "full_body_lang.en" },
-                { "name" : "headings_lang.en",         "boost" : 50.0 },
-                { "name" : "meta_desc_lang.en",        "boost" : 20.0 },
-                { "name" : "meta_keywords_lang.en",    "boost" : 10.0 },
-                { "name" : "warc_target_hostname",     "boost" : 400.0 },
-                { "name" : "warc_target_path",         "boost" : 50.0 },
-                { "name" : "warc_target_hostname.raw", "boost" : 50000.0 }
+                { "name" : "full_body_lang.%lang%" },
+                { "name" : "headings_lang.%lang%",      "boost" : 50.0 },
+                { "name" : "meta_desc_lang.%lang%",     "boost" : 20.0 },
+                { "name" : "meta_keywords_lang.%lang%", "boost" : 10.0 },
+                { "name" : "warc_target_hostname",      "boost" : 400.0 },
+                { "name" : "warc_target_path",          "boost" : 50.0 },
+                { "name" : "warc_target_hostname.raw",  "boost" : 50000.0 }
             ],
             "additional_fields" : [
                 { "name" : "warc_trec_id", "boost" : 100000.0 }
@@ -76,9 +81,9 @@
             },
             "range_filters" : [
                 { "name" : "body_length", "gte" : 1000.0 },
-                { "name" : "spam_rank", "gt" : 0.0, "lte": 80.0, "negate" : true }
+                { "name" : "spam_rank", "gt" : 0.0, "lte": 50.0, "negate" : true }
             ],
-            "node_limit" : 20000,
+            "node_limit" : 70000,
             "rescore_window" : 200,
             "prequery_cutoff_frequency": 0.001
         }

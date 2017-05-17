@@ -50,11 +50,6 @@ public class SimpleSearch extends SearchProvider
     private SearchResponse mResponse = new SearchResponse();
 
     /**
-     * Current search language.
-     */
-    private String mSearchLanguage = "en";
-
-    /**
      * Whether query filters block result grouping.
      */
     private boolean mFiltersBlockGrouping = false;
@@ -106,8 +101,8 @@ public class SimpleSearch extends SearchProvider
                 .setFrom(from)
                 .setSize(size)
                 .highlighter(new HighlightBuilder()
-                        .field("title_lang." + mSearchLanguage, mTitleLength, 1)
-                        .field("body_lang." + mSearchLanguage, mSnippetLength, 1)
+                        .field("title_lang." + getSearchLanguage(), mTitleLength, 1)
+                        .field("body_lang." + getSearchLanguage(), mSnippetLength, 1)
                         .encoder("html"))
                 .setExplain(mDoExplain)
                 .setTerminateAfter(mSimpleSearchConfig.getInteger("node_limit", 200000))
@@ -124,8 +119,8 @@ public class SimpleSearch extends SearchProvider
             final Map<String, Object> source = hit.getSource();
 
             String snippet = "";
-            if (null != hit.getHighlightFields().get("body_lang." + mSearchLanguage)) {
-                final Text[] fragments = hit.getHighlightFields().get("body_lang.en").fragments();
+            if (null != hit.getHighlightFields().get("body_lang." + getSearchLanguage())) {
+                final Text[] fragments = hit.getHighlightFields().get("body_lang." + getSearchLanguage()).fragments();
                 if (1 >= fragments.length) {
                     snippet = fragments[0].string();
                 }
@@ -133,21 +128,21 @@ public class SimpleSearch extends SearchProvider
 
             // use meta description or first body part if no highlighted snippet available
             if (snippet.isEmpty()) {
-                if (!source.get("meta_desc_lang." + mSearchLanguage).toString().isEmpty()) {
+                if (!source.get("meta_desc_lang." + getSearchLanguage()).toString().isEmpty()) {
                     snippet = StringEscapeUtils.escapeHtml(
-                            truncateSnippet((String) source.get("meta_desc_lang." + mSearchLanguage), mSnippetLength));
+                            truncateSnippet((String) source.get("meta_desc_lang." + getSearchLanguage()), mSnippetLength));
                 } else {
                     snippet = StringEscapeUtils.escapeHtml(
-                            truncateSnippet((String) source.get("body_lang." + mSearchLanguage), mSnippetLength));
+                            truncateSnippet((String) source.get("body_lang." + getSearchLanguage()), mSnippetLength));
                 }
             }
             snippet = TextCleanser.cleanse(snippet, true);
 
             // use highlighted title if available
             String title = StringEscapeUtils.escapeHtml(
-                    truncateSnippet((String) source.get("title_lang." + mSearchLanguage), mTitleLength));
-            if (null != hit.getHighlightFields().get("title_lang." + mSearchLanguage)) {
-                final Text[] fragments = hit.getHighlightFields().get("title_lang." + mSearchLanguage).fragments();
+                    truncateSnippet((String) source.get("title_lang." + getSearchLanguage()), mTitleLength));
+            if (null != hit.getHighlightFields().get("title_lang." + getSearchLanguage())) {
+                final Text[] fragments = hit.getHighlightFields().get("title_lang." + getSearchLanguage()).fragments();
                 if (1 >= fragments.length) {
                     title = fragments[0].string();
                 }
@@ -171,7 +166,7 @@ public class SimpleSearch extends SearchProvider
                     .targetHostname((String) source.get("warc_target_hostname"))
                     .targetUri((String) source.get("warc_target_uri"))
                     .snippet(snippet)
-                    .fullBody((String) source.get("body_lang." + mSearchLanguage))
+                    .fullBody((String) source.get("body_lang." + getSearchLanguage()))
                     .pageRank((Double) source.get("page_rank"))
                     .spamRank((Integer) source.get("spam_rank"))
                     .isGroupingSuggested(doGroup)
@@ -218,7 +213,7 @@ public class SimpleSearch extends SearchProvider
             mainQuery.filter(queryStringFilter);
         }
 
-        mainQuery.filter(QueryBuilders.termQuery("lang", mSearchLanguage));
+        mainQuery.filter(QueryBuilders.termQuery("lang", getSearchLanguage()));
 
         if (!userQueryString.toString().trim().isEmpty()) {
             final SimpleQueryStringBuilder searchQuery = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());
@@ -232,7 +227,7 @@ public class SimpleSearch extends SearchProvider
 
             final ConfigLoader.Config[] mainFields = mSimpleSearchConfig.getArray("main_fields");
             for (final ConfigLoader.Config field : mainFields) {
-                searchQuery.field(field.getString("name", ""));
+                searchQuery.field(localizeFieldName(field.getString("name", "")));
             }
             mainQuery.must(searchQuery);
         } else {
@@ -243,7 +238,9 @@ public class SimpleSearch extends SearchProvider
         // add range filters (e.g. to filter by minimal content length)
         final ConfigLoader.Config[] rangeFilters = mSimpleSearchConfig.getArray("range_filters");
         for (final ConfigLoader.Config filterConfig : rangeFilters) {
-            final RangeQueryBuilder rangeFilter = QueryBuilders.rangeQuery(filterConfig.getString("name", ""));
+            final RangeQueryBuilder rangeFilter = QueryBuilders.rangeQuery(
+                    localizeFieldName(filterConfig.getString("name", "")));
+
             if (null != filterConfig.getDouble("gt")) {
                 rangeFilter.gt(filterConfig.getDouble("gt"));
             }
@@ -336,7 +333,7 @@ public class SimpleSearch extends SearchProvider
                 TermQueryBuilder termQuery = QueryBuilders.termQuery(filterField, filterValue);
 
                 if (filterField.equals("lang")) {
-                    mSearchLanguage = filterValue;
+                    setSearchLanguage(filterValue);
                 }
 
                 filterQuery.filter(termQuery);
@@ -381,7 +378,9 @@ public class SimpleSearch extends SearchProvider
         final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
         final ArrayList<Object[]> proximityFields = new ArrayList<>();
         for (final ConfigLoader.Config field : mainFields) {
-            simpleQuery.field(field.getString("name", ""), field.getFloat("boost", 1.0f)).
+            simpleQuery.field(
+                    localizeFieldName(field.getString("name", "")),
+                    field.getFloat("boost", 1.0f)).
                     defaultOperator(Operator.AND).
                     flags(SimpleQueryStringFlag.AND,
                             SimpleQueryStringFlag.OR,
@@ -393,7 +392,7 @@ public class SimpleSearch extends SearchProvider
             // add field to list of proximity-aware fields for later processing
             if (field.getBoolean("proximity_matching", false)) {
                 proximityFields.add(new Object[] {
-                        field.getString("name"),
+                        localizeFieldName(field.getString("name")),
                         field.getInteger("proximity_slop", 1),
                         field.getFloat("proximity_boost", 1.0f),
                         field.getFloat("proximity_cutoff_frequency", 0.001f)
@@ -405,7 +404,7 @@ public class SimpleSearch extends SearchProvider
         BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
         for (Object[] o : proximityFields) {
             final MatchPhraseQueryBuilder proximityQuery = QueryBuilders.matchPhraseQuery(
-                    (String) o[0],
+                    localizeFieldName((String) o[0]),
                     userQueryString.toString()
             );
             proximityQuery
@@ -424,7 +423,7 @@ public class SimpleSearch extends SearchProvider
 
         // Wikipedia boost
         TermQueryBuilder wikiBooster = QueryBuilders.termQuery("warc_target_hostname.raw",
-                mSearchLanguage + ".wikipedia.org");
+                getSearchLanguage() + ".wikipedia.org");
         mainQuery.should(wikiBooster);
 
         return mainQuery;

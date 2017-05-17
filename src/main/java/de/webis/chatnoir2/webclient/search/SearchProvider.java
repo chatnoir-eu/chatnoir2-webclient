@@ -16,6 +16,8 @@ import java.util.*;
  */
 public abstract class SearchProvider extends IndexRetrievalOperator
 {
+    private String mSearchLanguage = "en";
+
     public SearchProvider(final String[] indices)
     {
         super(indices);
@@ -48,4 +50,30 @@ public abstract class SearchProvider extends IndexRetrievalOperator
      * @return the number of results
      */
     public abstract long getTotalResultNumber();
+
+    /**
+     * @return Current search language
+     */
+    public String getSearchLanguage() {
+        return mSearchLanguage;
+    }
+
+    /**
+     * Set current search language
+     *
+     * @param language two-characters language code
+     */
+    public void setSearchLanguage(String language) {
+        mSearchLanguage = language.length() == 2 ? language.toLowerCase() : "en";
+    }
+
+    /**
+     * Helper function to localize field names according to the current search language.
+     *
+     * @param fieldName field name with language placehoders
+     * @return localized field name
+     */
+    protected String localizeFieldName(String fieldName) {
+        return fieldName.replace("%lang%", mSearchLanguage);
+    }
 }
