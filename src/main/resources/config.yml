@@ -1,0 +1,200 @@
+---
+
+# ChatNoir 2 main configuration file
+#
+# Optimized for the Webis betaweb cluster.
+
+
+# ------------------------------------------------------------------------------------
+# General cluster settings
+# ------------------------------------------------------------------------------------
+
+cluster:
+  # Name of the Elasticsearch cluster
+  cluster_name: betaweb
+
+  # Initial host to connect to
+  # This is not the only host used for searching. Further hosts are detected by sniffing
+  host: betaweb015.medien.uni-weimar.de
+
+  # Elasticsearch transport port (default: 9300)
+  port: 9300
+
+  # Indices the user is allowed to search
+  indices:
+    - webis_clueweb09
+    - webis_clueweb12
+    - webis_commoncrawl15
+
+  # Default indices to search when no explicit search index is defined
+  default_indices:
+    - webis_clueweb12
+
+  # Define index aliases.
+  # Raw index names in Elasticsearch responses will be replaced with the alias name
+  index_aliases:
+    - index: webis_warc_clueweb09_001
+      alias: webis_clueweb09
+
+    - index: webis_warc_clueweb12_009
+      alias: webis_clueweb12
+
+    - index: webis_warc_commoncrawl15_001
+      alias: webis_commoncrawl15
+
+
+# ------------------------------------------------------------------------------------
+# Settings for HDFS services
+# ------------------------------------------------------------------------------------
+
+hdfs:
+  # Hadoop namenode address
+  defaultFS: hdfs://betaweb020:8020
+
+  # Document mapfiles for retrieving cached documents
+  # For each mapfile the HDFS path, the number of mapfile partitions and the
+  # Webis UUID name prefix need to be given
+  mapfiles:
+    webis_clueweb12:
+      path: "/corpora/clueweb/12-mapfile"
+      partitions: 100
+      prefix: clueweb12
+
+    webis_clueweb09:
+      path: "/corpora/clueweb/09-mapfile"
+      partitions: 200
+      prefix: clueweb09
+
+    webis_commoncrawl15:
+      path: "/corpora/corpus-commoncrawl/CC-MAIN-2015-11-mapfile"
+      partitions: 100
+      prefix: commoncrawl
+
+
+# ------------------------------------------------------------------------------------
+# Search engine result page display settings
+# ------------------------------------------------------------------------------------
+
+serp:
+  pagination:
+    results_per_page: 10
+
+  snippet_length: 300
+  title_length: 70
+
+
+# ------------------------------------------------------------------------------------
+# Actual search parameters
+# ------------------------------------------------------------------------------------
+
+search:
+
+  # Settings for the default simple (universal) search
+  default_simple:
+
+    # Main index fields to search.
+    # Use the placeholder %lang% instead of actual language codes in language-specific fields.
+    #
+    # Possible parameters are:
+    # - name: name of the field (required)
+    # - boost: boost value for this field
+    # - proximity_matching: whether to enable proximity matching for this field
+    # - slop: up to which slop to match phrases
+    # - proximity_boost: boost factor for matching phrases over other matching documents
+    #
+    main_fields:
+      - name: title_lang.%lang%
+        boost: 30
+
+      - name: body_lang.%lang%
+        boost: 30
+        proximity_matching: true
+        proximity_slop: 4
+        proximity_boost: 4000
+
+      - name: full_body_lang.%lang%
+
+      - name: headings_lang.%lang%
+        boost: 50
+
+      - name: meta_desc_lang.%lang%
+        boost: 20
+
+      - name: meta_keywords_lang.%lang%
+        boost: 10
+
+      - name: warc_target_hostname
+        boost: 400
+
+      - name: warc_target_path
+        boost: 50
+
+      - name: warc_target_hostname.raw
+        boost: 50000
+
+    # Additional fields that will be search separately and whose scores
+    # will outrank the main query. This can be used to search for specific document IDs.
+    # Possible parameters are the same as for main_fields.
+    additional_fields:
+      - name: warc_trec_id
+        boost: 100000
+
+    # Supported user-defined query filters (such as site:example.com or lang:de)
+    #
+    # Possible parameters are:
+    # - keyword: the filter keyword inside the query string
+    # - field: the index field to filter by (special value: #index to allow the user
+    #          to select an index instead of filtering by terms in a field)
+    # - block_grouping: whether this filter will turn off result grouping suggestions
+    #
+    query_filters:
+      - keyword: site
+        field: warc_target_hostname.raw
+        block_grouping: true
+
+      - keyword: lang
+        field: lang
+
+      - keyword: index
+        field: "#index"
+
+    # Function scores to modify the overall scoring
+    function_scores:
+      # Fields to apply function scores on
+      #
+      # Possible parameters are:
+      # - name: name of the field to use for calculation (must be numeric)
+      # - modifier: a function modifier used for smoothing out values
+      # - factor: an optional factor to multiply the function score by
+      #
+      scoring_fields:
+        - name: page_rank
+          modifier: log1p
+          factor: 20
+
+    # Range filters to apply to a search before scoring.
+    # Can be used to filter out very small or very large documents, spam etc.
+    #
+    # Possible parameters are:
+    # - name: field name to filter by
+    # - gt: value must be greater than
+    # - gte: value must be greater than or equal
+    # - lt: value must be less than
+    # - lte: value must be less than or equal
+    # - negate: if true, negates the filter
+    #
+    range_filters:
+      - name: body_length
+        gte: 1000
+
+      - name: spam_rank
+        gt: 0
+        lte: 50
+        negate: true
+
+    # Limit on each node after which to terminate search and return early
+    node_limit: 70000
+
+    # Window size for results rescoring (the rescore query is potentially expensive,
+    # so choose this as small as possible)
+    rescore_window: 200

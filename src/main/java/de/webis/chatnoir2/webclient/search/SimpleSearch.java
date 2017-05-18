@@ -394,8 +394,7 @@ public class SimpleSearch extends SearchProvider
                 proximityFields.add(new Object[] {
                         localizeFieldName(field.getString("name")),
                         field.getInteger("proximity_slop", 1),
-                        field.getFloat("proximity_boost", 1.0f),
-                        field.getFloat("proximity_cutoff_frequency", 0.001f)
+                        field.getFloat("proximity_boost", 1.0f)
                 });
             }
         }
