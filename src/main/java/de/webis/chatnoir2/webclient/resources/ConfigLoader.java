@@ -151,29 +151,43 @@ public class ConfigLoader
         }
 
         /**
-         * Check if config object contains a given key
+         * Check if config object contains a given key.
+         * You can use dot notation to check nested configuration options.
          *
          * @param name key
          * @return true if key exists
          */
-        public boolean contains(String name) {
-            return null != configObject && configObject instanceof Map && ((Map) configObject).containsKey(name);
+        public boolean contains(String name)
+        {
+            assert configObject != null;
+            return ((Map) configObject).containsKey(name) || get(name).configObject != configObject;
         }
 
         /**
          * Get configuration directive by name.
+         * You can chain multiple calls or use dot notation for the name to
+         * reference nested configuration options.
          *
-         * @param name name of the configuration directive
+         * @param name name of the configuration directive or a directive path divided by dots
          * @return the Config object
          */
         public Config get(String name)
         {
-            if (!contains(name)) {
+            if (null == configObject || !(configObject instanceof Map)) {
                 return this;
             }
 
-            assert configObject != null;
-            return new Config(((Map) configObject).get(name));
+            Object obj = configObject;
+            try {
+                String[] splits = name.split("\\.");
+                for (String s : splits) {
+                    obj = ((Map) obj).get(s);
+                }
+            } catch (Exception e) {
+                return this;
+            }
+
+            return new Config(obj);
         }
 
         /**
@@ -195,12 +209,11 @@ public class ConfigLoader
          */
         public String getString(final String name, final String defaultValue)
         {
-            if (!contains(name)) {
+            try {
+                return get(name).configObject.toString();
+            } catch (NullPointerException e) {
                 return defaultValue;
             }
-
-            assert configObject != null;
-            return ((Map) configObject).get(name).toString();
         }
 
         /**
@@ -222,12 +235,11 @@ public class ConfigLoader
          */
         public Long getLong(final String name, final Long defaultValue)
         {
-            if (!contains(name)) {
+            try{
+                return ((Number) (get(name).configObject)).longValue();
+            } catch (NullPointerException e) {
                 return defaultValue;
             }
-
-            assert configObject != null;
-            return ((Number) ((Map) configObject).get(name)).longValue();
         }
 
 
@@ -250,7 +262,7 @@ public class ConfigLoader
          */
         public Integer getInteger(final String name, final Integer defaultValue)
         {
-            return getLong(name, defaultValue.longValue()).intValue();
+            return getLong(name, null != defaultValue ? defaultValue.longValue() : 0).intValue();
         }
 
         /**
@@ -276,8 +288,11 @@ public class ConfigLoader
                 return defaultValue;
             }
 
-            assert configObject != null;
-            return ((Number) ((Map) configObject).get(name)).doubleValue();
+            try {
+                return ((Number) get(name).configObject).doubleValue();
+            } catch (NullPointerException e) {
+                return defaultValue;
+            }
         }
 
         /**
@@ -299,7 +314,7 @@ public class ConfigLoader
          */
         public Float getFloat(final String name, final Float defaultValue)
         {
-            return getDouble(name, defaultValue.doubleValue()).floatValue();
+            return getDouble(name, null != defaultValue ? defaultValue.doubleValue() : 0.0).floatValue();
         }
 
         /**
@@ -325,8 +340,8 @@ public class ConfigLoader
                 return defaultValue;
             }
 
-            assert configObject != null;
-            return (boolean) ((Map) configObject).get(name);
+            Object obj = get(name).configObject;
+            return null != obj && obj instanceof Boolean && (Boolean) obj;
         }
 
         /**
@@ -342,7 +357,7 @@ public class ConfigLoader
             }
 
             assert configObject != null;
-            List list = (List) ((Map) configObject).get(name);
+            List list = (List) get(name).configObject;
             final int len = list.size();
             final Config[] configArr = new Config[len];
             for (int i = 0; i < len; ++i) {
@@ -405,7 +420,7 @@ public class ConfigLoader
 
             assert configObject != null;
             final ArrayList<T> typedArrayList = new ArrayList<>();
-            final List cfg = (List) ((Map) configObject).get(name);
+            final List cfg = (List) get(name).configObject;
 
             for (final Object o : cfg) {
                 typedArrayList.add((T) o);
