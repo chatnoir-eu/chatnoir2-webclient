@@ -103,6 +103,12 @@ public class SearchResultBuilder
         return this;
     }
 
+    public SearchResultBuilder targetPath(String targetPath)
+    {
+        mSearchResult.setTargetPath(targetPath);
+        return this;
+    }
+
     public SearchResultBuilder targetUri(String targetUri)
     {
         mSearchResult.setTargetUri(targetUri);
@@ -158,6 +164,7 @@ public class SearchResultBuilder
         private Integer mSpamRank = null;
         private Double mPageRank = null;
         private String mTargetHostname = "";
+        private String mTargetPath = "";
         private String mTargetUri = "";
         private String mSnippet = "";
         private String mFullBody = null;
@@ -288,6 +295,16 @@ public class SearchResultBuilder
         public void setTargetHostname(String targetHostname)
         {
             mTargetHostname = targetHostname;
+        }
+
+        public String targetPath()
+        {
+            return mTargetPath;
+        }
+
+        public void setTargetPath(String targetPath)
+        {
+            mTargetPath = targetPath;
         }
 
         public String targetUri()

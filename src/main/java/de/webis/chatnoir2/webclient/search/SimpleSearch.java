@@ -19,6 +19,8 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.elasticsearch.search.rescore.RescoreBuilder;
+
+import java.nio.file.Paths;
 import java.util.*;
 
 
@@ -164,6 +166,7 @@ public class SimpleSearch extends SearchProvider
                     .trecId((String) source.get("warc_trec_id"))
                     .title(title)
                     .targetHostname((String) source.get("warc_target_hostname"))
+                    .targetPath(Paths.get("/", (String) source.get("warc_target_path")).normalize().toString())
                     .targetUri((String) source.get("warc_target_uri"))
                     .snippet(snippet)
                     .fullBody((String) source.get("body_lang." + getSearchLanguage()))

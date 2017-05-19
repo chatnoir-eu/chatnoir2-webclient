@@ -159,6 +159,14 @@ body {
     font-size: 1.3em;
     margin-bottom: .2rem;
 }
+.search-result header h2 a {
+    width: 100%;
+    display: inline-block;
+    max-width: 35em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 .search-result.grouped header h2 {
     font-size: 1.0em;
@@ -169,7 +177,13 @@ body {
 }
 
 .meta .link {
+    display: inline-block;
     font-weight: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 28em;
+    width: 70%;
     color: #006621;
 }
 

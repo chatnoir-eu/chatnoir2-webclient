@@ -37,7 +37,7 @@
                     <header>
                         <h2><a href="{{contextPath}}/cache?uuid={{documentIdUrlEnc}}{{#indexUrlEnc}}&index={{.}}{{/indexUrlEnc}}">{{& title}}</a></h2>
                         <div class="meta">
-                            <a href="{{targetUri}}" class="link">{{#targetHostname}}{{targetHostname}}{{/targetHostname}}{{^targetHostname}}{{targetUri}}{{/targetHostname}}</a>
+                            <a href="{{targetUri}}" class="link">{{#targetHostname}}{{targetHostname}}{{targetPath}}{{/targetHostname}}</a>
                             <div class="dropdown">
                                 <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
                                     <span class="caret"></span>
