@@ -39,8 +39,9 @@ public class TextCleanser
 
     /**
      * Cleanse the given string by removing any clutter such as runs of special characters, hyphens or spaces.
+     * Performs all available text cleansing operations provided by this class.
      *
-     * @param str String to cleanse
+     * @param str non-HTML text to cleanse
      * @return cleansed and more readable string
      */
     public static String cleanseAll(String str)
@@ -49,17 +50,21 @@ public class TextCleanser
     }
 
     /**
-     * Cleanse the given string by removing any clutter such as runs of hyphens or spaces.
+     * Cleanse the given string by removing any clutter such as runs of special characters, hyphens or spaces.
+     * Performs all available text cleansing operations provided by this class.
      *
-     * @param str String to cleanse
+     * @param str text to cleanse
      * @param html input is HTML escaped
      * @return cleansed and more readable string
      */
     public static String cleanseAll(String str, boolean html)
     {
+        // order is important!
         return new TextCleanser(str, html)
                 .encodingErrors()
+                .doubleHtmlEscape()
                 .nonWordChars()
+                .unclosedBrackets()
                 .repeatedWords()
                 .whitespace()
                 .get();
@@ -89,7 +94,8 @@ public class TextCleanser
      * Remove question mark place holder characters caused by broken encoding
      * and repair western multi-byte characters which were interpreted as single-byte.
      */
-    public TextCleanser encodingErrors() {
+    public TextCleanser encodingErrors()
+    {
         // repair western unicode characters which were interpreted as ISO 8859-1 or ISO 8859-15
         for (int i = 0; i < WESTERN_UNICODE_CHARS.length; ++i) {
             mString = mString.replace(BROKEN_ISO_8859_1_CHARS[i], WESTERN_UNICODE_CHARS[i]);
@@ -101,6 +107,29 @@ public class TextCleanser
         // strip unicode replacement characters
         mString =  mString.replace("\ufffd", "");
 
+        return this;
+    }
+
+    /**
+     * Correct double HTML escaping.
+     */
+    public TextCleanser doubleHtmlEscape()
+    {
+        mString = mString.replaceAll("&amp;(\\w{1,8});", "&$1;");
+        return this;
+    }
+
+    /**
+     * Remove short passages (up to 6 characters) of text at the end if they are preceeded by
+     * an opening bracket which isn't closed.
+     */
+    public TextCleanser unclosedBrackets()
+    {
+        if (mIsHtml) {
+            mString = mString.replaceFirst("([(\\[])[^)\\]]{0,6}\\s*$", "").trim();
+        } else {
+            mString = mString.replaceFirst("([(\\[<])[^)\\]>]{0,6}\\s*$", "").trim();
+        }
         return this;
     }
 
@@ -125,16 +154,16 @@ public class TextCleanser
     {
         if (!mIsHtml) {
             mString = mString.trim()
-                // runs of special characters
+                // remove runs of special characters
                 .replaceAll("(([,;.:\\-_#'+~*^°!\"§$%&/()={}<>|])\\2)(?:\\w+\\1)*", "").trim()
-                // non-word characters at the beginning or end
-                .replaceAll("^[,;.:\\-_#'+~*^°!\"§$%&/()={}<>|]+|[,;.:\\-_#'+~*^°!\"§$%&/()={}<>|]+$", "").trim();
+                // remove non-word characters at the beginning or end
+                // (opening brackets at the beginning or closing at the end are okay)
+                .replaceAll("^[,;.:\\-_#'+~*^°!\"§$%&/)=}\\]<>|]+|[,;.:\\-_#'+~*^°!\"§$%&/(={\\[<>|]+$", "").trim();
         } else {
+            // do the same, but also consider HTML entities
             mString = mString.trim()
-                // runs of special characters
                 .replaceAll("((&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/()={}|])\\2)(?:\\w+\\1)*", "").trim()
-                // non-word characters at the beginning or end
-                .replaceAll("^(&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/()={}|])+|(&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/()={}|])+$", "").trim();
+                .replaceAll("^(&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/)=}\\]|])+|(&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/(={\\[|])+$", "").trim();
         }
 
         return this;
