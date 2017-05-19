@@ -63,8 +63,8 @@ public class TextCleanser
         return new TextCleanser(str, html)
                 .encodingErrors()
                 .doubleHtmlEscape()
-                .nonWordChars()
                 .unclosedBrackets()
+                .nonWordChars()
                 .repeatedWords()
                 .whitespace()
                 .get();
@@ -120,15 +120,15 @@ public class TextCleanser
     }
 
     /**
-     * Remove short passages (up to 6 characters) of text at the end if they are preceeded by
+     * Remove short passages (up to 10 characters) of text at the end if they are preceded by
      * an opening bracket which isn't closed.
      */
     public TextCleanser unclosedBrackets()
     {
         if (mIsHtml) {
-            mString = mString.replaceFirst("([(\\[])[^)\\]]{0,6}\\s*$", "").trim();
+            mString = mString.replaceFirst("(\\(|\\[|&lt;).{0,10}(?!(?:\\)|]|&gt;))\\s*$", "").trim();
         } else {
-            mString = mString.replaceFirst("([(\\[<])[^)\\]>]{0,6}\\s*$", "").trim();
+            mString = mString.replaceFirst("(\\(|\\[|<).{0,10}(?!(?:\\)|]|>))\\s*$", "").trim();
         }
         return this;
     }
@@ -158,12 +158,12 @@ public class TextCleanser
                 .replaceAll("(([,;.:\\-_#'+~*^°!\"§$%&/()={}<>|])\\2)(?:\\w+\\1)*", "").trim()
                 // remove non-word characters at the beginning or end
                 // (opening brackets at the beginning or closing at the end are okay)
-                .replaceAll("^[,;.:\\-_#'+~*^°!\"§$%&/)=}\\]<>|]+|[,;.:\\-_#'+~*^°!\"§$%&/(={\\[<>|]+$", "").trim();
+                .replaceAll("^[,;.:\\-_#'+~*^°!\"§$%&/)=}\\]>|]+|[,;.:\\-_#'+~*^°!\"§$%&/(={\\[<|]+$", "").trim();
         } else {
             // do the same, but also consider HTML entities
             mString = mString.trim()
                 .replaceAll("((&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/()={}|])\\2)(?:\\w+\\1)*", "").trim()
-                .replaceAll("^(&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/)=}\\]|])+|(&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/(={\\[|])+$", "").trim();
+                .replaceAll("^(&amp;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/)=}\\]|])+|(&amp;|&lt;|[,;.:\\-_#'+~*^°!\"§$%/(={\\[|])+$", "").trim();
         }
 
         return this;
