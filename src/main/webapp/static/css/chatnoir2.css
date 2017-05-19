@@ -158,22 +158,24 @@ body {
 .search-result header h2 {
     font-size: 1.3em;
     margin-bottom: 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 .search-result header h2 a {
     width: 100%;
     display: inline-block;
-    max-width: 35em;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
+.search-result header {
+    max-width: 60rem;
+}
+
 .search-result.grouped header h2 {
     font-size: 1.0em;
-    width: 15em;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
 }
 
 .meta {
@@ -186,7 +188,7 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 70%;
+    max-width: 80%;
     color: #006621;
 }
 
