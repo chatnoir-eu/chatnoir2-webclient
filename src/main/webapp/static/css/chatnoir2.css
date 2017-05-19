@@ -157,7 +157,7 @@ body {
 
 .search-result header h2 {
     font-size: 1.3em;
-    margin-bottom: .2rem;
+    margin-bottom: 0;
 }
 .search-result header h2 a {
     width: 100%;
@@ -176,19 +176,24 @@ body {
     overflow: hidden;
 }
 
+.meta {
+    margin: -.1rem 0 -.4rem 0;
+}
+
 .meta .link {
     display: inline-block;
     font-weight: normal;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 28em;
-    width: 70%;
+    max-width: 70%;
     color: #006621;
 }
 
 .meta .dropdown {
     display: inline-block;
+    position: relative;
+    top: -.5rem;
 }
 
 .meta .dropdown .btn {
