@@ -177,7 +177,7 @@ public class TextCleanser
         if (!mIsHtml) {
             mString = mString.replaceAll("([^\\s]+?) \\1{2,}", "").trim();
         } else {
-            mString = mString.replaceAll("((?:<(em|strong)>)?([^\\s])+?(?:</\\2>)?)(\\s+\\1){2,}", "$1 $1").trim();
+            mString = mString.replaceAll("((?:<(\\w+)>)?([^\\s])+?(?:</\\2>)?)(\\s+\\1){2,}", "$1 $1").trim();
         }
 
         return this;
