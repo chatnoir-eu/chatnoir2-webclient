@@ -34,6 +34,9 @@ public class TextCleanser
             "Ã", "Ã", "Ã", "Ã", "Ã", "Ã", "Ã", "Ã", "Ã", "Ã", "Ã", "Ã", "Å", "Åž"
     };
 
+    private boolean mIsHtml;
+    private String mString;
+
     /**
      * Cleanse the given string by removing any clutter such as runs of special characters, hyphens or spaces.
      *
@@ -54,66 +57,100 @@ public class TextCleanser
      */
     public static String cleanseAll(String str, boolean html)
     {
-        str = encodingErrors(str);
-        str = nonWordChars(str, html);
-        str = repeatedWords(str, html);
-        str = whitespace(str, html);
+        return new TextCleanser(str, html)
+                .encodingErrors()
+                .nonWordChars()
+                .repeatedWords()
+                .whitespace()
+                .get();
+    }
 
-        return str;
+    /**
+     * @param str string to cleanse
+     * @param html whether string is HTML
+     */
+    public TextCleanser(String str, boolean html)
+    {
+        mString = str;
+        mIsHtml = html;
+    }
+
+    /**
+     * Return cleansed string.
+     *
+     * @return cleansed string
+     */
+    public String get()
+    {
+        return mString;
     }
 
     /**
      * Remove question mark place holder characters caused by broken encoding
      * and repair western multi-byte characters which were interpreted as single-byte.
-     *
-     * @param str String to cleanse
-     * @return cleansed string
      */
-    public static String encodingErrors(String str) {
+    public TextCleanser encodingErrors() {
         // repair western unicode characters which were interpreted as ISO 8859-1 or ISO 8859-15
         for (int i = 0; i < WESTERN_UNICODE_CHARS.length; ++i) {
-            str = str.replace(BROKEN_ISO_8859_1_CHARS[i], WESTERN_UNICODE_CHARS[i]);
+            mString = mString.replace(BROKEN_ISO_8859_1_CHARS[i], WESTERN_UNICODE_CHARS[i]);
             if (!BROKEN_ISO_8859_1_CHARS[i].equals(BROKEN_ISO_8859_15_CHARS[i])) {
-                str = str.replace(BROKEN_ISO_8859_15_CHARS[i], WESTERN_UNICODE_CHARS[i]);
+                mString = mString.replace(BROKEN_ISO_8859_15_CHARS[i], WESTERN_UNICODE_CHARS[i]);
             }
         }
 
         // strip unicode replacement characters
-        str =  str.replace("\ufffd", "");
+        mString =  mString.replace("\ufffd", "");
 
-        return str;
+        return this;
     }
 
-    public static String whitespace(final String str, boolean html)
+    /**
+     * Remove consecutive runs of white space.
+     */
+    public TextCleanser whitespace()
     {
-        if (!html)
-            return str.replaceAll("[ \\s]+", " ");
-        else
-            return str.replaceAll("(?:[ \\s]|&nbsp;)+", " ");
+        if (!mIsHtml) {
+            mString = mString.replaceAll("[ \\s]+", " ");
+        } else {
+            mString = mString.replaceAll("(?:[ \\s]|&nbsp;)+", " ");
+        }
+
+        return this;
     }
 
-    public static String nonWordChars(final String str, boolean html)
+    /**
+     * Remove consecutive runs of non-word special characters.
+     */
+    public TextCleanser nonWordChars()
     {
-        if (!html) {
-            return str.trim()
+        if (!mIsHtml) {
+            mString = mString.trim()
                 // runs of special characters
                 .replaceAll("(([,;.:\\-_#'+~*^°!\"§$%&/()={}<>|])\\2)(?:\\w+\\1)*", "").trim()
                 // non-word characters at the beginning or end
                 .replaceAll("^[,;.:\\-_#'+~*^°!\"§$%&/()={}<>|]+|[,;.:\\-_#'+~*^°!\"§$%&/()={}<>|]+$", "").trim();
+        } else {
+            mString = mString.trim()
+                // runs of special characters
+                .replaceAll("((&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/()={}|])\\2)(?:\\w+\\1)*", "").trim()
+                // non-word characters at the beginning or end
+                .replaceAll("^(&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/()={}|])+|(&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/()={}|])+$", "").trim();
         }
 
-        return str.trim()
-            // runs of special characters
-            .replaceAll("((&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/()={}|])\\2)(?:\\w+\\1)*", "").trim()
-            // non-word characters at the beginning or end
-            .replaceAll("^(&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/()={}|])+|(&amp;|&lt;|&gt;|[,;.:\\-_#'+~*^°!\"§$%/()={}|])+$", "").trim();
+        return this;
     }
 
-    public static String repeatedWords(final String str, boolean html)
+    /**
+     * Remove repeated words.
+     */
+    public TextCleanser repeatedWords()
     {
-        if (!html) {
-            return str.replaceAll("([^\\s]+?) \\1{2,}", "").trim();
+        if (!mIsHtml) {
+            mString = mString.replaceAll("([^\\s]+?) \\1{2,}", "").trim();
+        } else {
+            mString = mString.replaceAll("((?:<(em|strong)>)?([^\\s])+?(?:</\\2>)?)(\\s+\\1){2,}", "$1 $1").trim();
         }
-        return str.replaceAll("((?:<(em|strong)>)?([^\\s])+?(?:</\\2>)?)(\\s+\\1){2,}", "$1 $1").trim();
+
+        return this;
     }
 }
