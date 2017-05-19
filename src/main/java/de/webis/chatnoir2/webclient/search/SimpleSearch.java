@@ -136,7 +136,7 @@ public class SimpleSearch extends SearchProvider
                             truncateSnippet((String) source.get("body_lang." + getSearchLanguage()), mSnippetLength));
                 }
             }
-            snippet = TextCleanser.cleanse(snippet, true);
+            snippet = TextCleanser.cleanseAll(snippet, true);
 
             // use highlighted title if available
             String title = StringEscapeUtils.escapeHtml(
@@ -147,7 +147,7 @@ public class SimpleSearch extends SearchProvider
                     title = fragments[0].string();
                 }
             }
-            title = TextCleanser.cleanse(title, true);
+            title = TextCleanser.cleanseAll(title, true);
 
             // group consecutive results with same host
             final String currentHost = (String) source.get("warc_target_hostname");

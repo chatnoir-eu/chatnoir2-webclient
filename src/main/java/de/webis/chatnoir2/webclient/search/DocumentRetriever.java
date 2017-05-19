@@ -259,7 +259,7 @@ public class DocumentRetriever extends IndexRetrievalOperator
                 body = rewriteURIs(body);
             }
             if (mCleanEncodingErrors) {
-                body = TextCleanser.cleanseEncodingErrors(body);
+                body = TextCleanser.encodingErrors(body);
             }
 
             return body;
