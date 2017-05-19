@@ -65,7 +65,7 @@ public class SimpleSearchApiModule extends ApiModuleBase
             from = 1;
         }
         if (null == size || size < 1) {
-            size = new Configured().getConf().getInteger("serp.pagination.results_per_page");
+            size = new Configured().getConf().getInteger("serp.results_per_page");
         }
 
         boolean doExplain = isNestedParameterSet("explain", request);
