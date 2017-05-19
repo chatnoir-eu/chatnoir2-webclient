@@ -99,4 +99,45 @@ public abstract class SearchProvider extends IndexRetrievalOperator
     protected String localizeFieldName(String fieldName) {
         return fieldName.replace("%lang%", mSearchLanguage);
     }
+
+
+
+    /**
+     * Group (bucket) results by host name, but preserve ranking order of first
+     * element in a group as well as the order within a group.
+     *
+     * @param results ungrouped ordered search results
+     * @return grouped ordered search results
+     */
+    protected List<SearchResultBuilder.SearchResult> groupResults(List<SearchResultBuilder.SearchResult> results)
+    {
+        // use ordered hash map for bucketing
+        LinkedHashMap<String, List<SearchResultBuilder.SearchResult>> buckets = new LinkedHashMap<>();
+        for (SearchResultBuilder.SearchResult result: results) {
+            boolean suggestGrouping = true;
+
+            // first element in a group
+            if (!buckets.containsKey(result.targetHostname())) {
+                buckets.put(result.targetHostname(), new ArrayList<>());
+                suggestGrouping = false;
+            }
+
+            result.setGroupingSuggested(suggestGrouping);
+            buckets.get(result.targetHostname()).add(result);
+        }
+
+        // serialize buckets
+        List<SearchResultBuilder.SearchResult> groupedResults = new ArrayList<>();
+        for (String bucketKey: buckets.keySet()) {
+            // suggest "more from this host" for the last result in a bucket
+            List<SearchResultBuilder.SearchResult> b = buckets.get(bucketKey);
+            if (b.size() > 1) {
+                b.get(b.size() - 1).setMoreSuggested(true);
+            }
+
+            groupedResults.addAll(b);
+        }
+
+        return groupedResults;
+    }
 }
