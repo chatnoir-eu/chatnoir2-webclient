@@ -34,12 +34,12 @@ public class SimpleSearch extends SearchProvider
     /**
      * (Default) snippet length.
      */
-    private int mSnippetLength = 400;
+    private int mSnippetLength = 200;
 
     /**
      * (Default) title length.
      */
-    private int mTitleLength = 70;
+    private int mTitleLength = 60;
 
     /**
      * Whether to explain query.
@@ -50,11 +50,6 @@ public class SimpleSearch extends SearchProvider
      * Search mResponse of the last search.
      */
     private SearchResponse mResponse = new SearchResponse();
-
-    /**
-     * Whether query filters block result grouping.
-     */
-    private boolean mFiltersBlockGrouping = false;
 
     /**
      * Config object shortcut.
@@ -113,10 +108,10 @@ public class SimpleSearch extends SearchProvider
     }
 
     @Override
-    public ArrayList<SearchResultBuilder.SearchResult> getResults()
+    public List<SearchResultBuilder.SearchResult> getResults()
     {
-        final ArrayList<SearchResultBuilder.SearchResult> results = new ArrayList<>();
-        String previousHost = "";
+        List<SearchResultBuilder.SearchResult> results = new ArrayList<>();
+
         for (final SearchHit hit : mResponse.getHits()) {
             final Map<String, Object> source = hit.getSource();
 
@@ -151,14 +146,6 @@ public class SimpleSearch extends SearchProvider
             }
             title = TextCleanser.cleanseAll(title, true);
 
-            // group consecutive results with same host
-            final String currentHost = (String) source.get("warc_target_hostname");
-            boolean doGroup = false;
-            if (!mFiltersBlockGrouping && previousHost.equals(currentHost)) {
-                doGroup = true;
-            }
-            previousHost = currentHost;
-
             final SearchResultBuilder.SearchResult result = new SearchResultBuilder()
                     .score(hit.getScore())
                     .index(hit.index())
@@ -172,27 +159,55 @@ public class SimpleSearch extends SearchProvider
                     .fullBody((String) source.get("body_lang." + getSearchLanguage()))
                     .pageRank((Double) source.get("page_rank"))
                     .spamRank((Integer) source.get("spam_rank"))
-                    .isGroupingSuggested(doGroup)
                     .explanation(hit.explanation())
                     .build();
             results.add(result);
         }
 
-        // add "more from host" suggestions at end of groups
-        boolean prevInGroup = false;
-        int len = results.size();
-        for (int i = 0; i < len; ++i) {
-            boolean inGroup = results.get(i).isGroupingSuggested();
-            if (prevInGroup && !inGroup) {
-                results.get(Math.max(0, i - 1)).setMoreSuggested(true);
-            }
-            prevInGroup = inGroup;
-        }
-        if (len > 0) {
-            results.get(len - 1).setMoreSuggested(prevInGroup);
+        if (isGroupByHostname()) {
+            results = groupResults(results);
         }
 
         return results;
+    }
+
+    /**
+     * Group (bucket) results by host name, but preserve ranking order of first
+     * element in a group as well as the order within a group.
+     *
+     * @param results ungrouped ordered search results
+     * @return grouped ordered search results
+     */
+    private List<SearchResultBuilder.SearchResult> groupResults(List<SearchResultBuilder.SearchResult> results)
+    {
+        // use ordered hash map for bucketing
+        LinkedHashMap<String, List<SearchResultBuilder.SearchResult>> buckets = new LinkedHashMap<>();
+        for (SearchResultBuilder.SearchResult result: results) {
+            boolean suggestGrouping = true;
+
+            // first element in a group
+            if (!buckets.containsKey(result.targetHostname())) {
+                buckets.put(result.targetHostname(), new ArrayList<>());
+                suggestGrouping = false;
+            }
+
+            result.setGroupingSuggested(suggestGrouping);
+            buckets.get(result.targetHostname()).add(result);
+        }
+
+        // serialize buckets
+        List<SearchResultBuilder.SearchResult> groupedResults = new ArrayList<>();
+        for (String bucketKey: buckets.keySet()) {
+            // suggest "more from this host" for the last result in a bucket
+            List<SearchResultBuilder.SearchResult> b = buckets.get(bucketKey);
+            if (b.size() > 1) {
+                b.get(b.size() - 1).setMoreSuggested(true);
+            }
+
+            groupedResults.addAll(b);
+        }
+
+        return groupedResults;
     }
 
     @Override
@@ -275,8 +290,6 @@ public class SimpleSearch extends SearchProvider
      */
     private QueryBuilder parseQueryStringFilters(StringBuffer queryString)
     {
-        mFiltersBlockGrouping = false;
-
         ConfigLoader.Config[] filterConf = mSimpleSearchConfig.getArray("query_filters");
         if (filterConf.length == 0) {
             return null;
@@ -286,15 +299,15 @@ public class SimpleSearch extends SearchProvider
         for (ConfigLoader.Config c: filterConf) {
             String filterKey = c.getString("keyword");
             String filterField = c.getString("field");
-            boolean blockGrouping = c.getBoolean("block_grouping", false);
 
             int pos = queryString.indexOf(filterKey + ":");
             if (-1 == pos) {
                 continue;
             }
 
-            if (blockGrouping) {
-                mFiltersBlockGrouping = true;
+            // do not group results if they are filtered by hostname
+            if (filterField.equals("warc_target_hostname.raw")) {
+                setGroupByHostname(false);
             }
 
             int filterStartPos = pos;

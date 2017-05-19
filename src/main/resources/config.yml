@@ -76,11 +76,17 @@ hdfs:
 # ------------------------------------------------------------------------------------
 
 serp:
-  pagination:
-    results_per_page: 10
+  # Number of results to show on one page (default: 10)
+  results_per_page: 10
 
+  # Length of snippets in result listings (default: 200)
   snippet_length: 300
+
+  # Length of titles in result listings (default: 60)
   title_length: 70
+
+  # Which field to group search results by in listings by target hostname (default: true)
+  group_by_hostname: true
 
 
 # ------------------------------------------------------------------------------------
@@ -145,12 +151,10 @@ search:
     # - keyword: the filter keyword inside the query string
     # - field: the index field to filter by (special value: #index to allow the user
     #          to select an index instead of filtering by terms in a field)
-    # - block_grouping: whether this filter will turn off result grouping suggestions
     #
     query_filters:
       - keyword: site
         field: warc_target_hostname.raw
-        block_grouping: true
 
       - keyword: lang
         field: lang

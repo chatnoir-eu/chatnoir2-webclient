@@ -19,7 +19,7 @@ import org.json.JSONArray;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base class for ChatNoir REST API modules.
@@ -75,7 +75,7 @@ public class SimpleSearchApiModule extends ApiModuleBase
         search.doSearch(searchQueryString, from, size);
         final long elapsedTime = System.currentTimeMillis() - startTime;
 
-        final ArrayList<SearchResultBuilder.SearchResult> results = search.getResults();
+        final List<SearchResultBuilder.SearchResult> results = search.getResults();
 
         final XContentBuilder builder = getResponseBuilder();
         builder.startObject()

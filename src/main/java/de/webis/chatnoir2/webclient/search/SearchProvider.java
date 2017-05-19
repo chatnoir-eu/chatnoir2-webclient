@@ -16,11 +16,20 @@ import java.util.*;
  */
 public abstract class SearchProvider extends IndexRetrievalOperator
 {
+    /**
+     * Search result language.
+     */
     private String mSearchLanguage = "en";
+
+    /**
+     * Whether to group results by hostname.
+     */
+    private boolean mGroupByHostname = true;
 
     public SearchProvider(final String[] indices)
     {
         super(indices);
+        mGroupByHostname = getConf().getBoolean("serp.group_by_hostname", true);
     }
 
     public SearchProvider()
@@ -42,7 +51,7 @@ public abstract class SearchProvider extends IndexRetrievalOperator
      *
      * @return list of search results
      */
-    public abstract ArrayList<SearchResultBuilder.SearchResult> getResults();
+    public abstract List<SearchResultBuilder.SearchResult> getResults();
 
     /**
      * Get the total number of results found for the last search.
@@ -52,19 +61,33 @@ public abstract class SearchProvider extends IndexRetrievalOperator
     public abstract long getTotalResultNumber();
 
     /**
-     * @return Current search language
+     * @return current search language (two-characters language code)
      */
     public String getSearchLanguage() {
         return mSearchLanguage;
     }
 
     /**
-     * Set current search language
-     *
-     * @param language two-characters language code
+     * @param language current search language (two-characters language code)
      */
     public void setSearchLanguage(String language) {
         mSearchLanguage = language.length() == 2 ? language.toLowerCase() : "en";
+    }
+
+    /**
+     * @return whether to group results by hostname
+     */
+    public boolean isGroupByHostname()
+    {
+        return mGroupByHostname;
+    }
+
+    /**
+     * @param groupByHostname whether to group results by hostname
+     */
+    public void setGroupByHostname(boolean groupByHostname)
+    {
+        this.mGroupByHostname = groupByHostname;
     }
 
     /**
