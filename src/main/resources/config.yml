@@ -22,25 +22,25 @@ cluster:
 
   # Indices the user is allowed to search
   indices:
+    - webis_commoncrawl15
     - webis_clueweb09
     - webis_clueweb12
-    - webis_commoncrawl15
 
   # Default indices to search when no explicit search index is defined
   default_indices:
-    - webis_clueweb12
+    - webis_commoncrawl15
 
   # Define index aliases.
   # Raw index names in Elasticsearch responses will be replaced with the alias name
   index_aliases:
-    - index: webis_warc_clueweb09_001
-      alias: webis_clueweb09
-
-    - index: webis_warc_clueweb12_009
-      alias: webis_clueweb12
-
     - index: webis_warc_commoncrawl15_001
       alias: webis_commoncrawl15
+
+    - index: webis_warc_clueweb09_002
+      alias: webis_clueweb09
+
+    - index: webis_warc_clueweb12_010
+      alias: webis_clueweb12
 
 
 # ------------------------------------------------------------------------------------
