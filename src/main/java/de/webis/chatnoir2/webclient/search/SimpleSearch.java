@@ -147,6 +147,13 @@ public class SimpleSearch extends SearchProvider
             }
             title = TextCleanser.cleanseAll(title, true);
 
+            String targetPath = (String) source.get("warc_target_path");
+            if (null != targetPath) {
+                targetPath = Paths.get("/", targetPath).normalize().toString();
+            } else {
+                targetPath = "/";
+            }
+
             final SearchResultBuilder.SearchResult result = new SearchResultBuilder()
                     .score(hit.getScore())
                     .index(hit.index())
@@ -154,7 +161,7 @@ public class SimpleSearch extends SearchProvider
                     .trecId((String) source.get("warc_trec_id"))
                     .title(title)
                     .targetHostname((String) source.get("warc_target_hostname"))
-                    .targetPath(Paths.get("/", (String) source.get("warc_target_path")).normalize().toString())
+                    .targetPath(targetPath)
                     .targetUri((String) source.get("warc_target_uri"))
                     .snippet(snippet)
                     .fullBody((String) source.get("body_lang." + getSearchLanguage()))
