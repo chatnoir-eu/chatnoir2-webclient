@@ -12,6 +12,7 @@ import de.webis.chatnoir2.webclient.util.TextCleanser;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.text.Text;
+import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.SearchHit;
@@ -306,7 +307,7 @@ public class SimpleSearch extends SearchProvider
             queryString.replace(trimStart, queryString.length(), "");
 
             // apply filters
-            if (null != filterField && !filterField.startsWith("#")) {
+            if (!filterField.isEmpty() && !filterField.startsWith("#")) {
                 TermQueryBuilder termQuery = QueryBuilders.termQuery(filterField, filterValue);
 
                 if (filterField.equals("lang")) {
@@ -314,7 +315,7 @@ public class SimpleSearch extends SearchProvider
                 }
 
                 filterQuery.filter(termQuery);
-            } else if (null != filterField) {
+            } else if (!filterField.isEmpty()) {
                 if (filterField.equals("#index")) {
                     setActiveIndices(filterValue.split(","));
                 }
@@ -353,7 +354,10 @@ public class SimpleSearch extends SearchProvider
         simpleQuery.minimumShouldMatch("30%");
 
         final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
-        final ArrayList<Object[]> proximityFields = new ArrayList<>();
+
+        final List<Object[]> proximityFields = new ArrayList<>();
+        final List<String>   fuzzyFields     = new ArrayList<>();
+
         for (final ConfigLoader.Config field : mainFields) {
             simpleQuery.field(
                     localizeFieldName(field.getString("name", "")),
@@ -374,10 +378,16 @@ public class SimpleSearch extends SearchProvider
                         field.getFloat("proximity_boost", 1.0f)
                 });
             }
+
+            if (field.getBoolean("fuzzy_matching", false)) {
+                fuzzyFields.add(field.getString("name"));
+            }
         }
 
-        // proximity matching
+        // assemble main query
         BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
+
+        // proximity matching
         for (Object[] o : proximityFields) {
             final MatchPhraseQueryBuilder proximityQuery = QueryBuilders.matchPhraseQuery(
                     localizeFieldName((String) o[0]),
@@ -387,6 +397,13 @@ public class SimpleSearch extends SearchProvider
                     .slop((Integer) o[1])
                     .boost((Float) o[2] / 2.0f);
             mainQuery.should(proximityQuery);
+        }
+
+        // fuzzy fields
+        for (String f: fuzzyFields) {
+            final FuzzyQueryBuilder fuzzyQuery = QueryBuilders.fuzzyQuery(f, userQueryString.toString());
+            fuzzyQuery.fuzziness(Fuzziness.AUTO);
+            mainQuery.should(fuzzyQuery);
         }
 
         mainQuery.must(simpleQuery);

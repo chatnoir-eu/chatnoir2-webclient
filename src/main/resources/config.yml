@@ -107,6 +107,7 @@ search:
     # - proximity_matching: whether to enable proximity matching for this field
     # - slop: up to which slop to match phrases
     # - proximity_boost: boost factor for matching phrases over other matching documents
+    # - fuzzy_matching: whether to enable fuzzy matching (extremely expensive, use with caution!)
     #
     main_fields:
       - name: title_lang.%lang%
@@ -136,6 +137,7 @@ search:
         boost: 50
 
       - name: warc_target_hostname.raw
+        fuzzy_matching: true
         boost: 50000
 
     # Additional fields that will be search separately and whose scores
