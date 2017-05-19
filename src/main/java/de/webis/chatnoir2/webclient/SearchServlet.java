@@ -55,7 +55,7 @@ public class SearchServlet extends ChatNoirServlet
         try {
             // load configuration
             final ConfigLoader loader = ConfigLoader.getInstance();
-            mResultsPerPage = loader.getConfig().get("serp").get("pagination").getInteger("results_per_page", mResultsPerPage);
+            mResultsPerPage = loader.getConfig().getInteger("serp.pagination.results_per_page", mResultsPerPage);
         } catch (IOException | ConfigLoader.ParseException e) {
             e.printStackTrace();
         }

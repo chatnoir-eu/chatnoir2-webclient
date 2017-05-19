@@ -157,7 +157,7 @@ public class DocumentRetriever extends IndexRetrievalOperator
         }
 
         try {
-            String prefix = getConf().get("mapfiles").get(indexName).getString("prefix");
+            String prefix = getConf().get("hdfs.mapfiles").get(indexName).getString("prefix");
             final UUID uuid = WebisUUID.generateUUID(prefix, warcID);
             return getByUUID(indexName, uuid);
         } catch (Exception e) {

@@ -53,9 +53,9 @@ public class Configured
     {
         if (null == mClient) {
             final ConfigLoader.Config cfg = getConf();
-            final String clusterName = cfg.get("cluster").getString("cluster_name", "");
-            final String hostName    = cfg.get("cluster").getString("host", "localhost");
-            final int port           = cfg.get("cluster").getInteger("port", 9300);
+            final String clusterName = cfg.getString("cluster.cluster_name", "");
+            final String hostName    = cfg.getString("cluster.host", "localhost");
+            final int port           = cfg.getInteger("cluster.port", 9300);
 
             final Settings settings = Settings.builder()
                     .put("cluster.name", clusterName)

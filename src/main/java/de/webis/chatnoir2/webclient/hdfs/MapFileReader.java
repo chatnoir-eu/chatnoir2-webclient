@@ -44,7 +44,7 @@ public class MapFileReader extends Configured
         }
 
         mInstance = new MapFileReader();
-        mHadoopConfig.set("fs.defaultFS", mInstance.getConf().get("hdfs").getString("defaultFS"));
+        mHadoopConfig.set("fs.defaultFS", mInstance.getConf().getString("hdfs.defaultFS"));
     }
 
     public static boolean isInitialized()
@@ -83,8 +83,7 @@ public class MapFileReader extends Configured
     public static JSONObject getDocument(final String origId, final String index)
     {
         final UUID uuid = WebisUUID.generateUUID(mInstance.getConf()
-                .get("hdfs")
-                .get("mapfiles")
+                .get("hdfs.mapfiles")
                 .get(index)
                 .getString("prefix"), origId);
 
@@ -104,7 +103,7 @@ public class MapFileReader extends Configured
             throw new RuntimeException("MapFileReader not initialized");
         }
 
-        final ConfigLoader.Config mapfileConfig = mInstance.getConf().get("hdfs").get("mapfiles").get(index);
+        final ConfigLoader.Config mapfileConfig = mInstance.getConf().get("hdfs.mapfiles").get(index);
         final int partition = getPartition(recordUUID.toString(), mapfileConfig.getInteger("partitions"));
         String inputPathStr = String.format("%s/%s-r-%05d", mapfileConfig.getString("path"),
                 DATA_OUTPUT_NAME, partition);
@@ -137,7 +136,7 @@ public class MapFileReader extends Configured
             throw new RuntimeException("MapFileReader not initialized");
         }
 
-        final ConfigLoader.Config mapfileConfig = mInstance.getConf().get("hdfs").get("mapfiles").get(index);
+        final ConfigLoader.Config mapfileConfig = mInstance.getConf().get("hdfs.mapfiles").get(index);
         final int partition = getPartition(url, mapfileConfig.getInteger("partitions"));
         String inputPathStr = String.format("%s/%s-r-%05d", mapfileConfig.getString("path"),
                 URI_OUTPUT_NAME, partition);

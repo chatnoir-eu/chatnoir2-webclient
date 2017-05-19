@@ -63,9 +63,9 @@ public class SimpleSearch extends SearchProvider
     {
         super(indices);
 
-        mSnippetLength = getConf().get("serp").getInteger("snippet_length", mSnippetLength);
-        mTitleLength   = getConf().get("serp").getInteger("title_length", mTitleLength);
-        mSimpleSearchConfig = getConf().get("search").get("default_simple");
+        mSnippetLength = getConf().getInteger("serp.snippet_length", mSnippetLength);
+        mTitleLength   = getConf().getInteger("serp.title_length", mTitleLength);
+        mSimpleSearchConfig = getConf().get("search.default_simple");
     }
 
     public SimpleSearch()
@@ -369,7 +369,7 @@ public class SimpleSearch extends SearchProvider
      */
     private QueryBuilder buildRescoreQuery(StringBuffer userQueryString)
     {
-        final ConfigLoader.Config simpleSearchConfig = getConf().get("search").get("default_simple");
+        final ConfigLoader.Config simpleSearchConfig = getConf().get("search.default_simple");
 
         // parse query string
         final SimpleQueryStringBuilder simpleQuery = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());

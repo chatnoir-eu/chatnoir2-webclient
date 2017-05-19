@@ -39,8 +39,8 @@ public abstract class IndexRetrievalOperator extends Configured
      */
     public IndexRetrievalOperator(String[] indices)
     {
-        mAllowedIndices = new ArrayList<>(Arrays.asList(getConf().get("cluster").getStringArray("indices")));
-        mDefaultIndices = new ArrayList<>(Arrays.asList(getConf().get("cluster").getStringArray("default_indices")));
+        mAllowedIndices = new ArrayList<>(Arrays.asList(getConf().getStringArray("cluster.indices")));
+        mDefaultIndices = new ArrayList<>(Arrays.asList(getConf().getStringArray("cluster.default_indices")));
         if (mDefaultIndices.isEmpty()) {
             mDefaultIndices.addAll(mAllowedIndices);
         }

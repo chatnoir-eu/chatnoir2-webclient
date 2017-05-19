@@ -54,7 +54,7 @@ public class SearchResultBuilder
 
     public SearchResultBuilder index(String index)
     {
-        ConfigLoader.Config[] conf = new Configured().getConf().get("cluster").getArray("index_aliases");
+        ConfigLoader.Config[] conf = new Configured().getConf().getArray("cluster.index_aliases");
         if (conf.length != 0) {
             for (ConfigLoader.Config c : conf) {
                 if (c.getString("index", "").equals(index)) {
