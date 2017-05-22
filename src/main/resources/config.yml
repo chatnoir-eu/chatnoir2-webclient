@@ -13,9 +13,14 @@ cluster:
   # Name of the Elasticsearch cluster
   cluster_name: betaweb
 
-  # Initial host to connect to
-  # This is not the only host used for searching. Further hosts are detected by sniffing
-  host: betaweb015.medien.uni-weimar.de
+  # Initial hosts to connect to
+  # These are not the only hosts used for searching. Further hosts are detected by sniffing
+  hosts:
+    - betaweb015.medien.uni-weimar.de
+    - betaweb016.medien.uni-weimar.de
+    - betaweb017.medien.uni-weimar.de
+    - betaweb018.medien.uni-weimar.de
+    - betaweb019.medien.uni-weimar.de
 
   # Elasticsearch transport port (default: 9300)
   port: 9300
@@ -174,7 +179,7 @@ search:
       - name: warc_target_hostname.raw
         value: "%lang%\\.wikipedia\\.org"
         match: true
-        boost: 80
+        boost: 30
         match_boost: 20
       - name: warc_target_path.raw
         value: "/(wiki/|index\\.[a-z]+)?"

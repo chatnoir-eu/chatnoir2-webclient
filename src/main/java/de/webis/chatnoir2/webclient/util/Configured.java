@@ -54,7 +54,7 @@ public class Configured
         if (null == mClient) {
             final ConfigLoader.Config cfg = getConf();
             final String clusterName = cfg.getString("cluster.cluster_name", "");
-            final String hostName    = cfg.getString("cluster.host", "localhost");
+            final String[] hosts     = cfg.getStringArray("cluster.hosts");
             final int port           = cfg.getInteger("cluster.port", 9300);
 
             final Settings settings = Settings.builder()
@@ -62,8 +62,10 @@ public class Configured
                     .put("client.transport.sniff", true)
                     .build();
 
-            mClient = new PreBuiltTransportClient(settings).addTransportAddress(
-                    new InetSocketTransportAddress(new InetSocketAddress(hostName, port)));
+            mClient = new PreBuiltTransportClient(settings);
+            for (String host: hosts) {
+                mClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host, port)));
+            }
         }
         return mClient;
     }
