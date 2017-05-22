@@ -129,14 +129,14 @@ public class ConfigLoader
         /**
          * Raw JSON config object.
          */
-        private final Object configObject;
+        private final Object mConfigObject;
 
         /**
          * Construct empty (placeholder) Config object.
          * May be used when loading actual config fails. Note: all getters without default values will return null!
          */
         public Config() {
-            this.configObject = null;
+            this.mConfigObject = null;
         }
 
         /**
@@ -147,7 +147,7 @@ public class ConfigLoader
          */
         protected Config(Object configObject)
         {
-            this.configObject = configObject;
+            this.mConfigObject = configObject;
         }
 
         /**
@@ -159,8 +159,8 @@ public class ConfigLoader
          */
         public boolean contains(String name)
         {
-            assert configObject != null;
-            return ((Map) configObject).get(name) != null || get(name).configObject != null;
+            assert mConfigObject != null;
+            return ((Map) mConfigObject).get(name) != null || get(name).mConfigObject != null;
 
         }
 
@@ -174,11 +174,11 @@ public class ConfigLoader
          */
         public Config get(String name)
         {
-            if (null == configObject || !(configObject instanceof Map)) {
+            if (null == mConfigObject || !(mConfigObject instanceof Map)) {
                 return this;
             }
 
-            Object obj = configObject;
+            Object obj = mConfigObject;
             try {
                 String[] splits = name.split("\\.");
                 for (String s : splits) {
@@ -211,7 +211,7 @@ public class ConfigLoader
         public String getString(final String name, final String defaultValue)
         {
             try {
-                return get(name).configObject.toString();
+                return get(name).mConfigObject.toString();
             } catch (NullPointerException e) {
                 return defaultValue;
             }
@@ -237,7 +237,7 @@ public class ConfigLoader
         public Long getLong(final String name, final Long defaultValue)
         {
             try{
-                return ((Number) (get(name).configObject)).longValue();
+                return ((Number) (get(name).mConfigObject)).longValue();
             } catch (NullPointerException e) {
                 return defaultValue;
             }
@@ -290,7 +290,7 @@ public class ConfigLoader
             }
 
             try {
-                return ((Number) get(name).configObject).doubleValue();
+                return ((Number) get(name).mConfigObject).doubleValue();
             } catch (NullPointerException e) {
                 return defaultValue;
             }
@@ -341,7 +341,7 @@ public class ConfigLoader
                 return defaultValue;
             }
 
-            Object obj = get(name).configObject;
+            Object obj = get(name).mConfigObject;
             return null != obj && obj instanceof Boolean && (Boolean) obj;
         }
 
@@ -357,8 +357,8 @@ public class ConfigLoader
                 return new Config[0];
             }
 
-            assert configObject != null;
-            List list = (List) get(name).configObject;
+            assert mConfigObject != null;
+            List list = (List) get(name).mConfigObject;
             final int len = list.size();
 
             final Config[] configArr = new Config[len];
@@ -420,9 +420,9 @@ public class ConfigLoader
                 return new ArrayList<>(0);
             }
 
-            assert configObject != null;
+            assert mConfigObject != null;
             final ArrayList<T> typedArrayList = new ArrayList<>();
-            final List cfg = (List) get(name).configObject;
+            final List cfg = (List) get(name).mConfigObject;
 
             for (final Object o : cfg) {
                 typedArrayList.add((T) o);
