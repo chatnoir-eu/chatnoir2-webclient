@@ -160,7 +160,8 @@ public class ConfigLoader
         public boolean contains(String name)
         {
             assert configObject != null;
-            return ((Map) configObject).containsKey(name) || get(name).configObject != configObject;
+            return ((Map) configObject).get(name) != null &&
+                    get(name).configObject != configObject;
         }
 
         /**
@@ -348,7 +349,7 @@ public class ConfigLoader
          * Get configuration directive as array of sub Config objects.
          *
          * @param name configuration directive name
-         * @return the directive as array, Config[0] if no such directive found
+         * @return the directive as array (empty if no such directive found)
          */
         public Config[] getArray(final String name)
         {
@@ -359,6 +360,7 @@ public class ConfigLoader
             assert configObject != null;
             List list = (List) get(name).configObject;
             final int len = list.size();
+
             final Config[] configArr = new Config[len];
             for (int i = 0; i < len; ++i) {
                 configArr[i] = new Config(list.get(i));
@@ -409,7 +411,7 @@ public class ConfigLoader
          * @param name configuration directive name
          * @param type class object of type <T>
          * @param <T> array type
-         * @return array of type <T>
+         * @return ArrayList of type <T> (empty if no such entry exists)
          */
         @SuppressWarnings("unchecked")
         private <T> ArrayList<T> getTypedArrayList(final String name, final Class<T> type)
