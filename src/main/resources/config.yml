@@ -57,17 +57,17 @@ hdfs:
   # For each mapfile the HDFS path, the number of mapfile partitions and the
   # Webis UUID name prefix need to be given
   mapfiles:
-    webis_clueweb12:
+    cw12:
       path: "/corpora/clueweb/12-mapfile"
       partitions: 100
       prefix: clueweb12
 
-    webis_clueweb09:
+    cw09:
       path: "/corpora/clueweb/09-mapfile"
       partitions: 200
       prefix: clueweb09
 
-    webis_commoncrawl15:
+    cc1511:
       path: "/corpora/corpus-commoncrawl/CC-MAIN-2015-11-mapfile"
       partitions: 100
       prefix: commoncrawl
