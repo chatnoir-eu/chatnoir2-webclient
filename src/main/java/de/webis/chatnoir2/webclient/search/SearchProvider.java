@@ -96,7 +96,7 @@ public abstract class SearchProvider extends IndexRetrievalOperator
      * @param fieldName field name with language placehoders
      * @return localized field name
      */
-    protected String localizeFieldName(String fieldName) {
+    protected String replaceLocalePlaceholders(String fieldName) {
         return fieldName.replace("%lang%", mSearchLanguage);
     }
 

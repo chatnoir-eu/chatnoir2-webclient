@@ -11,10 +11,12 @@ import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.TextCleanser;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.rescore.QueryRescoreMode;
@@ -91,8 +93,8 @@ public class SimpleSearch extends SearchProvider
         QueryBuilder preQuery = buildPreQuery(queryBuffer);
         QueryBuilder rescoreQuery = buildRescoreQuery(queryBuffer);
 
-        mResponse = getClient().
-                prepareSearch(getEffectiveIndices())
+        mResponse = getClient()
+                .prepareSearch(getEffectiveIndices())
                 .setQuery(preQuery)
                 .setRescorer(buildRescorer(rescoreQuery),
                         mSimpleSearchConfig.getInteger("rescore_window", size))
@@ -209,12 +211,11 @@ public class SimpleSearch extends SearchProvider
                     .flags(SimpleQueryStringFlag.AND,
                             SimpleQueryStringFlag.OR,
                             SimpleQueryStringFlag.NOT,
-                            SimpleQueryStringFlag.PHRASE,
                             SimpleQueryStringFlag.WHITESPACE);
 
             final ConfigLoader.Config[] mainFields = mSimpleSearchConfig.getArray("main_fields");
             for (final ConfigLoader.Config field : mainFields) {
-                searchQuery.field(localizeFieldName(field.getString("name", "")));
+                searchQuery.field(replaceLocalePlaceholders(field.getString("name", "")));
             }
             mainQuery.must(searchQuery);
         } else {
@@ -226,7 +227,7 @@ public class SimpleSearch extends SearchProvider
         final ConfigLoader.Config[] rangeFilters = mSimpleSearchConfig.getArray("range_filters");
         for (final ConfigLoader.Config filterConfig : rangeFilters) {
             final RangeQueryBuilder rangeFilter = QueryBuilders.rangeQuery(
-                    localizeFieldName(filterConfig.getString("name", "")));
+                    replaceLocalePlaceholders(filterConfig.getString("name", "")));
 
             if (null != filterConfig.getDouble("gt")) {
                 rangeFilter.gt(filterConfig.getDouble("gt"));
@@ -245,6 +246,19 @@ public class SimpleSearch extends SearchProvider
                 mainQuery.mustNot(rangeFilter);
             else
                 mainQuery.filter(rangeFilter);
+        }
+
+        // field value boosts
+        final ConfigLoader.Config[] boosts = mSimpleSearchConfig.getArray("boosts");
+        for (ConfigLoader.Config c: boosts) {
+            if (!c.getBoolean("match")) {
+                continue;
+            }
+            RegexpQueryBuilder regExpQuery = QueryBuilders.regexpQuery(
+                    replaceLocalePlaceholders(c.getString("name")),
+                    replaceLocalePlaceholders(c.getString("value")));
+            regExpQuery.boost(c.getFloat("match_boost", 1.0f));
+            mainQuery.should(regExpQuery);
         }
 
         return mainQuery;
@@ -341,7 +355,7 @@ public class SimpleSearch extends SearchProvider
     private QueryRescorerBuilder buildRescorer(final QueryBuilder mainQuery)
     {
         final QueryRescorerBuilder rescorer = RescoreBuilder.queryRescorer(mainQuery);
-        rescorer.setQueryWeight(0.1f).
+        rescorer.setQueryWeight(0.0f).
                 setRescoreQueryWeight(1.0f).
                 setScoreMode(QueryRescoreMode.Total);
         return rescorer;
@@ -354,20 +368,18 @@ public class SimpleSearch extends SearchProvider
      */
     private QueryBuilder buildRescoreQuery(StringBuffer userQueryString)
     {
-        final ConfigLoader.Config simpleSearchConfig = getConf().get("search.default_simple");
-
         // parse query string
         final SimpleQueryStringBuilder simpleQuery = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());
         simpleQuery.minimumShouldMatch("30%");
 
-        final ConfigLoader.Config[] mainFields = simpleSearchConfig.getArray("main_fields");
+        final ConfigLoader.Config[] mainFields = mSimpleSearchConfig.getArray("main_fields");
 
         final List<Object[]> proximityFields = new ArrayList<>();
         final List<String>   fuzzyFields     = new ArrayList<>();
 
         for (final ConfigLoader.Config field : mainFields) {
             simpleQuery.field(
-                    localizeFieldName(field.getString("name", "")),
+                    replaceLocalePlaceholders(field.getString("name", "")),
                     field.getFloat("boost", 1.0f)).
                     defaultOperator(Operator.AND).
                     flags(SimpleQueryStringFlag.AND,
@@ -380,7 +392,7 @@ public class SimpleSearch extends SearchProvider
             // add field to list of proximity-aware fields for later processing
             if (field.getBoolean("proximity_matching", false)) {
                 proximityFields.add(new Object[] {
-                        localizeFieldName(field.getString("name")),
+                        replaceLocalePlaceholders(field.getString("name")),
                         field.getInteger("proximity_slop", 1),
                         field.getFloat("proximity_boost", 1.0f)
                 });
@@ -397,7 +409,7 @@ public class SimpleSearch extends SearchProvider
         // proximity matching
         for (Object[] o : proximityFields) {
             final MatchPhraseQueryBuilder proximityQuery = QueryBuilders.matchPhraseQuery(
-                    localizeFieldName((String) o[0]),
+                    replaceLocalePlaceholders((String) o[0]),
                     userQueryString.toString()
             );
             proximityQuery
@@ -415,18 +427,49 @@ public class SimpleSearch extends SearchProvider
 
         mainQuery.must(simpleQuery);
 
-        // general host boost
-        MatchQueryBuilder hostBooster = QueryBuilders.matchQuery("warc_target_hostname",
-                userQueryString.toString());
-        hostBooster.boost(20.0f);
-        mainQuery.should(hostBooster);
+        // field value boosts
+        final ConfigLoader.Config[] boosts = mSimpleSearchConfig.getArray("boosts");
+        for (ConfigLoader.Config c: boosts) {
+            RegexpQueryBuilder regExpQuery = QueryBuilders.regexpQuery(
+                    replaceLocalePlaceholders(c.getString("name")),
+                    replaceLocalePlaceholders(c.getString("value")));
+            regExpQuery.boost(c.getFloat("boost", 2.0f));
+            mainQuery.should(regExpQuery);
+        }
 
-        // Wikipedia boost
-        TermQueryBuilder wikiBooster = QueryBuilders.termQuery("warc_target_hostname.raw",
-                getSearchLanguage() + ".wikipedia.org");
-        mainQuery.should(wikiBooster);
+        // we start wrapping the main query here, so we upcast its reference
+        QueryBuilder mainQueryGeneral = mainQuery;
 
-        return mainQuery;
+        // field value factor function scores
+        ConfigLoader.Config[] funcScoreCfgs = mSimpleSearchConfig.getArray("field_value_factors");
+        for (ConfigLoader.Config c: funcScoreCfgs) {
+            FieldValueFactorFunctionBuilder valueFactor = new FieldValueFactorFunctionBuilder(c.getString("name"));
+            valueFactor
+                    .factor(c.getFloat("factor", 1.0f))
+                    .modifier(FieldValueFactorFunction.Modifier.fromString(c.getString("modifier", "")))
+                    .missing(c.getFloat("missing", 1.0f));
+            mainQueryGeneral = QueryBuilders.functionScoreQuery(mainQueryGeneral, valueFactor);
+        }
+
+        // field value penalties
+        final ConfigLoader.Config penalties = mSimpleSearchConfig.get("penalties");
+        final ConfigLoader.Config[] penaltyFields = penalties.getArray("fields");
+        if (penaltyFields.length > 0) {
+            BoolQueryBuilder penaltyQuery = QueryBuilders.boolQuery();
+            for (ConfigLoader.Config c: penaltyFields) {
+                RegexpQueryBuilder regExpQuery = QueryBuilders.regexpQuery(
+                        replaceLocalePlaceholders(c.getString("name")),
+                        replaceLocalePlaceholders(c.getString("value")));
+                regExpQuery.boost(c.getFloat("boost", 2.0f));
+                penaltyQuery.should(regExpQuery);
+            }
+
+            BoostingQueryBuilder boostingQuery = QueryBuilders.boostingQuery(mainQuery, penaltyQuery);
+            boostingQuery.negativeBoost(penalties.getFloat("penalty_factor", 0.2f));
+            mainQueryGeneral = boostingQuery;
+        }
+
+        return mainQueryGeneral;
     }
 
     /**

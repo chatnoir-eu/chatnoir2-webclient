@@ -160,8 +160,8 @@ public class ConfigLoader
         public boolean contains(String name)
         {
             assert configObject != null;
-            return ((Map) configObject).get(name) != null &&
-                    get(name).configObject != configObject;
+            return ((Map) configObject).get(name) != null || get(name).configObject != null;
+
         }
 
         /**

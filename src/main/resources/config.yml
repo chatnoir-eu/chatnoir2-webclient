@@ -22,25 +22,27 @@ cluster:
 
   # Indices the user is allowed to search
   indices:
-    - webis_commoncrawl15
-    - webis_clueweb09
-    - webis_clueweb12
+    - cc1511
+    - cw09
+    - cw12
+    - webis_warc_clueweb09_001
+    - webis_warc_clueweb12_009
 
   # Default indices to search when no explicit search index is defined
   default_indices:
-    - webis_commoncrawl15
+    - cw12
 
   # Define index aliases.
   # Raw index names in Elasticsearch responses will be replaced with the alias name
   index_aliases:
     - index: webis_warc_commoncrawl15_001
-      alias: webis_commoncrawl15
+      alias: cc1511
 
     - index: webis_warc_clueweb09_002
-      alias: webis_clueweb09
+      alias: cw09
 
     - index: webis_warc_clueweb12_010
-      alias: webis_clueweb12
+      alias: cw12
 
 
 # ------------------------------------------------------------------------------------
@@ -69,6 +71,16 @@ hdfs:
       path: "/corpora/corpus-commoncrawl/CC-MAIN-2015-11-mapfile"
       partitions: 100
       prefix: commoncrawl
+
+    webis_warc_clueweb12_009:
+      path: "/corpora/clueweb/12-mapfile"
+      partitions: 100
+      prefix: clueweb12
+
+    webis_warc_clueweb09_001:
+      path: "/corpora/clueweb/09-mapfile"
+      partitions: 200
+      prefix: clueweb09
 
 
 # ------------------------------------------------------------------------------------
@@ -111,41 +123,83 @@ search:
     #
     main_fields:
       - name: title_lang.%lang%
-        boost: 30
+        boost: 5
+        proximity_matching: true
+        proximity_slop: 2
+        proximity_boost: 30
 
       - name: body_lang.%lang%
-        boost: 30
+        boost: 2
         proximity_matching: true
-        proximity_slop: 4
-        proximity_boost: 4000
+        proximity_slop: 2
+        proximity_boost: 20
 
       - name: full_body_lang.%lang%
 
       - name: headings_lang.%lang%
-        boost: 50
+        boost: 4
 
       - name: meta_desc_lang.%lang%
-        boost: 20
+        boost: 1
 
       - name: meta_keywords_lang.%lang%
-        boost: 10
+        boost: 1
 
       - name: warc_target_hostname
-        boost: 400
+        boost: 10
 
       - name: warc_target_path
-        boost: 50
+        boost: 1
 
       - name: warc_target_hostname.raw
         fuzzy_matching: true
-        boost: 50000
+        boost: 10
 
-    # Additional fields that will be search separately and whose scores
-    # will outrank the main query. This can be used to search for specific document IDs.
-    # Possible parameters are the same as for main_fields.
-    additional_fields:
-      - name: warc_trec_id
-        boost: 100000
+    # Boost results by a certain factor if a field contains values
+    # matched by a regular expression.
+    # You can use the %lang% placeholder for the current search language in
+    # both the field name and the field value pattern.
+    #
+    # Make sure you use quotes and double backslashes for escape sequences.
+    # Regular expressions are always anchored and must match the whole string.
+    #
+    # Possible parameters are:
+    # - name: field name
+    # - value: regular expression
+    # - match: whether to use this rule for matching during pre-selection or only in the rescoring phase
+    # - boost: boost factor to promote results by during rescoring
+    # - match_boost: boosting factor to be applied during match phase (has no effect if match is false)
+    #
+    boosts:
+      - name: warc_target_hostname.raw
+        value: "%lang%\\.wikipedia\\.org"
+        match: true
+        boost: 80
+        match_boost: 20
+      - name: warc_target_path.raw
+        value: "/(wiki/|index\\.[a-z]+)?"
+        match: false
+        boost: 75
+
+    # Penalize (or negatively boost) results if a field contains specific
+    # values matched by a regular expression.
+    penalties:
+      # Overall penalty factor
+      penalty_factor: 0.2
+
+      # Fields and values to penalize.
+      # You can use the %lang% placeholder for the current search language in
+      # both the field name and the field value pattern.
+      #
+      # Make sure you use quotes and double backslashes for escape sequences.
+      # Regular expressions are always anchored and must match the whole string.
+      #
+      # Possible parameters are:
+      # - name: field name
+      # - value: regular expression
+      # - boost: individual boost for this field
+      #
+      fields: null
 
     # Supported user-defined query filters (such as site:example.com or lang:de)
     #
@@ -164,19 +218,17 @@ search:
       - keyword: index
         field: "#index"
 
-    # Function scores to modify the overall scoring
-    function_scores:
-      # Fields to apply function scores on
-      #
-      # Possible parameters are:
-      # - name: name of the field to use for calculation (must be numeric)
-      # - modifier: a function modifier used for smoothing out values
-      # - factor: an optional factor to multiply the function score by
-      #
-      scoring_fields:
-        - name: page_rank
-          modifier: log1p
-          factor: 20
+    # Pre-computed numeric fields to modify the overall scoring.
+    # Value factors are wrapped in the order they are defined here, i.e.,
+    # the last entry in the list will be the out-most field value factor function.
+    #
+    # Possible parameters are:
+    # - name: name of the field to use for calculation (must be numeric)
+    # - modifier: a function modifier used for smoothing out values
+    # - factor: an optional factor to multiply the function score by
+    # - missing: value if the document has no such field
+    #
+    field_value_factors: null
 
     # Range filters to apply to a search before scoring.
     # Can be used to filter out very small or very large documents, spam etc.
@@ -191,7 +243,7 @@ search:
     #
     range_filters:
       - name: body_length
-        gte: 1000
+        gte: 100
 
       - name: spam_rank
         gt: 0
@@ -203,4 +255,4 @@ search:
 
     # Window size for results rescoring (the rescore query is potentially expensive,
     # so choose this as small as possible)
-    rescore_window: 200
+    rescore_window: 400
