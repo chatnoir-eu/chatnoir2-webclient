@@ -57,6 +57,7 @@ public class PhraseSearchApiModule extends ApiModuleBase
         Integer size = getTypedNestedParameter(Integer.class, "size", request);
         Integer slop = getTypedNestedParameter(Integer.class, "slop", request);
         boolean doExplain = isNestedParameterSet("explain", request);
+        boolean snippetOnly = isNestedParameterSet("snippetOnly", request);
         if (null == from || from < 1) {
             from = 1;
         }
@@ -84,21 +85,27 @@ public class PhraseSearchApiModule extends ApiModuleBase
                 .array("indices", search.getEffectiveIndices())
             .endObject()
             .startArray("results");
-
                 for (final SearchResultBuilder.SearchResult result : results) {
-                    builder.startObject()
-                        .field("score", result.score())
-                        .field("uuid", result.documentId())
-                        .field("index", result.index())
-                        .field("trec_id", result.trecId())
-                        .field("target_hostname", result.targetHostname())
-                        .field("target_uri", result.targetUri())
-                        .field("page_rank", result.pageRank())
-                        .field("spam_rank", result.spamRank())
-                        .field("title", result.title())
-                        .field("snippet", result.snippet())
-                        .field("explanation");
+                    builder.startObject();
+                        builder.field("score", result.score());
+
+                        if (!snippetOnly) {
+                            builder.field("uuid", result.documentId())
+                                    .field("index", result.index())
+                                    .field("trec_id", result.trecId())
+                                    .field("target_hostname", result.targetHostname())
+                                    .field("target_uri", result.targetUri())
+                                    .field("page_rank", result.pageRank())
+                                    .field("spam_rank", result.spamRank())
+                                    .field("title", result.title());
+                        }
+
+                        builder.field("snippet", result.snippet());
+
+                        if (!snippetOnly || doExplain) {
+                            builder.field("explanation");
                             new ExplanationXContent(result.explanation()).toXContent(builder, ToXContent.EMPTY_PARAMS);
+                        }
                     builder.endObject();
                 }
             builder.endArray()
