@@ -62,7 +62,7 @@ The API endpoint for the simple search module is: `/api/v1/_search`.
 - `query`, `q`: query string (**required**)
 - `index`: list of indices to search (see above)
 - `from`: result pagination begin
-- `size`: result page size
+- `size`: number of results per page
 - `explain`: return additional scoring information (boolean flag)
 
 ### Response Data:
@@ -71,17 +71,18 @@ The API endpoint for the simple search module is: `/api/v1/_search`.
     - `total_results`: number of total hits
     - `indices`: list of indices that were searched
 - `results`: list of search results
-    - `score`: ranking score of this result
-    - `uuid`: Webis UUID of this document
-    - `index`: index the document was retrieved from
-    - `trec_id`: TREC ID of the result if available (`null` otherwise)
-    - `target_hostname`: web host this document was crawled from
-    - `target_uri`: full web URI
-    - `page_rank`: page rank of this document if available (`null` otherwise)
-    - `spam_rank`: spam rank of this document if available (`null` otherwise)
-    - `title`: document title with highlights
-    - `snippet`: document body snippet with highlights
-    - `explanation`: additional scoring information if `explain` was set to `true`
+    - each entry has the following properties:
+        - `score`: ranking score of this result
+        - `uuid`: Webis UUID of this document
+        - `index`: index the document was retrieved from
+        - `trec_id`: TREC ID of the result if available (`null` otherwise)
+        - `target_hostname`: web host this document was crawled from
+        - `target_uri`: full web URI
+        - `page_rank`: page rank of this document if available (`null` otherwise)
+        - `spam_rank`: spam rank of this document if available (`null` otherwise)
+        - `title`: document title with highlights
+        - `snippet`: document body snippet with highlights
+        - `explanation`: additional scoring information if `explain` was set to `true`
 
 ### Example:
 #### Request:
@@ -146,17 +147,18 @@ The API endpoint for the phrase search module is: `/api/v1/_phrases`.
     - `total_results`: number of total hits
     - `indices`: list of indices that were searched
 - `results`: list of search results
-    - `score`: ranking score of this result **\***
-    - `uuid`: Webis UUID of this document **\***
-    - `index`: index the document was retrieved from **\***
-    - `trec_id`: TREC ID of the result if available (`null` otherwise) **\***
-    - `target_hostname`: web host this document was crawled from **\***
-    - `target_uri`: full web URI **\***
-    - `page_rank`: page rank of this document if available (`null` otherwise) **\***
-    - `spam_rank`: spam rank of this document if available (`null` otherwise) **\***
-    - `title`: document title with highlights **\***
-    - `snippet`: document body snippet with highlights
-    - `explanation`: additional scoring information if `explain` was set to `true` **\*\***
+    - each entry has the following properties:
+        - `score`: ranking score of this result
+        - `uuid`: Webis UUID of this document **\***
+        - `index`: index the document was retrieved from **\***
+        - `trec_id`: TREC ID of the result if available (`null` otherwise) **\***
+        - `target_hostname`: web host this document was crawled from **\***
+        - `target_uri`: full web URI **\***
+        - `page_rank`: page rank of this document if available (`null` otherwise) **\***
+        - `spam_rank`: spam rank of this document if available (`null` otherwise) **\***
+        - `title`: document title with highlights **\***
+        - `snippet`: document body snippet with highlights
+        - `explanation`: additional scoring information if `explain` was set to `true` **\*\***
 
 **\*** fields are not returned if `snippetOnly` is set. \
 **\*\*** `explanation` is only returned if `snippetOnly` is not set or `explain` is `true`.
