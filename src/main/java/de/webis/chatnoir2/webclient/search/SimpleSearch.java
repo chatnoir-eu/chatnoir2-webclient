@@ -8,22 +8,17 @@
 package de.webis.chatnoir2.webclient.search;
 
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
-import de.webis.chatnoir2.webclient.util.TextCleanser;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
-import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
-import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.elasticsearch.search.rescore.RescoreBuilder;
 
-import java.nio.file.Paths;
 import java.util.*;
 
 
@@ -35,24 +30,14 @@ import java.util.*;
 public class SimpleSearch extends SearchProvider
 {
     /**
-     * (Default) snippet length.
-     */
-    private int mSnippetLength = 200;
-
-    /**
-     * (Default) title length.
-     */
-    private int mTitleLength = 60;
-
-    /**
-     * Whether to explain query.
-     */
-    private boolean mDoExplain = false;
-
-    /**
-     * Search mResponse of the last search.
+     * Elasticsearch response object of the last search.
      */
     private SearchResponse mResponse = new SearchResponse();
+
+    /**
+     * Whether to add explanation to search results.
+     */
+    private boolean mExplain = false;
 
     /**
      * Config object shortcut.
@@ -62,9 +47,6 @@ public class SimpleSearch extends SearchProvider
     public SimpleSearch(final String[] indices)
     {
         super(indices);
-
-        mSnippetLength = getConf().getInteger("serp.snippet_length", mSnippetLength);
-        mTitleLength   = getConf().getInteger("serp.title_length", mTitleLength);
         mSimpleSearchConfig = getConf().get("search.default_simple");
     }
 
@@ -79,7 +61,7 @@ public class SimpleSearch extends SearchProvider
      * @param doExplain true if query shall be explained
      */
     public void setExplain(final boolean doExplain) {
-        this.mDoExplain = doExplain;
+        this.mExplain = doExplain;
     }
 
     /**
@@ -101,90 +83,19 @@ public class SimpleSearch extends SearchProvider
                 .setFrom(from)
                 .setSize(size)
                 .highlighter(new HighlightBuilder()
-                        .field("title_lang." + getSearchLanguage(), mTitleLength, 1)
-                        .field("body_lang." + getSearchLanguage(), mSnippetLength, 1)
+                        .field("title_lang." + getSearchLanguage(), getTitleLength(), 1)
+                        .field("body_lang." + getSearchLanguage(), getSnippetLength(), 1)
                         .encoder("html"))
-                .setExplain(mDoExplain)
+                .setExplain(mExplain)
                 .setTerminateAfter(mSimpleSearchConfig.getInteger("node_limit", 200000))
                 .setProfile(false)
                 .get();
     }
 
     @Override
-    public List<SearchResultBuilder.SearchResult> getResults()
+    protected SearchResponse getResponse()
     {
-        List<SearchResultBuilder.SearchResult> results = new ArrayList<>();
-
-        for (final SearchHit hit : mResponse.getHits()) {
-            final Map<String, Object> source = hit.getSource();
-
-            String snippet = "";
-            if (null != hit.getHighlightFields().get("body_lang." + getSearchLanguage())) {
-                final Text[] fragments = hit.getHighlightFields().get("body_lang." + getSearchLanguage()).fragments();
-                if (1 >= fragments.length) {
-                    snippet = fragments[0].string();
-                }
-            }
-
-            // use meta description or first body part if no highlighted snippet available
-            if (snippet.isEmpty()) {
-                if (!source.get("meta_desc_lang." + getSearchLanguage()).toString().isEmpty()) {
-                    snippet = StringEscapeUtils.escapeHtml(
-                            truncateSnippet((String) source.get("meta_desc_lang." + getSearchLanguage()), mSnippetLength));
-                } else {
-                    snippet = StringEscapeUtils.escapeHtml(
-                            truncateSnippet((String) source.get("body_lang." + getSearchLanguage()), mSnippetLength));
-                }
-            }
-            snippet = TextCleanser.cleanseAll(snippet, true);
-
-            // use highlighted title if available
-            String title = StringEscapeUtils.escapeHtml(
-                    truncateSnippet((String) source.get("title_lang." + getSearchLanguage()), mTitleLength));
-            if (null != hit.getHighlightFields().get("title_lang." + getSearchLanguage())) {
-                final Text[] fragments = hit.getHighlightFields().get("title_lang." + getSearchLanguage()).fragments();
-                if (1 >= fragments.length) {
-                    title = fragments[0].string();
-                }
-            }
-            title = TextCleanser.cleanseAll(title, true);
-
-            String targetPath = (String) source.get("warc_target_path");
-            if (null != targetPath) {
-                targetPath = Paths.get("/", targetPath).normalize().toString();
-            } else {
-                targetPath = "/";
-            }
-
-            final SearchResultBuilder.SearchResult result = new SearchResultBuilder()
-                    .score(hit.getScore())
-                    .index(hit.index())
-                    .documentId(hit.getId())
-                    .trecId((String) source.get("warc_trec_id"))
-                    .title(title)
-                    .targetHostname((String) source.get("warc_target_hostname"))
-                    .targetPath(targetPath)
-                    .targetUri((String) source.get("warc_target_uri"))
-                    .snippet(snippet)
-                    .fullBody((String) source.get("body_lang." + getSearchLanguage()))
-                    .pageRank((Double) source.get("page_rank"))
-                    .spamRank((Integer) source.get("spam_rank"))
-                    .explanation(hit.explanation())
-                    .build();
-            results.add(result);
-        }
-
-        if (isGroupByHostname()) {
-            results = groupResults(results);
-        }
-
-        return results;
-    }
-
-    @Override
-    public long getTotalResultNumber()
-    {
-        return mResponse.getHits().getTotalHits();
+        return mResponse;
     }
 
     /**
@@ -470,33 +381,5 @@ public class SimpleSearch extends SearchProvider
         }
 
         return mainQueryGeneral;
-    }
-
-    /**
-     * Truncate a snippet after a certain number of characters, trying to preserve full words.
-     * Will cut the string hard after the specified amount of characters if no spaces could be
-     * found or cutting after words would reduce the size more than 2/3 of the desired length.
-     *
-     * @param snippet the snippet
-     * @param numCharacters number of characters after which to truncate
-     * @return the truncated snippet
-     */
-    private String truncateSnippet(String snippet, final int numCharacters)
-    {
-        if (snippet.length() > numCharacters) {
-            final boolean wordEnded = (snippet.charAt(numCharacters) == ' ');
-            snippet = snippet.substring(0, numCharacters);
-
-            // get rid of incomplete words
-            final int pos = snippet.lastIndexOf(' ');
-            if (!wordEnded && -1 != pos) {
-                // shorten snippet if it doesn't become too short then
-                if ((int)(.6 * numCharacters) <= pos) {
-                    snippet = snippet.substring(0, pos);
-                }
-            }
-        }
-
-        return snippet.trim();
     }
 }

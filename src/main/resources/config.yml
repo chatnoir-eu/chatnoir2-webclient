@@ -77,16 +77,6 @@ hdfs:
       partitions: 100
       prefix: commoncrawl
 
-    webis_warc_clueweb12_009:
-      path: "/corpora/clueweb/12-mapfile"
-      partitions: 100
-      prefix: clueweb12
-
-    webis_warc_clueweb09_001:
-      path: "/corpora/clueweb/09-mapfile"
-      partitions: 200
-      prefix: clueweb09
-
 
 # ------------------------------------------------------------------------------------
 # Search engine result page display settings
@@ -261,3 +251,24 @@ search:
     # Window size for results rescoring (the rescore query is potentially expensive,
     # so choose this as small as possible)
     rescore_window: 400
+
+  # Pure phrase search settings
+  phrase_search:
+    # Default slop up to which to match phrases
+    default_slop: 0
+
+    # Maximum slop to accept
+    max_slop: 2
+
+    # Limit on each node after which to terminate search and return early
+    node_limit: 40000
+
+    # Index fields to search.
+    # Use the placeholder %lang% instead of actual language codes in language-specific fields.
+    #
+    # Possible parameters are:
+    # - name: name of the field (required)
+    # - boost: boost value for this field
+    fields:
+      - name: body_lang.%lang%
+        boost: 1.0
