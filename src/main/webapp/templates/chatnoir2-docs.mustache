@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+    {{> bootstrap-head}}
+    {{> chatnoir2-head}}
+</head>
+<body class="search-page">
+    <div id="Main" class="container">
+        <div id="SearchHeader" class="row">
+            <div id="Logo" class="col-sm-2">
+                <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
+                    <img src="/static/img/chatnoir-logo.png" alt="ChatNoir Logo">
+                </a>
+            </div>
+            <div class="col-sm-8" id="SearchField">
+                <form role="search" action="/" method="get">
+                    <div class="input-group">
+                        <input type="text" class="form-control input-lg" placeholder="Search" name="q" value="{{searchQuery}}" id="SearchInput">
+                        {{#indicesString}}<input type="hidden" name="index" value="{{.}}">{{/indicesString}}
+                        <span class="input-group-btn">
+                            <button type="submit" class="btn btn-primary input-lg">Go!</button>
+                        </span>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{^isIndex}}
+        <section>
+            <div class="back-to-index"><a href="/doc">« Back to documentation index</a></div>
+        </section>
+        {{/isIndex}}
+
+        <section id="DocContent">
+            {{& content}}
+        </section>
+    </div>
+
+    {{> chatnoir2-page-foot}}
+
+    {{> jquery-foot}}
+    {{> bootstrap-foot}}
+</body>
+</html>

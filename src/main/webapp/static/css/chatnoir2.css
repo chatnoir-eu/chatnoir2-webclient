@@ -344,6 +344,46 @@ body {
 }
 
 /* ===========================================================================
+ * Docs template
+ * ===========================================================================*/
+
+#DocContent {
+    margin: 3em 0;
+}
+
+#DocContent h1 {
+    border-bottom: 1px solid #ddd;
+    padding: .3em 0;
+    font-size: 3rem;
+    font-weight: bold;
+}
+
+#DocContent h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+    padding: .3em 0;
+    margin-top: 1em;
+}
+
+#DocContent h3 {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+#DocContent h4 {
+    font-size: 1.5rem;
+}
+
+#DocContent h5 {
+    font-size: 1rem;
+}
+
+#DocContent p, #DocContent pre {
+    max-width: 85rem;
+}
+
+/* ===========================================================================
  * Responsive changes
  * ===========================================================================*/
 @media screen and (max-width: 991px) {
