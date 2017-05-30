@@ -8,10 +8,9 @@
 package de.webis.chatnoir2.webclient.search;
 
 import de.webis.chatnoir2.webclient.resources.ConfigLoader.Config;
+import org.apache.commons.math3.exception.MathParseException;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 
 /**
@@ -48,9 +47,7 @@ public class PhraseSearch extends SearchProvider
     @Override
     public void doSearch(String query, int from, int size)
     {
-        StringBuffer queryBuffer = new StringBuffer(query);
-
-        QueryBuilder phraseQuery = buildPreQuery(queryBuffer);
+        QueryBuilder phraseQuery = buildPreQuery(new StringBuffer(query));
 
         mResponse = getClient()
                 .prepareSearch(getEffectiveIndices())
@@ -75,14 +72,18 @@ public class PhraseSearch extends SearchProvider
 
     private QueryBuilder buildPreQuery(StringBuffer queryString)
     {
-        MultiMatchQueryBuilder multimatchQuery = QueryBuilders.multiMatchQuery(queryString.toString());
+        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
         Config[] fields = mPhraseConfig.getArray("fields");
         for (Config c: fields) {
-            multimatchQuery.field(c.getString("name"), c.getFloat("boost", 1.0f));
+            MatchPhraseQueryBuilder multimatchQuery = QueryBuilders.matchPhraseQuery(
+                    replaceLocalePlaceholders(c.getString("name")),
+                    queryString.toString());
+            multimatchQuery.boost(c.getFloat("boost", 1.0f));
+            boolQuery.must(multimatchQuery);
         }
 
-        return multimatchQuery;
+        return boolQuery;
     }
 
     /**

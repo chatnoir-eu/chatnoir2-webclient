@@ -8,8 +8,9 @@
 package de.webis.chatnoir2.webclient.api.v1;
 
 import de.webis.chatnoir2.webclient.api.ApiModuleV1;
+import de.webis.chatnoir2.webclient.resources.ConfigLoader;
+import de.webis.chatnoir2.webclient.search.PhraseSearch;
 import de.webis.chatnoir2.webclient.search.SearchResultBuilder;
-import de.webis.chatnoir2.webclient.search.SimpleSearch;
 import de.webis.chatnoir2.webclient.util.Configured;
 import de.webis.chatnoir2.webclient.util.ExplanationXContent;
 import org.elasticsearch.common.xcontent.ToXContent;
@@ -22,14 +23,16 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * ChatNoir API module for simple search.
+ * ChatNoir API module for pure phrase search.
  */
-@ApiModuleV1("_search")
-public class SimpleSearchApiModule extends ApiModuleBase
+@ApiModuleV1("_phrases")
+public class PhraseSearchApiModule extends ApiModuleBase
 {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
+        ConfigLoader.Config config = new Configured().getConf();
+
         String searchQueryString = getTypedNestedParameter(String.class, "query", request);
         if (null == searchQueryString) {
             searchQueryString = getTypedNestedParameter(String.class, "q", request);
@@ -52,16 +55,21 @@ public class SimpleSearchApiModule extends ApiModuleBase
 
         Integer from = getTypedNestedParameter(Integer.class, "from", request);
         Integer size = getTypedNestedParameter(Integer.class, "size", request);
+        Integer slop = getTypedNestedParameter(Integer.class, "slop", request);
         boolean doExplain = isNestedParameterSet("explain", request);
         if (null == from || from < 1) {
             from = 1;
         }
         if (null == size || size < 1) {
-            size = new Configured().getConf().getInteger("serp.results_per_page");
+            size = config.getInteger("serp.results_per_page");
+        }
+        if (null == slop || slop < 0 || slop > config.getInteger("search.phrase_search.max_slop")) {
+            slop =  config.getInteger("search.phrase_search.slop");
         }
 
-        final SimpleSearch search = new SimpleSearch(indicesStr);
+        final PhraseSearch search = new PhraseSearch(indicesStr);
         final long startTime = System.currentTimeMillis();
+        search.setSlop(slop);
         search.setExplain(doExplain);
         search.doSearch(searchQueryString, from, size);
         final long elapsedTime = System.currentTimeMillis() - startTime;
