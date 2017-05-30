@@ -76,11 +76,11 @@ public class PhraseSearch extends SearchProvider
 
         Config[] fields = mPhraseConfig.getArray("fields");
         for (Config c: fields) {
-            MatchPhraseQueryBuilder multimatchQuery = QueryBuilders.matchPhraseQuery(
+            MatchPhraseQueryBuilder matchPhraseQuery = QueryBuilders.matchPhraseQuery(
                     replaceLocalePlaceholders(c.getString("name")),
                     queryString.toString());
-            multimatchQuery.boost(c.getFloat("boost", 1.0f));
-            boolQuery.must(multimatchQuery);
+            matchPhraseQuery.boost(c.getFloat("boost", 1.0f));
+            boolQuery.must(matchPhraseQuery);
         }
 
         return boolQuery;
