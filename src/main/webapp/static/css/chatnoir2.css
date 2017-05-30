@@ -348,7 +348,7 @@ body {
  * ===========================================================================*/
 
 #DocContent {
-    margin: 3em 0;
+    margin: 2em 0;
 }
 
 #DocContent h1 {
@@ -373,10 +373,12 @@ body {
 
 #DocContent h4 {
     font-size: 1.5rem;
+    font-weight: bold;
 }
 
 #DocContent h5 {
     font-size: 1rem;
+    font-weight: bold;
 }
 
 #DocContent p, #DocContent pre {
