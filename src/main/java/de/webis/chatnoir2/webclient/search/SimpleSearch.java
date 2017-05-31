@@ -108,7 +108,7 @@ public class SimpleSearch extends SearchProvider
         BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
 
         // parse query string filters
-        QueryBuilder queryStringFilter = parseQueryStringFilters(userQueryString);
+        QueryBuilder queryStringFilter = parseQueryStringOperators(userQueryString);
         if (null != queryStringFilter) {
             mainQuery.filter(queryStringFilter);
         }
@@ -176,14 +176,21 @@ public class SimpleSearch extends SearchProvider
     }
 
     /**
-     * Parse configured filters from the query string such as site:example.com
+     * Parse (non-standard) operators and configured filters from the query string such as site:example.com
      * and delete the filters from the given query StringBuffer.
      *
      * @param queryString user query string
      * @return filter query
      */
-    private QueryBuilder parseQueryStringFilters(StringBuffer queryString)
+    private QueryBuilder parseQueryStringOperators(StringBuffer queryString)
     {
+        // replace AND and OR with + and |
+        System.out.println(queryString);
+        queryString.replace(0, queryString.length(),
+                queryString.toString().replaceAll("(?!\\B\"[^\"]*) AND (?![^\"]*\"\\B)", " +"));
+        queryString.replace(0, queryString.length(),
+                queryString.toString().replaceAll("(?!\\B\"[^\"]*) OR (?![^\"]*\"\\B)", " | "));
+
         ConfigLoader.Config[] filterConf = mSimpleSearchConfig.getArray("query_filters");
         if (filterConf.length == 0) {
             return null;
