@@ -30,8 +30,6 @@ cluster:
     - cc1511
     - cw09
     - cw12
-    - webis_warc_clueweb09_001
-    - webis_warc_clueweb12_009
 
   # Default indices to search when no explicit search index is defined
   default_indices:
