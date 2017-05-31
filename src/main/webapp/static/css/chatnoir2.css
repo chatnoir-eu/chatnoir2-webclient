@@ -58,6 +58,15 @@ a {
     border-color: #cb4625;
 }
 
+.btn-primary:focus, .btn-primary:hover {
+    border-color: #e45b39;
+}
+
+.pagination > li > a:hover, .pagination > li > span:hover,
+.pagination > li > a:focus, .pagination > li > span:focus {
+    color: #e45b39;
+}
+
 .form-control:focus {
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(230, 79, 42, .6);
     border-color: #e64f2a;
