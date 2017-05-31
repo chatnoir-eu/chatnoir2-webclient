@@ -195,3 +195,17 @@ POST /api/v1/_phrases
   ]
 }
 ```
+
+## Retrieving full documents
+The full HTML contents of a search result can be retrieved from
+
+```
+GET /cache?uuid=$UUID&index=$INDEX&raw
+```
+Where `$UUID` is the document UUID returned by the search API and `$INDEX`
+is the index name this document is from. No API key is required for this request.
+
+A plain text rendering with basic HTML-subset formatting can be retrieved from
+```
+GET /cache?uuid=$UUID&index=$INDEX&raw&plain
+```
