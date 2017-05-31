@@ -25,19 +25,19 @@ string or as a JSON object in the `POST` body.
 A list of values can be specified in a `GET` query string by separating values
 with commas.
 
-All requests take the **required** `apiKey` parameter and the optional boolean
+All requests take the **required** `apikey` parameter and the optional boolean
 parameter `pretty` to format the response in a more human-readable way.
 
 For example, the following two API requests are equivalent:
 
 ```
-GET /api/v1/_search?apiKey=...&query=hello%20world&index=cw09,cw12&pretty
+GET /api/v1/_search?apikey=...&query=hello%20world&index=cw09,cw12&pretty
 ```
 
 ```
 POST /api/v1/_search
 {
-    "apiKey": "...",
+    "apikey": "...",
     "query": "hello world",
     "index": ["cw09", "cw12"],
     "pretty": true
@@ -89,7 +89,7 @@ The API endpoint for the simple search module is: `/api/v1/_search`.
 ```
 POST /api/v1/_search
 {
-    "apiKey": "...",
+    "apikey": "...",
     "query": "hello world",
     "index": ["cw12", "cc1511"],
     "size": 1,
@@ -138,7 +138,7 @@ The API endpoint for the phrase search module is: `/api/v1/_phrases`.
 - `index`: list of indices to search (see above)
 - `from`: result pagination begin
 - `size`: number of results per page
-- `snippetOnly`: reduce result list to `score` and `snippet` for each hit (boolean flag)
+- `snippet_only`: reduce result list to `score` and `snippet` for each hit (boolean flag)
 - `explain`: return additional scoring information (boolean flag)
 
 ### Response Data:
@@ -168,12 +168,12 @@ The API endpoint for the phrase search module is: `/api/v1/_phrases`.
 ```
 POST /api/v1/_phrases
 {
-    "apiKey": "...",
+    "apikey": "...",
     "query": "hello world",
     "index": ["cw12", "cc1511"],
     "size": 1,
     "pretty": true,
-    "snippetOnly": true
+    "snippet_only": true
 }
 ```
 #### Response:

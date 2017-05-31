@@ -46,7 +46,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
         setPrettyPrint(isNestedParameterSet("pretty", request));
 
         // validate request
-        final String keyParameter = getTypedNestedParameter(String.class, "apiKey", request);
+        final String keyParameter = getTypedNestedParameter(String.class, "apikey", request);
         if (null != keyParameter && ApiKeyManager.getInstance().isApiKeyValid(keyParameter)) {
             return true;
         } else {

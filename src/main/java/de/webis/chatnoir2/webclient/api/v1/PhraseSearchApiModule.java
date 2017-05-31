@@ -57,7 +57,7 @@ public class PhraseSearchApiModule extends ApiModuleBase
         Integer size = getTypedNestedParameter(Integer.class, "size", request);
         Integer slop = getTypedNestedParameter(Integer.class, "slop", request);
         boolean doExplain = isNestedParameterSet("explain", request);
-        boolean snippetOnly = isNestedParameterSet("snippetOnly", request);
+        boolean snippetOnly = isNestedParameterSet("snippet_only", request);
         if (null == from || from < 0) {
             from = 0;
         }
