@@ -17,6 +17,7 @@ import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.json.JSONArray;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -29,7 +30,7 @@ import java.util.List;
 public class PhraseSearchApiModule extends ApiModuleBase
 {
     @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
         ConfigLoader.Config config = new Configured().getConf();
 
@@ -115,7 +116,7 @@ public class PhraseSearchApiModule extends ApiModuleBase
     }
 
     @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
         doGet(request, response);
     }

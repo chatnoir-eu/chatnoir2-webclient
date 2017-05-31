@@ -16,6 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
@@ -150,7 +151,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      * @param response HTTP response
      */
     @Override
-    public abstract void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException;
+    public abstract void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException;
 
     /**
      * Handle POST request to API endpoint.
@@ -161,7 +162,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      * @param response HTTP response
      */
     @Override
-    public abstract void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException;
+    public abstract void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException;
 
     /**
      * Get configured response builder.

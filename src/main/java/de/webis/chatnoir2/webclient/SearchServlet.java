@@ -64,8 +64,6 @@ public class SearchServlet extends ChatNoirServlet
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
     {
-        super.doGet(request, response);
-
         final String searchQueryString = getParameter("q", request);
         if (null == searchQueryString || searchQueryString.trim().isEmpty()) {
             response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);

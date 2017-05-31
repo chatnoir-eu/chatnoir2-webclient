@@ -58,8 +58,6 @@ public class CacheServlet extends ChatNoirServlet
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
     {
-        super.doGet(request, response);
-
         String uuidParam  = request.getParameter("uuid");
         String indexParam = request.getParameter("index");
         String uriParam   = request.getParameter("uri");

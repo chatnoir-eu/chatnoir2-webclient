@@ -30,23 +30,20 @@ public abstract class ChatNoirServlet extends HttpServlet
      * @param response  The HTTP response
      */
     @Override
-    protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+    protected void service(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
     {
-        // set correct encoding
-        request.setCharacterEncoding("UTF-8");
-        response.setCharacterEncoding("UTF-8");
+        setEncoding(request, response);
+        super.service(request, response);
     }
 
     /**
-     * POST action for this servlet.
+     * Set correct request and response character encoding.
      *
      * @param request   The HTTP request
      * @param response  The HTTP response
      */
-    @Override
-    protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+    protected void setEncoding(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
     {
-        // set correct encoding
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
     }

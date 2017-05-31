@@ -51,6 +51,8 @@ public class ApiServlet extends ChatNoirServlet
     @SuppressWarnings("unchecked")
     protected void service(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
     {
+        super.service(request, response);
+
         String apiModulePattern = "_default";
         ApiVersion apiModuleVersion = ApiVersion.NONE;
         final String pathInfo = request.getPathInfo();

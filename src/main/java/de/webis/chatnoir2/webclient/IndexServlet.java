@@ -45,8 +45,6 @@ public class IndexServlet extends ChatNoirServlet
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
     {
-        super.doGet(request, response);
-
         if (null != request.getParameter("q")) {
             getServletContext().getRequestDispatcher(SearchServlet.ROUTE).forward(request, response);
             return;
