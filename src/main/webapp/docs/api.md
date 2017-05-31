@@ -100,7 +100,7 @@ POST /api/v1/_search
 ```
 {
   "meta" : {
-    "query_time" : 366,
+    "query_time" : 345,
     "total_results" : 5740000,
     "indices" : [
       "cw12",
@@ -109,16 +109,16 @@ POST /api/v1/_search
   },
   "results" : [
     {
-      "score" : 592.4078,
-      "uuid" : "47405d9b-4630-5b14-a0f7-cc2484a7bdda",
+      "score" : 621.297,
+      "uuid" : "e635baa8-7341-596a-b3cf-b33c05954361",
       "index" : "cc1511",
       "trec_id" : null,
       "target_hostname" : "www.perlmonks.org",
-      "target_uri" : "http://www.perlmonks.org/index.pl?node_id=145765",
+      "target_uri" : "http://www.perlmonks.org/index.pl?node=329174",
       "page_rank" : null,
       "spam_rank" : null,
-      "title" : "<em>Hello</em> <em>World</em>",
-      "snippet" : "Not really sure if this should be listed as an obfu or a CUFP, as it really does have qualities of both. On the one hand, it&#x27;s sorta kinda unreadable, and certainly not what you&#x27;d expect a &quot;<em>Hello</em> <em>World</em>&quot; program to be like. On the other, it demonstrates perl&#x27;s usefulness and power when dealing with",
+      "title" : "<em>hello</em> <em>world</em>",
+      "snippet" : "Wowjust . wow.you could make a poster out of that and sell quite a few i bet. A T-Shirt of this would rock. And it&#x27;d save me the trouble of stapling multiple posters together to wear. :) Very cool script! How mean, we beginners just figure out how to write the &quot;<em>hello</em> <em>world</em>&quot; script the",
       "explanation" : null
     }
   ]
@@ -172,7 +172,7 @@ POST /api/v1/_phrases
     "query": "hello world",
     "index": ["cw12", "cc1511"],
     "size": 1,
-    "pretty": true
+    "pretty": true,
     "snippetOnly": true
 }
 ```
@@ -180,7 +180,7 @@ POST /api/v1/_phrases
 ```
 {
   "meta" : {
-    "query_time" : 314,
+    "query_time" : 4372,
     "total_results" : 334060,
     "indices" : [
       "cw12",
@@ -189,8 +189,8 @@ POST /api/v1/_phrases
   },
   "results" : [
     {
-      "score" : 13.186971,
-      "snippet" : "JavaScript <em>Hello</em> <em>World</em>: This is the first program in JavaScript, and you will learn how to run a simple program of JavaScript in a web browser <em>Hello</em> <em>World</em> Program in JavaScript To write and run a JavaScript program all we.;&#x2F;body&gt; &lt;&#x2F;html&gt; Output: <em>Hello</em> <em>World</em>. the JavaScript code within html"
+      "score" : 13.189068,
+      "snippet" : "How can I retreive a String variable in javascript from a jsp variable? Spring <em>Hello</em> <em>World</em> Application <em>Hello</em> <em>World</em> Example using Spring, The tutorial given below describes you the way to make a spring web application that displays <em>Hello</em> <em>World</em> Spring <em>Hello</em> <em>World</em> prog I used running the helloworld"
     }
   ]
 }
