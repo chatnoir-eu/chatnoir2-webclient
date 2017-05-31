@@ -18,6 +18,23 @@ body {
     padding-bottom: 8rem;
 }
 
+code {
+    background: none;
+    color: #cb4625;
+}
+
+pre {
+    color: #2a5cb3;
+    border: 1px solid #2a5cb3;
+    border-radius: 2px;
+    box-shadow: 1px 1px 2px #e5ebff;
+    background: none;
+}
+
+a {
+    color: #2a5cb3;
+}
+
 /* ===========================================================================
  * Bootstrap overrides
  * ===========================================================================*/
@@ -32,6 +49,26 @@ body {
 .modal-body {
     max-height: 80vh;
     overflow: auto;
+}
+
+.btn-primary, .pagination > .active > a, .pagination > .active>span,
+.pagination > .active > a:hover, .pagination > .active > span:hover,
+.pagination > .active > a:focus, .pagination > .active > span:focus {
+    background: linear-gradient(to bottom, #cb4625 0%, #c04223 100%);
+    border-color: #cb4625;
+}
+
+.form-control:focus {
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(230, 79, 42, .6);
+    border-color: #e64f2a;
+}
+
+.pagination > li > a, .pagination > li > span {
+    color: #c04223;
+}
+
+#PageFooter a {
+    color: #c04223;
 }
 
 
@@ -71,6 +108,17 @@ body {
      position: relative;
      z-index: 100000;
  }
+
+#SearchField .btn-primary {
+    font-size: 0;
+}
+
+#SearchField .btn-primary:before {
+    content: "\f002";
+    font-family: "FontAwesome", serif;
+    font-size: 18px;
+    padding: 0 .3em;
+}
 
 /* ===========================================================================
  * Index template
@@ -351,6 +399,38 @@ body {
     margin: 2em 0;
 }
 
+#DocContent h1 a,
+#DocContent h2 a,
+#DocContent h3 a,
+#DocContent h4 a,
+#DocContent h5 a,
+#DocContent h6 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+#DocContent h1 a:hover:before, #DocContent h1 a:focus:before,
+#DocContent h2 a:hover:before, #DocContent h2 a:focus:before,
+#DocContent h3 a:hover:before, #DocContent h3 a:focus:before,
+#DocContent h4 a:hover:before, #DocContent h4 a:focus:before,
+#DocContent h5 a:hover:before, #DocContent h5 a:focus:before,
+#DocContent h6 a:hover:before, #DocContent h6 a:focus:before {
+    content: "\f0c1";
+    font-weight: normal;
+    font-family: "FontAwesome", sans-serif;
+    position: absolute;
+    margin-left: -1.5em;
+    margin-top: .65em;
+    font-size: .5em;
+}
+
+#DocContent h3 a:hover:before, #DocContent h3 a:focus:before,
+#DocContent h4 a:hover:before, #DocContent h4 a:focus:before,
+#DocContent h5 a:hover:before, #DocContent h5 a:focus:before,
+#DocContent h6 a:hover:before, #DocContent h6 a:focus:before {
+    margin-top: .4em;
+}
+
 #DocContent h1 {
     border-bottom: 1px solid #ddd;
     padding: .3em 0;
@@ -473,6 +553,10 @@ body {
 
     .search-page #SearchHeader {
         margin-top: 1rem;
+    }
+
+    .back-to-index {
+        margin: 2em 0 -1em 0;
     }
 }
 

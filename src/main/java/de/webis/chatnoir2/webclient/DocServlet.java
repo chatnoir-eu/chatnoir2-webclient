@@ -8,8 +8,12 @@
 package de.webis.chatnoir2.webclient;
 
 import com.vladsch.flexmark.ast.Node;
+import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.parser.ParserEmulationProfile;
+import com.vladsch.flexmark.util.options.MutableDataSet;
 import de.webis.chatnoir2.webclient.response.Renderer;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.collect.Tuple;
@@ -24,6 +28,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -84,8 +89,14 @@ public class DocServlet extends ChatNoirServlet
                 .convertToMap(new BytesArray(contentSplit[1].getBytes()), false, XContentType.YAML);
         Map<String, Object> docParams = xContent.v2();
 
-        Parser markdownParser = Parser.builder().build();
-        HtmlRenderer htmlRenderer = HtmlRenderer.builder().build();
+        MutableDataSet options = new MutableDataSet();
+        options.setFrom(ParserEmulationProfile.MARKDOWN);
+        options.set(Parser.EXTENSIONS, Arrays.asList(
+                AnchorLinkExtension.create(),
+                TablesExtension.create()
+        ));
+        Parser markdownParser = Parser.builder(options).build();
+        HtmlRenderer htmlRenderer = HtmlRenderer.builder(options).build();
 
         Node document = markdownParser.parse(contentSplit[2]);
         String html = htmlRenderer.render(document);

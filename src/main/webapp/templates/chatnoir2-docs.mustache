@@ -4,6 +4,7 @@
     <title>{{title}}</title>
     {{> bootstrap-head}}
     {{> chatnoir2-head}}
+    <link href="{{contextPath}}/static/css/prism.min.css" rel="stylesheet">
 </head>
 <body class="search-page">
     <div id="Main" class="container">
@@ -28,7 +29,7 @@
 
         {{^isIndex}}
         <section>
-            <div class="back-to-index"><a href="/doc">« Back to documentation index</a></div>
+            <div class="back-to-index"><a href="{{contextPath}}/doc">« Back to documentation index</a></div>
         </section>
         {{/isIndex}}
 
@@ -41,5 +42,14 @@
 
     {{> jquery-foot}}
     {{> bootstrap-foot}}
+    <script src="{{contextPath}}/static/js/prism.min.js"></script>
+    <script>
+        $("pre > code").each(function() {
+            var el = $(this);
+            el.html(Prism.highlight(el.text(), Prism.languages.json));
+            el.html(el.html().replace(/^(GET|POST) (.+)\n/,
+                    '<div class="request"><span class="request-method">$1</span> <span class="request-uri">$2</span></div>'));
+        });
+    </script>
 </body>
 </html>

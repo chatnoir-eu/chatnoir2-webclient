@@ -37,7 +37,7 @@ GET /api/v1/_search?apiKey=...&query=hello%20world&index=cw09,cw12&pretty
 ```
 POST /api/v1/_search
 {
-    "apiKey: "...",
+    "apiKey": "...",
     "query": "hello world",
     "index": ["cw09", "cw12"],
     "pretty": true
