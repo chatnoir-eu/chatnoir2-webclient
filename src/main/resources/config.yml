@@ -33,7 +33,7 @@ cluster:
 
   # Default indices to search when no explicit search index is defined
   default_indices:
-    - cw12
+    - cc1511
 
   # Define index aliases.
   # Raw index names in Elasticsearch responses will be replaced with the alias name
