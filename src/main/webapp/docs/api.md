@@ -137,7 +137,7 @@ The API endpoint for the phrase search module is: `/api/v1/_phrases`.
 - `slop`: how far terms in a phrase may be apart (valid values: 0, 1, 2; default: 0)
 - `index`: list of indices to search (see above)
 - `from`: result pagination begin
-- `size`: result page size
+- `size`: number of results per page
 - `snippetOnly`: reduce result list to `score` and `snippet` for each hit (boolean flag)
 - `explain`: return additional scoring information (boolean flag)
 
