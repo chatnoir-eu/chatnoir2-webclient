@@ -13,6 +13,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.search.SearchHit;
 
+import javax.servlet.http.HttpServletRequest;
 import java.nio.file.Paths;
 import java.util.*;
 

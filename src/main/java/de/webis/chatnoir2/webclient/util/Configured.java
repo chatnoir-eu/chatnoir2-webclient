@@ -8,6 +8,7 @@
 package de.webis.chatnoir2.webclient.util;
 
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
+import org.apache.log4j.Logger;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -68,5 +69,36 @@ public class Configured
             }
         }
         return mClient;
+    }
+
+    /**
+     * Get a configured {@link Logger} instance for this class.
+     *
+     * @return configured Logger
+     */
+    public Logger getLogger()
+    {
+        return Logger.getLogger(getClass());
+    }
+
+    /**
+     * Get a configured {@link Logger} instance for this class with a custom category tag.
+     *
+     * @param tag tag to be appended to the logger category
+     * @return configured Logger
+     */
+    public Logger getLogger(String tag)
+    {
+        return Logger.getLogger(getClass().getName() + "#" + tag);
+    }
+
+    /**
+     * Get an instance of the global system logger.
+     *
+     * @return system Logger
+     */
+    public Logger getSysLogger()
+    {
+        return Logger.getLogger("de.webis.chatnoir2.webclient");
     }
 }

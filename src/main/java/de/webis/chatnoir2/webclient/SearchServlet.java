@@ -116,6 +116,11 @@ public class SearchServlet extends ChatNoirServlet
             return;
         }
 
+        // write query log
+        if (currentPage == 1) {
+            writeQueryLog(search, request, searchQueryString, true);
+        }
+
         final SERPContext serpContext = new SERPContext();
         serpContext.setResults(search.getResults());
         serpContext.setPagination(numResults, mResultsPerPage, currentPage);

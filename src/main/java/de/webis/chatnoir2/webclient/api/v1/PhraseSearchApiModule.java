@@ -78,6 +78,11 @@ public class PhraseSearchApiModule extends ApiModuleBase
 
         final List<SearchResultBuilder.SearchResult> results = search.getResults();
 
+        // write query log
+        if (from == 0) {
+            writeQueryLog(search, request, searchQueryString, false);
+        }
+
         final XContentBuilder builder = getResponseBuilder();
         builder.startObject()
             .startObject("meta")

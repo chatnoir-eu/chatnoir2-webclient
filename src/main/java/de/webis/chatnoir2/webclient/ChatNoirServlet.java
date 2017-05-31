@@ -7,6 +7,8 @@
 
 package de.webis.chatnoir2.webclient;
 
+import de.webis.chatnoir2.webclient.util.Configured;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -61,5 +63,30 @@ public abstract class ChatNoirServlet extends HttpServlet
         } catch (UnsupportedEncodingException | NullPointerException ignored) {
             return null;
         }
+    }
+
+    /**
+     * Write the given user query to the query log.
+     *
+     * @param searchProvider search provider for which to log the query
+     * @param request HTTP request
+     * @param queryString user query string
+     * @param web true of query was sent via end-user web interface, false if query was sent via API
+     */
+    protected void writeQueryLog(Configured searchProvider, HttpServletRequest request, String queryString, boolean web)
+    {
+        String ip = request.getRemoteHost();
+        String userAgent = request.getHeader("User-Agent");
+
+        StringBuilder msg = new StringBuilder();
+        if (null != ip) {
+            msg.append("IP: ").append(ip).append(" ");
+        }
+        if (null != userAgent) {
+            msg.append("USER-AGENT: ").append(userAgent).append(" ");
+        }
+        msg.append("QUERY: ").append(queryString);
+
+        searchProvider.getLogger(web ? "Web" : "Api").info(msg);
     }
 }
