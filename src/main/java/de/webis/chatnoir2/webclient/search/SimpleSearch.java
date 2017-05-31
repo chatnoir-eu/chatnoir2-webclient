@@ -93,6 +93,12 @@ public class SimpleSearch extends SearchProvider
     }
 
     @Override
+    public List<SearchResultBuilder.SearchResult> getResults()
+    {
+        return groupResults(super.getResults());
+    }
+
+    @Override
     protected SearchResponse getResponse()
     {
         return mResponse;
