@@ -185,7 +185,6 @@ public class SimpleSearch extends SearchProvider
     private QueryBuilder parseQueryStringOperators(StringBuffer queryString)
     {
         // replace AND and OR with + and |
-        System.out.println(queryString);
         queryString.replace(0, queryString.length(),
                 queryString.toString().replaceAll("(?!\\B\"[^\"]*) AND (?![^\"]*\"\\B)", " +"));
         queryString.replace(0, queryString.length(),
