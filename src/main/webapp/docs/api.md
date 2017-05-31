@@ -160,7 +160,7 @@ The API endpoint for the phrase search module is: `/api/v1/_phrases`.
         - `snippet`: document body snippet with highlights
         - `explanation`: additional scoring information if `explain` was set to `true` **\*\***
 
-**\*** fields are not returned if `snippetOnly` is set. \
+**\*** field is not returned if `snippetOnly` is set. \
 **\*\*** `explanation` is only returned if `snippetOnly` is not set or `explain` is `true`.
 
 ### Example:
@@ -196,7 +196,7 @@ POST /api/v1/_phrases
 }
 ```
 
-## Retrieving full documents
+## Retrieving Full Documents
 The full HTML contents of a search result can be retrieved from
 
 ```
