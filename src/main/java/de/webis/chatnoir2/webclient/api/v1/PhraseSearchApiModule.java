@@ -58,8 +58,8 @@ public class PhraseSearchApiModule extends ApiModuleBase
         Integer slop = getTypedNestedParameter(Integer.class, "slop", request);
         boolean doExplain = isNestedParameterSet("explain", request);
         boolean snippetOnly = isNestedParameterSet("snippetOnly", request);
-        if (null == from || from < 1) {
-            from = 1;
+        if (null == from || from < 0) {
+            from = 0;
         }
         if (null == size || size < 1) {
             size = config.getInteger("serp.results_per_page");

@@ -53,8 +53,8 @@ public class SimpleSearchApiModule extends ApiModuleBase
         Integer from = getTypedNestedParameter(Integer.class, "from", request);
         Integer size = getTypedNestedParameter(Integer.class, "size", request);
         boolean doExplain = isNestedParameterSet("explain", request);
-        if (null == from || from < 1) {
-            from = 1;
+        if (null == from || from < 0) {
+            from = 0;
         }
         if (null == size || size < 1) {
             size = new Configured().getConf().getInteger("serp.results_per_page");
