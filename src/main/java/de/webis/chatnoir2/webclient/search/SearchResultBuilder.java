@@ -54,16 +54,22 @@ public class SearchResultBuilder
 
     public SearchResultBuilder index(String index)
     {
+        String displayIndex = index;
         ConfigLoader.Config[] conf = new Configured().getConf().getArray("cluster.index_aliases");
         if (conf.length != 0) {
             for (ConfigLoader.Config c : conf) {
                 if (c.getString("index", "").equals(index)) {
                     index = c.getString("alias", "");
+                    if (c.contains("display_name")) {
+                        displayIndex = c.getString("display_name");
+                    }
+
                     break;
                 }
             }
         }
         mSearchResult.mIndex = index;
+        mSearchResult.mDisplayIndex = displayIndex;
         return this;
     }
 
@@ -158,6 +164,7 @@ public class SearchResultBuilder
     {
         private float mScore = 0.0f;
         private String mIndex = "";
+        private String mDisplayIndex = "";
         private String mDocumentId = "";
         private String mTrecId = null;
         private String mTitle = "";
@@ -204,6 +211,16 @@ public class SearchResultBuilder
         public void setIndex(String index)
         {
             mIndex = index;
+        }
+
+        public String displayIndex()
+        {
+            return mDisplayIndex;
+        }
+
+        public void setDisplayIndex(String index)
+        {
+            mDisplayIndex = index;
         }
 
         public String documentId()

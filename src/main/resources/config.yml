@@ -40,12 +40,15 @@ cluster:
   index_aliases:
     - index: webis_warc_commoncrawl15_001
       alias: cc1511
+      display_name: CommonCrawl 11/15
 
     - index: webis_warc_clueweb09_002
       alias: cw09
+      display_name: ClueWeb09
 
     - index: webis_warc_clueweb12_010
       alias: cw12
+      display_name: ClueWeb12
 
 
 # ------------------------------------------------------------------------------------
