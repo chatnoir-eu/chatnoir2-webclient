@@ -58,9 +58,10 @@ a {
     border-color: #cb4625;
 }
 
-.btn-primary:focus, .btn-primary:hover {
+.btn-primary:focus, .btn-primary:hover, .btn-primary:active {
     background: #e45b39;
     border-color: #e45b39;
+    outline: 0 !important;
 }
 
 .pagination > li > a:hover, .pagination > li > span:hover,
