@@ -41,7 +41,8 @@ public class PhraseSearchApiModule extends ApiModuleBase
         }
 
         if (null == searchQueryString || searchQueryString.trim().isEmpty()) {
-            final XContentBuilder errObj = generateErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "Empty search query");
+            final XContentBuilder errObj = generateErrorResponse(request,
+                    HttpServletResponse.SC_BAD_REQUEST, "Empty search query");
             writeResponse(response, errObj, HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
@@ -84,7 +85,7 @@ public class PhraseSearchApiModule extends ApiModuleBase
             writeQueryLog(search, request, searchQueryString, false);
         }
 
-        final XContentBuilder builder = getResponseBuilder();
+        final XContentBuilder builder = getResponseBuilder(request);
         builder.startObject()
             .startObject("meta")
                 .field("query_time", elapsedTime)

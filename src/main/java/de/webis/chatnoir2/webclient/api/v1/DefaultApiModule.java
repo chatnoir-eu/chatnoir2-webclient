@@ -26,7 +26,8 @@ public class DefaultApiModule extends ApiModuleBase
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
-        final XContentBuilder errorObj = generateErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "No specific API module selected");
+        final XContentBuilder errorObj = generateErrorResponse(request,
+                HttpServletResponse.SC_BAD_REQUEST, "No specific API module selected");
         writeResponse(response, errorObj, HttpServletResponse.SC_BAD_REQUEST);
     }
 

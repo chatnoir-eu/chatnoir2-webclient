@@ -23,7 +23,7 @@ public class AuthenticationError extends ApiModuleBase
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
-        final XContentBuilder errorObj = generateErrorResponse(
+        final XContentBuilder errorObj = generateErrorResponse(request,
                 HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid API key");
         writeResponse(response, errorObj, HttpServletResponse.SC_UNAUTHORIZED);
     }

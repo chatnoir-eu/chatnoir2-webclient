@@ -23,7 +23,7 @@ public class NotFoundError extends ApiModuleBase
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
-        final XContentBuilder errorObj = generateErrorResponse(
+        final XContentBuilder errorObj = generateErrorResponse(request,
                 HttpServletResponse.SC_NOT_FOUND, "API module not found");
         writeResponse(response, errorObj, HttpServletResponse.SC_NOT_FOUND);
     }

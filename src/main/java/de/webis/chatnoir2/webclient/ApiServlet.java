@@ -44,7 +44,7 @@ public class ApiServlet extends ChatNoirServlet
         if (requestMethod.equals("GET") || requestMethod.equals("POST")) {
             apiHandler.service(request, response);
         } else {
-            apiHandler.rejectMethod(response);
+            apiHandler.rejectMethod(request, response);
         }
     }
 }

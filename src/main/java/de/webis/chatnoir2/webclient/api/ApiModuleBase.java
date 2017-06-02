@@ -27,9 +27,10 @@ import java.io.IOException;
  */
 public abstract class ApiModuleBase extends ChatNoirServlet
 {
-    private HttpServletRequest mLastRequest = null;
-    private JSONObject mParsedPayload = null;
-    private boolean mPrettyPrint = false;
+    /**
+     * Request attribute for saving parsed payload.
+     */
+    private final String PAYLOAD_ATTR_NAME = getClass().getName() + ".parsedPayload";
 
     /**
      * Initialize API request.
@@ -39,7 +40,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      */
     public void initApiRequest(final HttpServletRequest request)
     {
-        setPrettyPrint(isNestedParameterSet("pretty", request));
+        setPrettyPrint(request, isNestedParameterSet("pretty", request));
     }
 
     /**
@@ -57,14 +58,15 @@ public abstract class ApiModuleBase extends ChatNoirServlet
     /**
      * Generate a JSON response object to indicate an error.
      *
+     * @param request HTTP request
      * @param errorCode API/HTTP error code
      * @param errorMessage error description
      * @return generated JSONObject
      */
-    public final XContentBuilder generateErrorResponse(final int errorCode, final String errorMessage)
+    public final XContentBuilder generateErrorResponse(HttpServletRequest request, final int errorCode, final String errorMessage)
     {
         try {
-            final XContentBuilder jb = getResponseBuilder();
+            final XContentBuilder jb = getResponseBuilder(request);
             jb.startObject()
                     .startObject("error")
                         .field("code", errorCode)
@@ -81,11 +83,13 @@ public abstract class ApiModuleBase extends ChatNoirServlet
     /**
      * Write an error response for rejecting the used HTTP request method.
      *
+     * @param request HTTP request object
      * @param response HTTP response object
      */
-    public final void rejectMethod(final HttpServletResponse response)
+    public final void rejectMethod(final HttpServletRequest request, final HttpServletResponse response)
     {
-        final XContentBuilder errorObj = generateErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "Unsupported request method");
+        final XContentBuilder errorObj = generateErrorResponse(request,
+                HttpServletResponse.SC_BAD_REQUEST, "Unsupported request method");
         try {
             writeResponse(response, errorObj, HttpServletResponse.SC_BAD_REQUEST);
         } catch (IOException ignored) { }
@@ -94,19 +98,22 @@ public abstract class ApiModuleBase extends ChatNoirServlet
     /**
      * Set whether JSON responses should be nicely formatted or not.
      *
+     * @param request HTTP request
      * @param prettyPrint whether to pretty-print responses
      */
-    public synchronized void setPrettyPrint(boolean prettyPrint) {
-        mPrettyPrint = prettyPrint;
+    public synchronized void setPrettyPrint(HttpServletRequest request, boolean prettyPrint) {
+        request.setAttribute(getClass().getName() + ".prettyPrint", prettyPrint);
     }
 
     /**
      * Get whether JSON responses should be nicely formatted or not.
      *
      * @return whether to pretty-print responses
+     * @param request HTTP request
      */
-    public boolean getPrettyPrint() {
-        return mPrettyPrint;
+    public boolean getPrettyPrint(HttpServletRequest request) {
+        Boolean prettyPrint = (Boolean) request.getAttribute(getClass().getName() + ".prettyPrint");
+        return prettyPrint != null && prettyPrint;
     }
 
     /**
@@ -139,7 +146,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
 
     /**
      * Handle GET request to API endpoint.
-     * If GET is not supported for this request, {@link #rejectMethod(HttpServletResponse)} should be used to
+     * If GET is not supported for this request, {@link #rejectMethod)} should be used to
      * generate and write an appropriate error response.
      *
      * @param request HTTP request
@@ -150,7 +157,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
 
     /**
      * Handle POST request to API endpoint.
-     * If POST is not supported for this request, {@link #rejectMethod(HttpServletResponse)} should be used to
+     * If POST is not supported for this request, {@link #rejectMethod)} should be used to
      * generate and write an appropriate error response.
      *
      * @param request HTTP request
@@ -162,12 +169,13 @@ public abstract class ApiModuleBase extends ChatNoirServlet
     /**
      * Get configured response builder.
      *
+     * @param request HTTP request
      * @return response builder
      */
-    protected XContentBuilder getResponseBuilder()
+    protected XContentBuilder getResponseBuilder(HttpServletRequest request)
     {
         try {
-            if (getPrettyPrint()) {
+            if (getPrettyPrint(request)) {
                 return XContentFactory.jsonBuilder().prettyPrint();
             }
             return XContentFactory.jsonBuilder();
@@ -185,8 +193,9 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      * @throws IOException if failed to parse payload
      */
     protected JSONObject getPayload(HttpServletRequest request) throws IOException {
-        if (mParsedPayload != null && request == mLastRequest) {
-            return mParsedPayload;
+        JSONObject parsedPayload = (JSONObject) request.getAttribute(PAYLOAD_ATTR_NAME);
+        if (null != parsedPayload) {
+            return parsedPayload;
         }
 
         StringBuilder sb = new StringBuilder();
@@ -203,10 +212,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
 
         try {
             JSONObject json = new JSONObject(sb.toString());
-            synchronized (this) {
-                mParsedPayload = json;
-                mLastRequest = request;
-            }
+            request.setAttribute(PAYLOAD_ATTR_NAME, json);
             return json;
         } catch (JSONException e) {
             throw new IOException("Invalid JSON specified. Message: " + e.getMessage());
