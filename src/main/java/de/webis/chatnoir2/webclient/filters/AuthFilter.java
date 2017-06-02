@@ -13,7 +13,7 @@ import javax.servlet.annotation.WebFilter;
 /**
  * Filter requests to serve static content.
  */
-@WebFilter(AuthFilter.ROUTE)
+@WebFilter(filterName="AuthFilter", urlPatterns = AuthFilter.ROUTE)
 public class AuthFilter extends ShiroFilter
 {
     /**

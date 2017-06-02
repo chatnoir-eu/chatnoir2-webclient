@@ -7,6 +7,7 @@
 
 package de.webis.chatnoir2.webclient.api.v1;
 
+import de.webis.chatnoir2.webclient.api.ApiModuleBase;
 import de.webis.chatnoir2.webclient.api.ApiModuleV1;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.search.PhraseSearch;

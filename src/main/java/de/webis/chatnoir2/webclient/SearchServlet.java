@@ -64,14 +64,14 @@ public class SearchServlet extends ChatNoirServlet
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
     {
-        final String searchQueryString = getParameter("q", request);
+        final String searchQueryString = request.getParameter("q");
         if (null == searchQueryString || searchQueryString.trim().isEmpty()) {
             response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
             response.sendRedirect(IndexServlet.ROUTE);
             return;
         }
 
-        String indicesString = getParameter("index", request);
+        String indicesString = request.getParameter("index");
         String[] indices = null;
         if (null != indicesString) {
             indices = indicesString.split(",");
@@ -86,7 +86,7 @@ public class SearchServlet extends ChatNoirServlet
         final SimpleSearch search = new SimpleSearch(indices);
 
         int currentPage = 1;
-        final String pageNumber = getParameter("p", request);
+        final String pageNumber = request.getParameter("p");
         if (null != pageNumber) {
             try {
                 currentPage = Math.max(Integer.parseInt(pageNumber), 1);
@@ -94,7 +94,7 @@ public class SearchServlet extends ChatNoirServlet
         }
 
         final long startTime = System.nanoTime();
-        search.setExplain(null != getParameter("explain", request));
+        search.setExplain(null != request.getParameter("explain"));
         search.doSearch(searchQueryString, (currentPage - 1) * mResultsPerPage, mResultsPerPage);
         final long elapsedTime = System.nanoTime() - startTime;
         templateVars.put("queryTime", String.format("%.1fms", elapsedTime * 0.000001));

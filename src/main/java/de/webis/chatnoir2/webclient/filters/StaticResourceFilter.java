@@ -21,11 +21,12 @@ import javax.servlet.annotation.WebFilter;
 /**
  * Filter requests to serve static content.
  */
-@WebFilter({
+@WebFilter(filterName = "StaticResourceFilter", urlPatterns = {
         StaticResourceFilter.ROUTE1,
         StaticResourceFilter.ROUTE2,
         StaticResourceFilter.ROUTE3,
-        StaticResourceFilter.ROUTE4
+        StaticResourceFilter.ROUTE4,
+        StaticResourceFilter.ROUTE5
 })
 public class StaticResourceFilter implements Filter
 {
@@ -36,23 +37,24 @@ public class StaticResourceFilter implements Filter
         ROUTE1 = "/static/*",
         ROUTE2 = "*.ico",
         ROUTE3 = "*.txt",
-        ROUTE4 = "*.gif";
+        ROUTE4 = "*.png",
+        ROUTE5 = "*.gif";
 
     /**
      * Request dispatcher.
      */
-    private RequestDispatcher rd;
+    private RequestDispatcher mRequestDispatcher;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException
     {
-        rd = filterConfig.getServletContext().getNamedDispatcher("default");
+        mRequestDispatcher = filterConfig.getServletContext().getNamedDispatcher("default");
     }
 
     @Override
-    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws IOException, ServletException
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
     {
-        rd.forward(req, resp);
+        mRequestDispatcher.forward(request, response);
     }
 
     @Override

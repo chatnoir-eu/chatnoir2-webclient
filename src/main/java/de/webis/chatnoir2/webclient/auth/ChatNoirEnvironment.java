@@ -7,18 +7,19 @@
 
 package de.webis.chatnoir2.webclient.auth;
 
+import de.webis.chatnoir2.webclient.auth.api.ApiAuthenticationFilter;
+import de.webis.chatnoir2.webclient.auth.api.ApiKeyRealm;
 import org.apache.shiro.mgt.SecurityManager;
-import org.apache.shiro.realm.SimpleAccountRealm;
+import org.apache.shiro.realm.Realm;
 import org.apache.shiro.web.env.DefaultWebEnvironment;
-import org.apache.shiro.web.filter.authc.AuthenticationFilter;
 import org.apache.shiro.web.filter.mgt.DefaultFilterChainManager;
 import org.apache.shiro.web.filter.mgt.FilterChainManager;
 import org.apache.shiro.web.filter.mgt.FilterChainResolver;
 import org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Default Shiro environment for ChatNoir 2.
@@ -38,9 +39,11 @@ public class ChatNoirEnvironment extends DefaultWebEnvironment
     @Override
     public SecurityManager getSecurityManager()
     {
+        List<Realm> realms = new LinkedList<>();
+        realms.add(ApiKeyRealm.getInstance());
+
         if (mSecurityManager == null) {
-            SimpleAccountRealm realm = new SimpleAccountRealm();
-            mSecurityManager = new DefaultWebSecurityManager(realm);
+            mSecurityManager = new DefaultWebSecurityManager(realms);
         }
         return mSecurityManager;
     }
@@ -50,14 +53,10 @@ public class ChatNoirEnvironment extends DefaultWebEnvironment
     {
         if (null == mFilterChainResolver) {
             FilterChainManager manager = new DefaultFilterChainManager();
-            manager.addFilter("default", new AuthenticationFilter()
-            {
-                @Override
-                protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception
-                {
-                    return true;
-                }
-            });
+            manager.addFilter("default", new NullAuthenticationFilter());
+            manager.addFilter("api", new ApiAuthenticationFilter());
+
+            manager.createChain("/api/**", "api");
             manager.createChain("/**", "default");
 
             PathMatchingFilterChainResolver resolver = new PathMatchingFilterChainResolver();

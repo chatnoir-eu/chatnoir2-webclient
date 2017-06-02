@@ -14,6 +14,9 @@ import java.lang.annotation.Target;
 
 /**
  * ChatNoir API module annotation v1.
+ *
+ * All callable API modules need to be annotated with this @interface. As a constructor parameter you
+ * need to specify the API module name with which the user will call the module in the URI.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})

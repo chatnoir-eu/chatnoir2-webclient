@@ -1,0 +1,35 @@
+{
+    "settings" : {
+        "index" : {
+            "number_of_shards" : 1,
+            "number_of_replicas" : 2
+        }
+    },
+    "mappings": {
+        "apikey": {
+            "_all": { "enabled": false },
+            "properties": {
+                "user": {
+                    "type": "nested",
+                    "properties": {
+                        "first_name": { "type": "keyword" },
+                        "last_name":  { "type": "keyword" },
+                        "address":    { "type": "keyword" },
+                        "zip_code":   { "type": "keyword" },
+                        "country":    { "type": "keyword" },
+                        "email":      { "type": "keyword" }
+                    }
+                },
+                "limits": {
+                    "type": "nested",
+                    "properties": {
+                        "day":   { "type": "long" },
+                        "week":  { "type": "long" },
+                        "month": { "type": "long" }
+                    }
+                },
+                "roles": { "type": "keyword" }
+            }
+        }
+    }
+}

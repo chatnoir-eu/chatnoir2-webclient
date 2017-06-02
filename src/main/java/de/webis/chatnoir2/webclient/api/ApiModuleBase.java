@@ -5,10 +5,10 @@
  * Main Contributor: Janek Bevendorff
  */
 
-package de.webis.chatnoir2.webclient.api.v1;
+package de.webis.chatnoir2.webclient.api;
 
 import de.webis.chatnoir2.webclient.ChatNoirServlet;
-import de.webis.chatnoir2.webclient.resources.ApiKeyManager;
+import de.webis.chatnoir2.webclient.auth.api.ApiKeyAuthenticationToken;
 import org.apache.commons.lang.math.NumberUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -32,29 +32,26 @@ public abstract class ApiModuleBase extends ChatNoirServlet
     private boolean mPrettyPrint = false;
 
     /**
-     * Check if request is a valid request or write an error response if not.
-     * Overriding methods should always call the parent method before running custom checks.
-     * Servlets should not continue if this method returns false.
+     * Initialize API request.
+     * This method is called on every request before anything else.
      *
      * @param request HTTP request
-     * @return true if request is valid
      */
-    public boolean validateRequest(final HttpServletRequest request, final HttpServletResponse response)
+    public void initApiRequest(final HttpServletRequest request)
     {
-        // do some general setup
         setPrettyPrint(isNestedParameterSet("pretty", request));
+    }
 
-        // validate request
-        final String keyParameter = getTypedNestedParameter(String.class, "apikey", request);
-        if (null != keyParameter && ApiKeyManager.getInstance().isApiKeyValid(keyParameter)) {
-            return true;
-        } else {
-            final XContentBuilder errorResponse = generateErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid API key");
-            try {
-                writeResponse(response, errorResponse, HttpServletResponse.SC_UNAUTHORIZED);
-            } catch (IOException ignored) { }
-            return false;
-        }
+    /**
+     * Get the user API key / token from the request.
+     *
+     * @param request HTTP request
+     * @return API token or null if none was given
+     */
+    public ApiKeyAuthenticationToken getUserToken(final HttpServletRequest request)
+    {
+        String token = getTypedNestedParameter(String.class, "apikey", request);
+        return new ApiKeyAuthenticationToken(token);
     }
 
     /**
@@ -99,7 +96,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      *
      * @param prettyPrint whether to pretty-print responses
      */
-    public void setPrettyPrint(boolean prettyPrint) {
+    public synchronized void setPrettyPrint(boolean prettyPrint) {
         mPrettyPrint = prettyPrint;
     }
 
@@ -196,6 +193,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
         String line;
         try {
             BufferedReader reader = request.getReader();
+            reader.reset();
             while ((line = reader.readLine()) != null) {
                 sb.append(line);
             }
@@ -205,8 +203,10 @@ public abstract class ApiModuleBase extends ChatNoirServlet
 
         try {
             JSONObject json = new JSONObject(sb.toString());
-            mParsedPayload = json;
-            mLastRequest = request;
+            synchronized (this) {
+                mParsedPayload = json;
+                mLastRequest = request;
+            }
             return json;
         } catch (JSONException e) {
             throw new IOException("Invalid JSON specified. Message: " + e.getMessage());
@@ -265,10 +265,12 @@ public abstract class ApiModuleBase extends ChatNoirServlet
                     body = body.getJSONObject(nameSplit[i]);
                 }
             }
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+            ignored.printStackTrace();
+        }
 
         // fall back to URI parameters (we can't parse native JSONObjects or JSONArrays here)
-        String value = super.getParameter(name, request);
+        String value = request.getParameter(name);
         if (null != value) {
             // return as is, if a String is wanted and this is already a String
             if (type.isInstance(value)) {

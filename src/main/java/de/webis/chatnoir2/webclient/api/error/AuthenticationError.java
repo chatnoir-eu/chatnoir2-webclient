@@ -5,11 +5,9 @@
  * Main Contributor: Janek Bevendorff
  */
 
-
-package de.webis.chatnoir2.webclient.api.v1;
+package de.webis.chatnoir2.webclient.api.error;
 
 import de.webis.chatnoir2.webclient.api.ApiModuleBase;
-import de.webis.chatnoir2.webclient.api.ApiModuleV1;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import javax.servlet.ServletException;
@@ -18,16 +16,16 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Default API module to serve generic API requests.
+ * Authentication error module.
  */
-@ApiModuleV1("_default")
-public class DefaultApiModule extends ApiModuleBase
+public class AuthenticationError extends ApiModuleBase
 {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
-        final XContentBuilder errorObj = generateErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "No specific API module selected");
-        writeResponse(response, errorObj, HttpServletResponse.SC_BAD_REQUEST);
+        final XContentBuilder errorObj = generateErrorResponse(
+                HttpServletResponse.SC_UNAUTHORIZED, "Missing or invalid API key");
+        writeResponse(response, errorObj, HttpServletResponse.SC_UNAUTHORIZED);
     }
 
     @Override
