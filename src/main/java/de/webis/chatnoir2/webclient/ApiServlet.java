@@ -80,7 +80,7 @@ public class ApiServlet extends ChatNoirServlet
         final ApiModuleBase apiHandler = bootstrapApiModuleFromPattern(apiModulePattern, apiModuleVersion);
         if (null == apiHandler) {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().println("ERROR: No API modules found. This shouldn't happen at all.");
+            response.getWriter().println("ERROR: No such API module found.");
             response.getWriter().flush();
             return;
         }
@@ -121,8 +121,10 @@ public class ApiServlet extends ChatNoirServlet
                     } catch (Exception ignored) {}
                 }
             }
+        } else {
+            throw new IllegalArgumentException("Invalid API version");
         }
 
-        throw new IllegalArgumentException("Invalid API version");
+        return null;
     }
 }
