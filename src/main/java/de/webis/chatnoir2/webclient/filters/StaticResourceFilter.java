@@ -1,11 +1,11 @@
 /*
  * ChatNoir 2 Web frontend.
  *
- * Copyright (C) 2014 Webis Group @ Bauhaus University Weimar
+ * Copyright (C) 2014-2017 Webis Group @ Bauhaus University Weimar
  * Main Contributor: Janek Bevendorff
  */
 
-package de.webis.chatnoir2.webclient.response;
+package de.webis.chatnoir2.webclient.filters;
 
 import java.io.IOException;
 
@@ -18,23 +18,21 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebFilter;
 
-@WebFilter(urlPatterns = {
+/**
+ * Filter requests to serve static content.
+ */
+@WebFilter({
         StaticResourceFilter.ROUTE1,
         StaticResourceFilter.ROUTE2,
         StaticResourceFilter.ROUTE3,
         StaticResourceFilter.ROUTE4
-    }
-)
-
-/**
- * Filter requests to serve static content.
- */
+})
 public class StaticResourceFilter implements Filter
 {
     /**
      * Routes for static content.
      */
-    public static final String
+    static final String
         ROUTE1 = "/static/*",
         ROUTE2 = "*.ico",
         ROUTE3 = "*.txt",

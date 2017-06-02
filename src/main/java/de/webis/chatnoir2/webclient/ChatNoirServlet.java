@@ -75,7 +75,10 @@ public abstract class ChatNoirServlet extends HttpServlet
      */
     protected void writeQueryLog(Configured searchProvider, HttpServletRequest request, String queryString, boolean web)
     {
-        String ip = request.getRemoteHost();
+        String ip = request.getHeader("X-Forwarded-For");
+        if (null == ip) {
+            ip = request.getRemoteHost();
+        }
         String userAgent = request.getHeader("User-Agent");
 
         StringBuilder msg = new StringBuilder();
