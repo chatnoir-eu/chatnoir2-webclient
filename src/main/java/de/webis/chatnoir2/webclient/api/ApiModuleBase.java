@@ -28,9 +28,9 @@ import java.io.IOException;
 public abstract class ApiModuleBase extends ChatNoirServlet
 {
     /**
-     * Request attribute for saving parsed payload.
+     * Base name for request attributes
      */
-    private final String PAYLOAD_ATTR_NAME = getClass().getName() + ".parsedPayload";
+    private final String REQUEST_ATTRIBUTE_BASE_NAME = ApiModuleBase.class.getName();
 
     /**
      * Initialize API request.
@@ -102,7 +102,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      * @param prettyPrint whether to pretty-print responses
      */
     public synchronized void setPrettyPrint(HttpServletRequest request, boolean prettyPrint) {
-        request.setAttribute(getClass().getName() + ".prettyPrint", prettyPrint);
+        request.setAttribute(REQUEST_ATTRIBUTE_BASE_NAME + ".prettyPrint", prettyPrint);
     }
 
     /**
@@ -112,7 +112,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      * @param request HTTP request
      */
     public boolean getPrettyPrint(HttpServletRequest request) {
-        Boolean prettyPrint = (Boolean) request.getAttribute(getClass().getName() + ".prettyPrint");
+        Boolean prettyPrint = (Boolean) request.getAttribute(REQUEST_ATTRIBUTE_BASE_NAME + ".prettyPrint");
         return prettyPrint != null && prettyPrint;
     }
 
@@ -193,7 +193,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      * @throws IOException if failed to parse payload
      */
     protected JSONObject getPayload(HttpServletRequest request) throws IOException {
-        JSONObject parsedPayload = (JSONObject) request.getAttribute(PAYLOAD_ATTR_NAME);
+        JSONObject parsedPayload = (JSONObject) request.getAttribute(REQUEST_ATTRIBUTE_BASE_NAME + ".parsedPayload");
         if (null != parsedPayload) {
             return parsedPayload;
         }
@@ -211,8 +211,12 @@ public abstract class ApiModuleBase extends ChatNoirServlet
         }
 
         try {
-            JSONObject json = new JSONObject(sb.toString());
-            request.setAttribute(PAYLOAD_ATTR_NAME, json);
+            String jsonStr = sb.toString().trim();
+            if (jsonStr.isEmpty()) {
+                jsonStr = "{}";
+            }
+            JSONObject json = new JSONObject(jsonStr);
+            request.setAttribute(REQUEST_ATTRIBUTE_BASE_NAME + ".parsedPayload", json);
             return json;
         } catch (JSONException e) {
             throw new IOException("Invalid JSON specified. Message: " + e.getMessage());
@@ -271,9 +275,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
                     body = body.getJSONObject(nameSplit[i]);
                 }
             }
-        } catch (IOException ignored) {
-            ignored.printStackTrace();
-        }
+        } catch (IOException ignored) {}
 
         // fall back to URI parameters (we can't parse native JSONObjects or JSONArrays here)
         String value = request.getParameter(name);
