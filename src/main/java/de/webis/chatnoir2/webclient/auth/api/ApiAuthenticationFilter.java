@@ -27,6 +27,8 @@ import java.io.IOException;
  */
 public class ApiAuthenticationFilter extends AuthenticatingFilter
 {
+    private static final String ERROR_INDICATOR_ATTRIBUTE = ApiAuthenticationFilter.class.getName() + ".error";
+
     @Override
     protected AuthenticationToken createToken(ServletRequest request, ServletResponse response) throws Exception
     {
@@ -36,8 +38,12 @@ public class ApiAuthenticationFilter extends AuthenticatingFilter
             return apiModule.getUserToken(httpRequest);
         } catch (ApiBootstrap.InvalidApiVersionException e) {
             ApiBootstrap.handleInvalidApiVersion((HttpServletResponse) response);
-            return null;
+        } catch (Exception e) {
+            ApiBootstrap.handleException(e, (HttpServletRequest) request, (HttpServletResponse) response);
         }
+
+        request.setAttribute(ERROR_INDICATOR_ATTRIBUTE, true);
+        return new ApiKeyAuthenticationToken("");
     }
 
     @Override
@@ -60,9 +66,12 @@ public class ApiAuthenticationFilter extends AuthenticatingFilter
 
     protected boolean onLoginFailure(AuthenticationToken token, AuthenticationException e,
                                      ServletRequest request, ServletResponse response) {
-        ApiModuleBase errorModule = ApiBootstrap.getAuthenticationErrorModule((HttpServletRequest) request);
         try {
-            errorModule.service(request, response);
+            if (request.getAttribute(ERROR_INDICATOR_ATTRIBUTE) == null) {
+                // don't print an authentication failure message if an error occurred
+                ApiModuleBase errorModule = ApiBootstrap.getAuthenticationErrorModule((HttpServletRequest) request);
+                errorModule.service(request, response);
+            }
         } catch (ServletException | IOException ignored) {}
 
         return false;

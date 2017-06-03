@@ -9,6 +9,7 @@ package de.webis.chatnoir2.webclient.api;
 
 import de.webis.chatnoir2.webclient.ChatNoirServlet;
 import de.webis.chatnoir2.webclient.auth.api.ApiKeyAuthenticationToken;
+import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.commons.lang.math.NumberUtils;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
@@ -28,6 +29,17 @@ import java.io.IOException;
 public abstract class ApiModuleBase extends ChatNoirServlet
 {
     /**
+     * Exception class to indicate user input error.
+     */
+    public static class UserErrorException extends ServletException
+    {
+        public UserErrorException(String error)
+        {
+            super(error);
+        }
+    }
+
+    /**
      * Base name for request attributes
      */
     private final String REQUEST_ATTRIBUTE_BASE_NAME = ApiModuleBase.class.getName();
@@ -38,7 +50,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      *
      * @param request HTTP request
      */
-    public void initApiRequest(final HttpServletRequest request)
+    public void initApiRequest(final HttpServletRequest request) throws ServletException
     {
         setPrettyPrint(request, isNestedParameterSet("pretty", request));
     }
@@ -49,7 +61,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      * @param request HTTP request
      * @return API token or null if none was given
      */
-    public ApiKeyAuthenticationToken getUserToken(final HttpServletRequest request)
+    public ApiKeyAuthenticationToken getUserToken(final HttpServletRequest request) throws ServletException
     {
         String token = getTypedNestedParameter(String.class, "apikey", request);
         return new ApiKeyAuthenticationToken(token);
@@ -190,9 +202,9 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      *
      * @param request HTTP request
      * @return parsed JSON payload
-     * @throws IOException if failed to parse payload
+     * @throws ServletException if failed to parse payload
      */
-    protected JSONObject getPayload(HttpServletRequest request) throws IOException {
+    protected JSONObject getPayload(HttpServletRequest request) throws ServletException {
         JSONObject parsedPayload = (JSONObject) request.getAttribute(REQUEST_ATTRIBUTE_BASE_NAME + ".parsedPayload");
         if (null != parsedPayload) {
             return parsedPayload;
@@ -204,10 +216,11 @@ public abstract class ApiModuleBase extends ChatNoirServlet
             BufferedReader reader = request.getReader();
             reader.reset();
             while ((line = reader.readLine()) != null) {
-                sb.append(line);
+                sb.append(line).append("\n");
             }
         } catch (Exception e) {
-            throw new IOException("Failed to parse request payload");
+            new Configured().getSysLogger().error("Failed to parse request payload", e);
+            return new JSONObject();
         }
 
         try {
@@ -219,7 +232,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
             request.setAttribute(REQUEST_ATTRIBUTE_BASE_NAME + ".parsedPayload", json);
             return json;
         } catch (JSONException e) {
-            throw new IOException("Invalid JSON specified. Message: " + e.getMessage());
+            throw new UserErrorException("Invalid JSON payload supplied: " + e.getMessage());
         }
     }
 
@@ -236,46 +249,45 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      * @return parameter value or null if parameter does not exist or is of the wrong type
      */
     @SuppressWarnings("unchecked")
-    protected <T> T getTypedNestedParameter(Class<T> type, String name, final HttpServletRequest request) {
-        try {
-            JSONObject body = getPayload(request);
-            String[] nameSplit = name.split("\\.");
-            for (int i = 0; i < nameSplit.length; ++i) {
-                if (!body.has(nameSplit[i])) {
-                    break;
-                }
-
-                if (i == nameSplit.length - 1) {
-                    if (body.get(nameSplit[i]) == null) {
-                        return null;
-                    }
-
-                    if (type.isAssignableFrom(Boolean.class)) {
-                        // check boolean parameters first
-                        return (T) evaluatesTrue(body.get(nameSplit[i]).toString());
-                    }
-                    if (type.isInstance(body.get(nameSplit[i]))) {
-                        // return if parameter already has correct type
-                        return (T) body.get(nameSplit[i]);
-                    } else if (type.getSuperclass() == Number.class && body.get(nameSplit[i]) instanceof Number) {
-                        // convert to correct Number type if we are dealing with numeric types
-                        return (T) body.get(nameSplit[i]);
-                    } else if (body.get(nameSplit[i]) instanceof String && type.isAssignableFrom(JSONArray.class)) {
-                        // split value if a JSONArray is wanted, but have a string
-                        JSONArray arr = new JSONArray();
-                        if (type.isInstance(arr)) {
-                            String[] split = body.getString(nameSplit[i]).split(",");
-                            for (String s: split) {
-                                arr.put(s);
-                            }
-                            return (T) arr;
-                        }
-                    }
-                } else if (body.get(nameSplit[i]) instanceof JSONObject) {
-                    body = body.getJSONObject(nameSplit[i]);
-                }
+    protected <T> T getTypedNestedParameter(Class<T> type, String name, final HttpServletRequest request) throws ServletException
+    {
+        JSONObject body = getPayload(request);
+        String[] nameSplit = name.split("\\.");
+        for (int i = 0; i < nameSplit.length; ++i) {
+            if (!body.has(nameSplit[i])) {
+                break;
             }
-        } catch (IOException ignored) {}
+
+            if (i == nameSplit.length - 1) {
+                if (body.get(nameSplit[i]) == null) {
+                    return null;
+                }
+
+                if (type.isAssignableFrom(Boolean.class)) {
+                    // check boolean parameters first
+                    return (T) evaluatesTrue(body.get(nameSplit[i]).toString());
+                }
+                if (type.isInstance(body.get(nameSplit[i]))) {
+                    // return if parameter already has correct type
+                    return (T) body.get(nameSplit[i]);
+                } else if (type.getSuperclass() == Number.class && body.get(nameSplit[i]) instanceof Number) {
+                    // convert to correct Number type if we are dealing with numeric types
+                    return (T) body.get(nameSplit[i]);
+                } else if (body.get(nameSplit[i]) instanceof String && type.isAssignableFrom(JSONArray.class)) {
+                    // split value if a JSONArray is wanted, but have a string
+                    JSONArray arr = new JSONArray();
+                    if (type.isInstance(arr)) {
+                        String[] split = body.getString(nameSplit[i]).split(",");
+                        for (String s: split) {
+                            arr.put(s);
+                        }
+                        return (T) arr;
+                    }
+                }
+            } else if (body.get(nameSplit[i]) instanceof JSONObject) {
+                body = body.getJSONObject(nameSplit[i]);
+            }
+        }
 
         // fall back to URI parameters (we can't parse native JSONObjects or JSONArrays here)
         String value = request.getParameter(name);
@@ -336,7 +348,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      * @param request HTTP request
      * @return whether parameter is set and evaluates to true
      */
-    public boolean isNestedParameterSet(String name, HttpServletRequest request)
+    public boolean isNestedParameterSet(String name, HttpServletRequest request) throws ServletException
     {
         Boolean param = getTypedNestedParameter(Boolean.class, name, request);
         if (param == null) {

@@ -38,6 +38,9 @@ public class ApiServlet extends ChatNoirServlet
         } catch (ApiBootstrap.InvalidApiVersionException e) {
             ApiBootstrap.handleInvalidApiVersion(response);
             return;
+        } catch (Exception e) {
+            ApiBootstrap.handleException(e, request, response);
+            return;
         }
 
         String requestMethod = request.getMethod();
