@@ -28,13 +28,8 @@ import java.util.Set;
  */
 public class ApiBootstrap
 {
-    public static class InvalidApiVersionException extends Exception
+    public static class InvalidApiVersionException extends ApiModuleBase.UserErrorException
     {
-        public InvalidApiVersionException()
-        {
-            super();
-        }
-
         public InvalidApiVersionException(String message)
         {
             super(message);
@@ -182,17 +177,5 @@ public class ApiBootstrap
             new Configured().getSysLogger().error(
                     "While writing an error response, the following exception occurred:", exception);
         }
-    }
-
-    /**
-     * Write an error message indicating that the requested API version is invalid.
-     *
-     * @param response HTTP response
-     */
-    public static void handleInvalidApiVersion(HttpServletResponse response) throws IOException
-    {
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        response.getWriter().println("ERROR: Invalid API version.");
-        response.getWriter().flush();
     }
 }

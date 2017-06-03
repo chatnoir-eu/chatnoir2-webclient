@@ -36,8 +36,6 @@ public class ApiAuthenticationFilter extends AuthenticatingFilter
             HttpServletRequest httpRequest = (HttpServletRequest) request;
             ApiModuleBase apiModule = ApiBootstrap.bootstrapApiModule(httpRequest);
             return apiModule.getUserToken(httpRequest);
-        } catch (ApiBootstrap.InvalidApiVersionException e) {
-            ApiBootstrap.handleInvalidApiVersion((HttpServletResponse) response);
         } catch (Exception e) {
             ApiBootstrap.handleException(e, (HttpServletRequest) request, (HttpServletResponse) response);
         }
