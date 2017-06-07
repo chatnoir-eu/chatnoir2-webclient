@@ -16,6 +16,7 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.locks.Condition;
 
 /**
  * Base interface for classes which depend on the application configuration
@@ -23,8 +24,24 @@ import java.net.InetSocketAddress;
  */
 public class Configured
 {
+    private static Configured mInstance = null;
     private static ConfigLoader.Config mConf = null;
     private static TransportClient mClient = null;
+
+    /**
+     * @return stand-alone singleton instance.
+     */
+    public synchronized static Configured getInstance()
+    {
+        if (null == mInstance) {
+            mInstance = new Configured();
+        }
+        return mInstance;
+    }
+
+    protected Configured()
+    {
+    }
 
     /**
      * Get system configuration.

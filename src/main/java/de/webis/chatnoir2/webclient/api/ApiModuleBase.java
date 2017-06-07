@@ -219,7 +219,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
                 sb.append(line).append("\n");
             }
         } catch (Exception e) {
-            new Configured().getSysLogger().error("Failed to parse request payload", e);
+            Configured.getInstance().getSysLogger().error("Failed to parse request payload", e);
             return new JSONObject();
         }
 

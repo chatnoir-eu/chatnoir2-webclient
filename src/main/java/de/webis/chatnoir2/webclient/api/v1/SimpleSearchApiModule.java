@@ -60,7 +60,7 @@ public class SimpleSearchApiModule extends ApiModuleBase
             from = 0;
         }
         if (null == size || size < 1) {
-            size = new Configured().getConf().getInteger("serp.results_per_page");
+            size = Configured.getInstance().getConf().getInteger("serp.results_per_page");
         }
 
         final SimpleSearch search = new SimpleSearch(indicesStr);

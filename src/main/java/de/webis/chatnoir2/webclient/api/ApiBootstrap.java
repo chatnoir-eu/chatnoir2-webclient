@@ -154,7 +154,7 @@ public class ApiBootstrap
         } else {
             message = "An internal server error occurred. Please try again later.";
             responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-            new Configured().getSysLogger().error("Internal server exception:", exception);
+            Configured.getInstance().getSysLogger().error("Internal server exception:", exception);
         }
 
         ApiModuleBase moduleBase = new ApiModuleBase()
@@ -174,7 +174,7 @@ public class ApiBootstrap
         try {
             moduleBase.writeResponse(response, errorObj, responseCode);
         } catch (IOException e) {
-            new Configured().getSysLogger().error(
+            Configured.getInstance().getSysLogger().error(
                     "While writing an error response, the following exception occurred:", exception);
         }
     }

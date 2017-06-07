@@ -24,6 +24,7 @@ import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.xcontent.XContentType;
 
 import javax.annotation.CheckForNull;
+import java.io.Serializable;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,12 +34,12 @@ import java.util.*;
 /**
  * Shiro realm for API keys.
  */
-public class ApiTokenRealm extends AuthorizingRealm
+public class ApiTokenRealm extends AuthorizingRealm implements Serializable
 {
     /**
      * DAO representing API call limits.
      */
-    public class ApiLimits
+    public class ApiLimits implements Serializable
     {
         private final String mApiKey;
         private final Long mDay;
@@ -78,7 +79,6 @@ public class ApiTokenRealm extends AuthorizingRealm
     }
 
     private static ApiTokenRealm mInstance = null;
-    private final Configured mConfig;
 
     private final String KEY_INDEX;
 
@@ -95,8 +95,7 @@ public class ApiTokenRealm extends AuthorizingRealm
 
     private ApiTokenRealm()
     {
-        mConfig = new Configured();
-        KEY_INDEX = mConfig.getConf().getString("auth.api.key_index", "chatnoir2_apikeys");
+        KEY_INDEX = Configured.getInstance().getConf().getString("auth.api.key_index", "chatnoir2_apikeys");
         createKeyIndex();
 
         setCachingEnabled(false);
@@ -105,17 +104,18 @@ public class ApiTokenRealm extends AuthorizingRealm
 
     private void createKeyIndex()
     {
+        Configured config = Configured.getInstance();
         IndicesExistsRequest request = new IndicesExistsRequest(KEY_INDEX);
         try {
-            IndicesExistsResponse response = mConfig.getClient().admin().indices().exists(request).get();
+            IndicesExistsResponse response = config.getClient().admin().indices().exists(request).get();
             if (!response.isExists()) {
-                mConfig.getSysLogger().info(String.format("API key index '%s' does not exist, creating it.", KEY_INDEX));
+                config.getSysLogger().info(String.format("API key index '%s' does not exist, creating it.", KEY_INDEX));
 
                 URL mappingFileURL = getClass().getClassLoader().getResource("apikey.mapping.json");
                 assert mappingFileURL != null;
                 Path mappingFile = Paths.get(mappingFileURL.toURI());
                 final String mapping = Files.lines(mappingFile).reduce("", (a, b) -> a + b + "\n");
-                mConfig.getClient()
+                config.getClient()
                         .admin()
                         .indices()
                         .prepareCreate(KEY_INDEX)
@@ -145,7 +145,7 @@ public class ApiTokenRealm extends AuthorizingRealm
     {
         String apiKey = (String) token.getPrincipal();
 
-        GetResponse response = mConfig.getClient().prepareGet(KEY_INDEX, "apikey", apiKey).get();
+        GetResponse response = Configured.getInstance().getClient().prepareGet(KEY_INDEX, "apikey", apiKey).get();
         if (!response.isExists()) {
             throw new AuthenticationException("No user found for key " + apiKey);
         }

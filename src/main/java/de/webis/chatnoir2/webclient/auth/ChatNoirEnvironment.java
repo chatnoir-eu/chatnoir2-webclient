@@ -9,9 +9,17 @@ package de.webis.chatnoir2.webclient.auth;
 
 import de.webis.chatnoir2.webclient.auth.api.ApiAuthenticationFilter;
 import de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm;
+import org.apache.shiro.cache.ehcache.EhCacheManager;
 import org.apache.shiro.mgt.DefaultSecurityManager;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.realm.Realm;
+import org.apache.shiro.session.Session;
+import org.apache.shiro.session.SessionException;
+import org.apache.shiro.session.mgt.DefaultSessionManager;
+import org.apache.shiro.session.mgt.SessionContext;
+import org.apache.shiro.session.mgt.SessionKey;
+import org.apache.shiro.session.mgt.SessionManager;
+import org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO;
 import org.apache.shiro.web.env.DefaultWebEnvironment;
 import org.apache.shiro.web.filter.mgt.DefaultFilterChainManager;
 import org.apache.shiro.web.filter.mgt.FilterChainManager;
@@ -59,8 +67,8 @@ public class ChatNoirEnvironment extends DefaultWebEnvironment
         synchronized (mFCSMutex) {
             if (null == mFilterChainResolver) {
                 FilterChainManager manager = new DefaultFilterChainManager();
-                manager.addFilter("default", new NullAuthenticationFilter());
                 manager.addFilter("api", new ApiAuthenticationFilter());
+                manager.addFilter("default", new NullAuthenticationFilter());
 
                 manager.createChain("/api/**", "api");
                 manager.createChain("/**", "default");

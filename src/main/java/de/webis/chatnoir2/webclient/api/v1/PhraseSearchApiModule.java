@@ -33,7 +33,7 @@ public class PhraseSearchApiModule extends ApiModuleBase
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
-        ConfigLoader.Config config = new Configured().getConf();
+        ConfigLoader.Config config = Configured.getInstance().getConf();
 
         String searchQueryString = getTypedNestedParameter(String.class, "query", request);
         if (null == searchQueryString) {
