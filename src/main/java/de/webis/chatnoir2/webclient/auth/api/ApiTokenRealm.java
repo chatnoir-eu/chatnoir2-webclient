@@ -150,11 +150,12 @@ public class ApiTokenRealm extends AuthorizingRealm
             throw new AuthenticationException("No user found for key " + apiKey);
         }
 
-        SimplePrincipalCollection coll = new SimplePrincipalCollection();
-        coll.add(apiKey, getName());
         Map<String, Object> source = response.getSource();
-
         Map<String, Object> principalData = new HashMap<>();
+
+        principalData.put("apikey", apiKey);
+
+        // user data
         Map<String, String> userData = new HashMap<>();
         if (source.containsKey("user")) {
             Map<String, Object> userInfo = (Map) source.get("user");
@@ -164,6 +165,7 @@ public class ApiTokenRealm extends AuthorizingRealm
         }
         principalData.put("userdata", userData);
 
+        // api limits
         ApiLimits limits;
         if (null != source.get("limits")) {
             Map<String, Object> l = (Map) source.get("limits");
@@ -177,23 +179,21 @@ public class ApiTokenRealm extends AuthorizingRealm
         }
         principalData.put("limits", limits);
 
+        // user roles
         Set<String> roles = new HashSet<>();
         if (null != source.get("roles")) {
             roles.addAll((List) source.get("roles"));
         }
         principalData.put("roles", roles);
 
-        coll.add(principalData, getName());
-        return new SimpleAuthenticationInfo(coll, apiKey, getName());
+        return new SimpleAuthenticationInfo(principalData, apiKey, getName());
     }
 
     @Override
     @SuppressWarnings("unchecked")
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals)
     {
-        Map<String, Object> principalMap = (Map<String, Object>)
-                ((SimplePrincipalCollection) principals.getPrimaryPrincipal()).asList().get(1);
-        Set<String> roles = (Set<String>) principalMap.get("roles");
-        return new SimpleAuthorizationInfo(roles);
+        Map<String, Object> principalMap = (Map<String, Object>) principals.getPrimaryPrincipal();
+        return new SimpleAuthorizationInfo((Set<String>) principalMap.get("roles"));
     }
 }
