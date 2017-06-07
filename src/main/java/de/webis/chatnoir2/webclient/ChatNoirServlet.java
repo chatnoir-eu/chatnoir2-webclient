@@ -8,6 +8,8 @@
 package de.webis.chatnoir2.webclient;
 
 import de.webis.chatnoir2.webclient.util.Configured;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.AuthorizationException;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -30,6 +32,12 @@ public abstract class ChatNoirServlet extends HttpServlet
      */
     protected void writeQueryLog(Configured searchProvider, HttpServletRequest request, String queryString, boolean web)
     {
+        try {
+            // do not log requests from API keys with "nolog" role
+            SecurityUtils.getSecurityManager().checkRole(SecurityUtils.getSubject().getPrincipals(), "nolog");
+            return;
+        } catch (AuthorizationException ignored) {}
+
         String ip = request.getHeader("X-Forwarded-For");
         if (null == ip) {
             ip = request.getRemoteHost();

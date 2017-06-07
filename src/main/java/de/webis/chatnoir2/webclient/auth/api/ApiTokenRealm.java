@@ -21,7 +21,6 @@ import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsReques
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.common.Nullable;
-import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.xcontent.XContentType;
 
 import javax.annotation.CheckForNull;
@@ -34,7 +33,7 @@ import java.util.*;
 /**
  * Shiro realm for API keys.
  */
-public class ApiKeyRealm extends AuthorizingRealm
+public class ApiTokenRealm extends AuthorizingRealm
 {
     /**
      * DAO representing API call limits.
@@ -78,32 +77,30 @@ public class ApiKeyRealm extends AuthorizingRealm
         }
     }
 
-    private static ApiKeyRealm mInstance = null;
+    private static ApiTokenRealm mInstance = null;
     private final Configured mConfig;
 
     private final String KEY_INDEX;
 
-    private final Map<String, ApiLimits> mApiKeyToLimits;
-    private final Map<String, Set<String>> mApiKeyToRoles;
-
-    public static ApiKeyRealm getInstance()
+    public static ApiTokenRealm getInstance()
     {
-        if (null == mInstance) {
-            mInstance = new ApiKeyRealm();
+        synchronized (ApiTokenRealm.class) {
+            if (null == mInstance) {
+                mInstance = new ApiTokenRealm();
+            }
         }
 
         return mInstance;
     }
 
-    private ApiKeyRealm()
+    private ApiTokenRealm()
     {
         mConfig = new Configured();
-        mApiKeyToLimits = new HashMap<>();
-        mApiKeyToRoles = new HashMap<>();
         KEY_INDEX = mConfig.getConf().getString("auth.api.key_index", "chatnoir2_apikeys");
         createKeyIndex();
 
         setCachingEnabled(false);
+        setAuthenticationTokenClass(ApiKeyAuthenticationToken.class);
     }
 
     private void createKeyIndex()
@@ -157,38 +154,46 @@ public class ApiKeyRealm extends AuthorizingRealm
         coll.add(apiKey, getName());
         Map<String, Object> source = response.getSource();
 
+        Map<String, Object> principalData = new HashMap<>();
+        Map<String, String> userData = new HashMap<>();
         if (source.containsKey("user")) {
             Map<String, Object> userInfo = (Map) source.get("user");
             for (String k : userInfo.keySet()) {
-                coll.add(new Tuple<>(k, (String) userInfo.get(k)), getName());
+                userData.put(k, (String) userInfo.get(k));
             }
         }
+        principalData.put("userdata", userData);
 
+        ApiLimits limits;
         if (null != source.get("limits")) {
-            Map<String, Object> limits = (Map) source.get("limits");
-            mApiKeyToLimits.put(apiKey, new ApiLimits(
+            Map<String, Object> l = (Map) source.get("limits");
+            limits = new ApiLimits(
                     apiKey,
-                    (Long) limits.get("day"),
-                    (Long) limits.get("week"),
-                    (Long) limits.get("month")));
+                    (Long) l.get("day"),
+                    (Long) l.get("week"),
+                    (Long) l.get("month"));
         } else {
-            mApiKeyToLimits.put(apiKey, new ApiLimits(apiKey, null, null, null));
+            limits = new ApiLimits(apiKey, null, null, null);
         }
+        principalData.put("limits", limits);
 
+        Set<String> roles = new HashSet<>();
         if (null != source.get("roles")) {
-            mApiKeyToRoles.put(apiKey, new HashSet<>((List) source.get("roles")));
-        } else {
-            mApiKeyToRoles.put(apiKey, new HashSet<>());
+            roles.addAll((List) source.get("roles"));
         }
+        principalData.put("roles", roles);
 
+        coll.add(principalData, getName());
         return new SimpleAuthenticationInfo(coll, apiKey, getName());
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals)
     {
-        System.out.println("doGetAuthorizationInfo " + principals);
-        Set<String> roles = mApiKeyToRoles.get((String) principals.getPrimaryPrincipal());
+        Map<String, Object> principalMap = (Map<String, Object>)
+                ((SimplePrincipalCollection) principals.getPrimaryPrincipal()).asList().get(1);
+        Set<String> roles = (Set<String>) principalMap.get("roles");
         return new SimpleAuthorizationInfo(roles);
     }
 }

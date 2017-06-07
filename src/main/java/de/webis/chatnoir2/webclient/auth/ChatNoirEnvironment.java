@@ -8,7 +8,8 @@
 package de.webis.chatnoir2.webclient.auth;
 
 import de.webis.chatnoir2.webclient.auth.api.ApiAuthenticationFilter;
-import de.webis.chatnoir2.webclient.auth.api.ApiKeyRealm;
+import de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm;
+import org.apache.shiro.mgt.DefaultSecurityManager;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.realm.Realm;
 import org.apache.shiro.web.env.DefaultWebEnvironment;
@@ -26,7 +27,10 @@ import java.util.List;
  */
 public class ChatNoirEnvironment extends DefaultWebEnvironment
 {
-    private static SecurityManager mSecurityManager = null;
+    private final String mSMMutex  = "";
+    private final String mFCSMutex = "";
+
+    private static DefaultSecurityManager mSecurityManager = null;
     private static FilterChainResolver mFilterChainResolver = null;
 
     public ChatNoirEnvironment()
@@ -39,29 +43,32 @@ public class ChatNoirEnvironment extends DefaultWebEnvironment
     @Override
     public SecurityManager getSecurityManager()
     {
-        List<Realm> realms = new LinkedList<>();
-        realms.add(ApiKeyRealm.getInstance());
-
-        if (mSecurityManager == null) {
-            mSecurityManager = new DefaultWebSecurityManager(realms);
+        synchronized (mSMMutex) {
+            if (mSecurityManager == null) {
+                List<Realm> realms = new LinkedList<>();
+                realms.add(ApiTokenRealm.getInstance());
+                mSecurityManager = new DefaultWebSecurityManager(realms);
+            }
         }
         return mSecurityManager;
     }
 
     @Override
-    public FilterChainResolver getFilterChainResolver()
+    public synchronized FilterChainResolver getFilterChainResolver()
     {
-        if (null == mFilterChainResolver) {
-            FilterChainManager manager = new DefaultFilterChainManager();
-            manager.addFilter("default", new NullAuthenticationFilter());
-            manager.addFilter("api", new ApiAuthenticationFilter());
+        synchronized (mFCSMutex) {
+            if (null == mFilterChainResolver) {
+                FilterChainManager manager = new DefaultFilterChainManager();
+                manager.addFilter("default", new NullAuthenticationFilter());
+                manager.addFilter("api", new ApiAuthenticationFilter());
 
-            manager.createChain("/api/**", "api");
-            manager.createChain("/**", "default");
+                manager.createChain("/api/**", "api");
+                manager.createChain("/**", "default");
 
-            PathMatchingFilterChainResolver resolver = new PathMatchingFilterChainResolver();
-            resolver.setFilterChainManager(manager);
-            mFilterChainResolver = resolver;
+                PathMatchingFilterChainResolver resolver = new PathMatchingFilterChainResolver();
+                resolver.setFilterChainManager(manager);
+                mFilterChainResolver = resolver;
+            }
         }
         return mFilterChainResolver;
     }
