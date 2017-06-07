@@ -146,7 +146,7 @@ public class ApiKeyRealm extends AuthorizingRealm
     @SuppressWarnings("unchecked")
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException
     {
-        String apiKey = token.getPrincipal().toString();
+        String apiKey = (String) token.getPrincipal();
 
         GetResponse response = mConfig.getClient().prepareGet(KEY_INDEX, "apikey", apiKey).get();
         if (!response.isExists()) {

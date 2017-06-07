@@ -13,7 +13,7 @@ import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.search.PhraseSearch;
 import de.webis.chatnoir2.webclient.search.SearchResultBuilder;
 import de.webis.chatnoir2.webclient.util.Configured;
-import de.webis.chatnoir2.webclient.util.ExplanationXContent;
+import de.webis.chatnoir2.webclient.search.ExplanationXContent;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.json.JSONArray;

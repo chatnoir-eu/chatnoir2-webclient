@@ -9,7 +9,6 @@ package de.webis.chatnoir2.webclient.search;
 
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.Configured;
-import de.webis.chatnoir2.webclient.util.ExplanationXContent;
 import org.apache.lucene.search.Explanation;
 import org.elasticsearch.common.xcontent.ToXContent;
 

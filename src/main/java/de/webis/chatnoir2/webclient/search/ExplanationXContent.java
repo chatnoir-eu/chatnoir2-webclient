@@ -1,4 +1,4 @@
-package de.webis.chatnoir2.webclient.util;
+package de.webis.chatnoir2.webclient.search;
 
 import org.apache.lucene.search.Explanation;
 import org.elasticsearch.common.xcontent.ToXContent;
