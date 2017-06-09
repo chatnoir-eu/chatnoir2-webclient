@@ -9,9 +9,10 @@ package de.webis.chatnoir2.webclient.api;
 
 import de.webis.chatnoir2.webclient.api.error.AuthenticationError;
 import de.webis.chatnoir2.webclient.api.error.NotFoundError;
+import de.webis.chatnoir2.webclient.api.v1.ApiModuleV1;
+import de.webis.chatnoir2.webclient.util.AnnotationClassLoader;
 import de.webis.chatnoir2.webclient.util.Configured;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.reflections.Reflections;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -19,9 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Set;
 
 /**
  * API module singleton bootstrap class.
@@ -57,12 +56,16 @@ public class ApiBootstrap
      * @return requested instance of {@link ApiModuleBase} or error module instance if not found
      * @throws InvalidApiVersionException if given invalid API version
      */
-    public static ApiModuleBase bootstrapApiModule(HttpServletRequest request) throws InvalidApiVersionException, ServletException
+    public static ApiModuleBase bootstrapApiModule(HttpServletRequest request) throws ServletException
     {
         String apiModulePattern = "_default";
         String apiVersionPattern;
         ApiVersion apiModuleVersion = ApiVersion.NONE;
         String pathPattern = request.getPathInfo();
+
+        if (null == pathPattern) {
+            return getNotFoundErrorModule(request);
+        }
         Path path = Paths.get(pathPattern);
 
         if (1 <= path.getNameCount()) {
@@ -77,33 +80,28 @@ public class ApiBootstrap
             apiModulePattern = path.getName(1).toString();
         }
 
-        if (mInstances.containsKey(pathPattern)) {
-            ApiModuleBase instance = mInstances.get(pathPattern);
-            instance.initApiRequest(request);
-            return instance;
-        }
-
-        final Reflections reflections = new Reflections("de.webis.chatnoir2.webclient.api");
-
-        if (apiModuleVersion == ApiVersion.V1) {
-            final Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(ApiModuleV1.class);
-            for (final Class<?> apiModuleClass : annotated) {
-                final ApiModuleV1 moduleAnnotation = apiModuleClass.getAnnotation(ApiModuleV1.class);
-                if (Arrays.asList(moduleAnnotation.value()).contains(apiModulePattern)) {
-                    try {
-                        final Object tmpObj = apiModuleClass.getConstructor().newInstance();
-                        if (tmpObj instanceof ApiModuleBase) {
-                            synchronized (mInstances) {
-                                mInstances.put(pathPattern, (ApiModuleBase) tmpObj);
-                            }
-                            ((ApiModuleBase) tmpObj).initApiRequest(request);
-                            return (ApiModuleBase) tmpObj;
-                        }
-                    } catch (Exception ignored) {}
-                }
+        synchronized (mInstances) {
+            if (mInstances.containsKey(apiModulePattern)) {
+                ApiModuleBase instance = mInstances.get(apiModulePattern);
+                instance.initApiRequest(request);
+                return instance;
             }
-        } else {
-            throw new InvalidApiVersionException("Invalid API version");
+
+            ApiModuleBase instance;
+            if (apiModuleVersion == ApiVersion.V1) {
+                instance = AnnotationClassLoader.newInstance(
+                        "de.webis.chatnoir2.webclient.api.v1",
+                        apiModulePattern,
+                        ApiModuleV1.class,
+                        ApiModuleBase.class);
+            } else {
+                throw new InvalidApiVersionException("Invalid API version");
+            }
+
+            if (null != instance) {
+                mInstances.put(apiModulePattern, instance);
+                return instance;
+            }
         }
 
         return getNotFoundErrorModule(request);

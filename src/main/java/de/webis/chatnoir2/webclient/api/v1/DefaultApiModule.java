@@ -9,7 +9,6 @@
 package de.webis.chatnoir2.webclient.api.v1;
 
 import de.webis.chatnoir2.webclient.api.ApiModuleBase;
-import de.webis.chatnoir2.webclient.api.ApiModuleV1;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import javax.servlet.ServletException;

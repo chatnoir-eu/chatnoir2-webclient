@@ -5,7 +5,7 @@
  * Main Contributor: Janek Bevendorff
  */
 
-package de.webis.chatnoir2.webclient.api;
+package de.webis.chatnoir2.webclient.api.v1;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
