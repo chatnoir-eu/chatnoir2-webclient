@@ -29,7 +29,6 @@ import java.io.IOException;
  */
 public abstract class ApiModuleBase extends ChatNoirServlet
 {
-
     /**
      * Base name for request attributes
      */

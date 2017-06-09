@@ -7,7 +7,6 @@
 
 package de.webis.chatnoir2.webclient.auth;
 
-import de.webis.chatnoir2.webclient.api.ApiBootstrap;
 import de.webis.chatnoir2.webclient.api.exceptions.UserErrorException;
 import de.webis.chatnoir2.webclient.auth.api.ApiAuthenticationFilter;
 import org.apache.shiro.session.Session;
