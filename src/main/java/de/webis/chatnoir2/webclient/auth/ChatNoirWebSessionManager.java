@@ -7,11 +7,20 @@
 
 package de.webis.chatnoir2.webclient.auth;
 
+import de.webis.chatnoir2.webclient.api.ApiBootstrap;
+import de.webis.chatnoir2.webclient.auth.api.ApiAuthenticationFilter;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.SessionContext;
+import org.apache.shiro.util.AntPathMatcher;
+import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
+import org.apache.shiro.web.util.WebUtils;
 
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebListener;
+import javax.servlet.http.HttpServletRequest;
+import java.io.Serializable;
 
 /**
  * ChatNoir 2 web session manager.
@@ -19,7 +28,7 @@ import javax.servlet.annotation.WebListener;
 @WebListener
 public class ChatNoirWebSessionManager extends DefaultWebSessionManager
 {
-    public static final String CONTEXT_ATTR = ChatNoirWebSessionManager.class.getName() + ".CONTEXT";
+    public static final String USER_TOKEN_ATTR = ChatNoirWebSessionManager.class.getName() + ".CONTEXT";
 
     public ChatNoirWebSessionManager()
     {
@@ -30,16 +39,51 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
         setSessionIdCookieEnabled(false);
     }
 
+    /**
+     * Get user API token from request or null if no token was specified or this is no API request.
+     *
+     * @param request HTTP request
+     * @return API token as string
+     */
+    protected Serializable getApiUserToken(HttpServletRequest request)
+    {
+        if (!new AntPathMatcher().matches(ApiAuthenticationFilter.PATH, request.getRequestURI())) {
+            return null;
+        }
+
+        try {
+            return (String) ApiBootstrap.bootstrapApiModule(request).getUserToken(request).getPrincipal();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     @Override
-    protected Session doCreateSession(SessionContext context) {
+    protected Session doCreateSession(SessionContext context)
+    {
         Session s = newSessionInstance(context);
 
-        // add context to session so that we can generate IDs based on Servlet requests
-        // TODO: fix context serialization issue
-        s.setAttribute(CONTEXT_ATTR, context);
+        // add API token to session if it exists, so we can use it to generate API sessions
+        s.setAttribute(USER_TOKEN_ATTR, getApiUserToken(WebUtils.getHttpRequest(context)));
         create(s);
-        s.removeAttribute(CONTEXT_ATTR);
+        s.removeAttribute(USER_TOKEN_ATTR);
 
         return s;
+    }
+
+    @Override
+    protected Serializable getSessionId(ServletRequest request, ServletResponse response)
+    {
+        Serializable sessionId = super.getSessionId(request, response);
+        if (null == sessionId) {
+            sessionId = getApiUserToken((HttpServletRequest) request);
+        }
+
+        if (sessionId != null) {
+            request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID, sessionId);
+            request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID_IS_VALID, Boolean.TRUE);
+        }
+
+        return sessionId;
     }
 }
