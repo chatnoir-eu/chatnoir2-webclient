@@ -9,11 +9,11 @@ package de.webis.chatnoir2.webclient.auth.api;
 
 import de.webis.chatnoir2.webclient.api.ApiBootstrap;
 import de.webis.chatnoir2.webclient.api.ApiModuleBase;
+import de.webis.chatnoir2.webclient.auth.ChatNoirAuthenticationFilter;
+import de.webis.chatnoir2.webclient.auth.ChatNoirAuthenticationFilter.AuthFilter;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.subject.Subject;
-import org.apache.shiro.subject.support.DefaultSubjectContext;
-import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -25,30 +25,39 @@ import java.io.IOException;
 /**
  * Authentication filter for ChatNoir 2 API requests.
  */
-public class ApiAuthenticationFilter extends AuthenticatingFilter
+@SuppressWarnings("unused")
+@AuthFilter
+public class ApiAuthenticationFilter extends ChatNoirAuthenticationFilter
 {
+    public static final String NAME = "api";
+    public static final String PATH = "/api/**";
+    public static final int ORDER   = 0;
+
     private static final String ERROR_INDICATOR_ATTRIBUTE = ApiAuthenticationFilter.class.getName() + ".error";
+
+    /**
+     * Retrieve API key / token from HTTP request if available.
+     *
+     * @param request HTTP request
+     * @param response HTTP response
+     * @return API authentication token or null
+     */
+    public static AuthenticationToken retrieveToken(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            ApiModuleBase apiModule = ApiBootstrap.bootstrapApiModule(request);
+            return apiModule.getUserToken(request);
+        } catch (Exception e) {
+            ApiBootstrap.handleException(e, request, response);
+        }
+
+        request.setAttribute(ERROR_INDICATOR_ATTRIBUTE, true);
+        return null;
+    }
 
     @Override
     protected AuthenticationToken createToken(ServletRequest request, ServletResponse response) throws Exception
     {
-        try {
-            HttpServletRequest httpRequest = (HttpServletRequest) request;
-            ApiModuleBase apiModule = ApiBootstrap.bootstrapApiModule(httpRequest);
-            return apiModule.getUserToken(httpRequest);
-        } catch (Exception e) {
-            ApiBootstrap.handleException(e, (HttpServletRequest) request, (HttpServletResponse) response);
-        }
-
-        request.setAttribute(ERROR_INDICATOR_ATTRIBUTE, true);
-        return new ApiKeyAuthenticationToken("");
-    }
-
-    @Override
-    public boolean onPreHandle(ServletRequest request, ServletResponse response, Object mappedValue) throws Exception {
-        // turn off Java sessions
-        request.setAttribute(DefaultSubjectContext.SESSION_CREATION_ENABLED, Boolean.FALSE);
-        return super.onPreHandle(request, response, mappedValue);
+        return retrieveToken((HttpServletRequest) request, (HttpServletResponse) response);
     }
 
     @Override
@@ -73,5 +82,23 @@ public class ApiAuthenticationFilter extends AuthenticatingFilter
         } catch (ServletException | IOException ignored) {}
 
         return false;
+    }
+
+    @Override
+    public String getName()
+    {
+        return NAME;
+    }
+
+    @Override
+    public String getPathPattern()
+    {
+        return PATH;
+    }
+
+    @Override
+    public int getOrder()
+    {
+        return ORDER;
     }
 }

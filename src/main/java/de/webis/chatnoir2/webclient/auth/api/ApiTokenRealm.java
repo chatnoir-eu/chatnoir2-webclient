@@ -16,7 +16,6 @@ import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.get.GetResponse;
@@ -51,7 +50,7 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
             mApiKey = apiKey;
             mDay    = day;
             mWeek   = week;
-            mMonth   = month;
+            mMonth  = month;
         }
 
         public String getApiKey()
@@ -78,27 +77,13 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
         }
     }
 
-    private static ApiTokenRealm mInstance = null;
-
     private final String KEY_INDEX;
 
-    public static ApiTokenRealm getInstance()
-    {
-        synchronized (ApiTokenRealm.class) {
-            if (null == mInstance) {
-                mInstance = new ApiTokenRealm();
-            }
-        }
-
-        return mInstance;
-    }
-
-    private ApiTokenRealm()
+    public ApiTokenRealm()
     {
         KEY_INDEX = Configured.getInstance().getConf().getString("auth.api.key_index", "chatnoir2_apikeys");
         createKeyIndex();
 
-        setCachingEnabled(false);
         setAuthenticationTokenClass(ApiKeyAuthenticationToken.class);
     }
 
