@@ -8,6 +8,7 @@
 package de.webis.chatnoir2.webclient.auth;
 
 import de.webis.chatnoir2.webclient.api.ApiBootstrap;
+import de.webis.chatnoir2.webclient.api.exceptions.UserErrorException;
 import de.webis.chatnoir2.webclient.auth.api.ApiAuthenticationFilter;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.SessionContext;
@@ -16,11 +17,13 @@ import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.apache.shiro.web.util.WebUtils;
 
+import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.Serializable;
 
 /**
@@ -46,15 +49,15 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
      * @param request HTTP request
      * @return API token as string
      */
-    protected Serializable getApiUserToken(HttpServletRequest request, HttpServletResponse response)
+    protected Serializable getApiUserToken(HttpServletRequest request, HttpServletResponse response) throws UserErrorException
     {
         if (!new AntPathMatcher().matches(ApiAuthenticationFilter.PATH, request.getRequestURI())) {
             return null;
         }
 
         try {
-            return (String) ApiBootstrap.bootstrapApiModule(request, response).getUserToken(request).getPrincipal();
-        } catch (Exception e) {
+            return (String) ApiAuthenticationFilter.retrieveToken(request, response).getPrincipal();
+        } catch (ServletException | IOException e) {
             return null;
         }
     }

@@ -54,7 +54,7 @@ public class ApiBootstrap
      * @throws ApiModuleNotFoundException if the module could not be found
      */
     public static ApiModuleBase bootstrapApiModule(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException
+            throws UserErrorException, ServletException, IOException
     {
         String apiModulePattern = "_default";
         String apiVersionPattern;
@@ -163,6 +163,11 @@ public class ApiBootstrap
     {
         int statusCode;
         String message;
+
+        if (exception instanceof ServletException && exception.getCause() != null) {
+            exception = exception.getCause();
+        }
+
         if (exception instanceof ApiModuleNotFoundException) {
             statusCode = ApiErrorModule.SC_NOT_FOUND;
             message = "API endpoint not found";

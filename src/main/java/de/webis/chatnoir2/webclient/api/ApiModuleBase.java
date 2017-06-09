@@ -224,7 +224,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
             request.setAttribute(REQUEST_ATTRIBUTE_BASE_NAME + ".parsedPayload", json);
             return json;
         } catch (JSONException e) {
-            throw new UserErrorException("Invalid JSON payload supplied: " + e.getMessage());
+            throw new UserErrorException("Syntax error: " + e.getMessage());
         }
     }
 

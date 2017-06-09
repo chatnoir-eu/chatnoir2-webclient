@@ -16,8 +16,5 @@ import javax.servlet.annotation.WebFilter;
 @WebFilter(filterName="AuthFilter", urlPatterns = AuthFilter.ROUTE)
 public class AuthFilter extends ShiroFilter
 {
-    /**
-     * Routes for static content.
-     */
     static final String ROUTE = "/*";
 }

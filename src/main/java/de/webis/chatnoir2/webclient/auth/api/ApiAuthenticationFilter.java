@@ -10,13 +10,13 @@ package de.webis.chatnoir2.webclient.auth.api;
 import de.webis.chatnoir2.webclient.api.ApiBootstrap;
 import de.webis.chatnoir2.webclient.api.ApiErrorModule;
 import de.webis.chatnoir2.webclient.api.ApiModuleBase;
+import de.webis.chatnoir2.webclient.api.exceptions.UserErrorException;
 import de.webis.chatnoir2.webclient.auth.ChatNoirAuthenticationFilter;
 import de.webis.chatnoir2.webclient.auth.ChatNoirAuthenticationFilter.AuthFilter;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.subject.Subject;
 
-import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -42,21 +42,11 @@ public class ApiAuthenticationFilter extends ChatNoirAuthenticationFilter
      * @param response HTTP response
      * @return API authentication token or null
      */
-    public static AuthenticationToken retrieveToken(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    public static AuthenticationToken retrieveToken(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException, UserErrorException
     {
         ApiModuleBase apiModule = ApiBootstrap.bootstrapApiModule(request, response);
         return apiModule.getUserToken(request);
-    }
-
-    @Override
-    public void doFilterInternal(ServletRequest request, ServletResponse response, FilterChain chain)
-    {
-        try {
-            // catch any exceptions that might occur on the way
-            super.doFilterInternal(request, response, chain);
-        } catch (Throwable e) {
-            ApiBootstrap.handleException(e, (HttpServletRequest) request, (HttpServletResponse) response);
-        }
     }
 
     @Override

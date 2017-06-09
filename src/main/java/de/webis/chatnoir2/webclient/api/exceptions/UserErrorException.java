@@ -7,12 +7,13 @@
 
 package de.webis.chatnoir2.webclient.api.exceptions;
 
-import javax.servlet.ServletException;
-
 /**
  * Exception to indicate a user input error.
+ *
+ * Inherit from RuntimeException, so we can bubble error messages through Shiro's
+ * authentication stack.
  */
-public class UserErrorException extends ServletException
+public class UserErrorException extends RuntimeException
 {
     public UserErrorException(String error)
     {

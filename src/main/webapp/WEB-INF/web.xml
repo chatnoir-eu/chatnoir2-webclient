@@ -6,6 +6,9 @@
 
     <!-- define filter order -->
     <filter-mapping>
+        <filter-name>ErrorFilter</filter-name>
+    </filter-mapping>
+    <filter-mapping>
         <filter-name>CharSetFilter</filter-name>
     </filter-mapping>
     <filter-mapping>
