@@ -7,6 +7,8 @@
 
 package de.webis.chatnoir2.webclient.api.v1;
 
+import de.webis.chatnoir2.webclient.api.ApiBootstrap;
+import de.webis.chatnoir2.webclient.api.ApiErrorModule;
 import de.webis.chatnoir2.webclient.api.ApiModuleBase;
 import de.webis.chatnoir2.webclient.search.SearchResultBuilder;
 import de.webis.chatnoir2.webclient.search.SimpleSearch;
@@ -37,9 +39,8 @@ public class SimpleSearchApiModule extends ApiModuleBase
         }
 
         if (null == searchQueryString || searchQueryString.trim().isEmpty()) {
-            final XContentBuilder errObj = generateErrorResponse(request,
-                    HttpServletResponse.SC_BAD_REQUEST, "Empty search query");
-            writeResponse(response, errObj, HttpServletResponse.SC_BAD_REQUEST);
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST,
+                    "Empty search query");
             return;
         }
 

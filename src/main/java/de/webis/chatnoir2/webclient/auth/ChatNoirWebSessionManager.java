@@ -20,6 +20,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.annotation.WebListener;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.Serializable;
 
 /**
@@ -45,14 +46,14 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
      * @param request HTTP request
      * @return API token as string
      */
-    protected Serializable getApiUserToken(HttpServletRequest request)
+    protected Serializable getApiUserToken(HttpServletRequest request, HttpServletResponse response)
     {
         if (!new AntPathMatcher().matches(ApiAuthenticationFilter.PATH, request.getRequestURI())) {
             return null;
         }
 
         try {
-            return (String) ApiBootstrap.bootstrapApiModule(request).getUserToken(request).getPrincipal();
+            return (String) ApiBootstrap.bootstrapApiModule(request, response).getUserToken(request).getPrincipal();
         } catch (Exception e) {
             return null;
         }
@@ -64,7 +65,9 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
         Session s = newSessionInstance(context);
 
         // add API token to session if it exists, so we can use it to generate API sessions
-        s.setAttribute(USER_TOKEN_ATTR, getApiUserToken(WebUtils.getHttpRequest(context)));
+        s.setAttribute(USER_TOKEN_ATTR, getApiUserToken(
+                WebUtils.getHttpRequest(context),
+                WebUtils.getHttpResponse(context)));
         create(s);
         s.removeAttribute(USER_TOKEN_ATTR);
 
@@ -76,7 +79,7 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
     {
         Serializable sessionId = super.getSessionId(request, response);
         if (null == sessionId) {
-            sessionId = getApiUserToken((HttpServletRequest) request);
+            sessionId = getApiUserToken((HttpServletRequest) request, (HttpServletResponse) response);
         }
 
         if (sessionId != null) {

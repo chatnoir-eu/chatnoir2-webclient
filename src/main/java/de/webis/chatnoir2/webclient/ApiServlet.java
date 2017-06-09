@@ -32,13 +32,7 @@ public class ApiServlet extends ChatNoirServlet
     @Override
     protected void service(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
     {
-        ApiModuleBase apiHandler;
-        try {
-            apiHandler = ApiBootstrap.bootstrapApiModule(request);
-        } catch (Exception e) {
-            ApiBootstrap.handleException(e, request, response);
-            return;
-        }
+        ApiModuleBase apiHandler = ApiBootstrap.bootstrapApiModule(request, response);
 
         String requestMethod = request.getMethod();
         if (requestMethod.equals("GET") || requestMethod.equals("POST")) {

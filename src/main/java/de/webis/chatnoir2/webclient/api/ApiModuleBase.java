@@ -8,6 +8,7 @@
 package de.webis.chatnoir2.webclient.api;
 
 import de.webis.chatnoir2.webclient.ChatNoirServlet;
+import de.webis.chatnoir2.webclient.api.exceptions.UserErrorException;
 import de.webis.chatnoir2.webclient.auth.api.ApiKeyAuthenticationToken;
 import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.commons.lang.math.NumberUtils;
@@ -28,16 +29,6 @@ import java.io.IOException;
  */
 public abstract class ApiModuleBase extends ChatNoirServlet
 {
-    /**
-     * Exception class to indicate user input error.
-     */
-    public static class UserErrorException extends ServletException
-    {
-        public UserErrorException(String error)
-        {
-            super(error);
-        }
-    }
 
     /**
      * Base name for request attributes
@@ -50,7 +41,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      *
      * @param request HTTP request
      */
-    public void initApiRequest(final HttpServletRequest request) throws ServletException
+    public void initApiRequest(final HttpServletRequest request, final HttpServletResponse reponse) throws ServletException
     {
         setPrettyPrint(request, isNestedParameterSet("pretty", request));
     }
@@ -100,11 +91,12 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      */
     public final void rejectMethod(final HttpServletRequest request, final HttpServletResponse response)
     {
-        final XContentBuilder errorObj = generateErrorResponse(request,
-                HttpServletResponse.SC_BAD_REQUEST, "Unsupported request method");
         try {
-            writeResponse(response, errorObj, HttpServletResponse.SC_BAD_REQUEST);
-        } catch (IOException ignored) { }
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST,
+                    "Unsupported request method");
+        } catch (Throwable e) {
+            ApiBootstrap.handleException(e, request, response);
+        }
     }
 
     /**

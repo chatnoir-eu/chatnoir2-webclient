@@ -7,12 +7,13 @@
 
 package de.webis.chatnoir2.webclient.api;
 
-import de.webis.chatnoir2.webclient.api.error.AuthenticationError;
-import de.webis.chatnoir2.webclient.api.error.NotFoundError;
+import de.webis.chatnoir2.webclient.api.exceptions.ApiModuleNotFoundException;
+import de.webis.chatnoir2.webclient.api.exceptions.InvalidApiVersionException;
+import de.webis.chatnoir2.webclient.api.exceptions.UserErrorException;
 import de.webis.chatnoir2.webclient.api.v1.ApiModuleV1;
 import de.webis.chatnoir2.webclient.util.AnnotationClassLoader;
 import de.webis.chatnoir2.webclient.util.Configured;
-import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.Nullable;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -27,14 +28,9 @@ import java.util.HashMap;
  */
 public class ApiBootstrap
 {
-    public static class InvalidApiVersionException extends ApiModuleBase.UserErrorException
-    {
-        public InvalidApiVersionException(String message)
-        {
-            super(message);
-        }
-    }
-
+    /**
+     * API version enum.
+     */
     public enum ApiVersion
     {
         NONE,
@@ -42,8 +38,7 @@ public class ApiBootstrap
     }
 
     private static final HashMap<String, ApiModuleBase> mInstances = new HashMap<>();
-    private static ApiModuleBase mNotFoundModule = null;
-    private static ApiModuleBase mAuthenticationModule = null;
+    private static ApiModuleBase mErrorModule = null;
 
     /**
      * Dynamically create an {@link ApiModuleBase} instance to handle API request based on
@@ -53,10 +48,13 @@ public class ApiBootstrap
      * parameters will return the same instance.
      *
      * @param request HTTP request
+     * @param response HTTP response
      * @return requested instance of {@link ApiModuleBase} or error module instance if not found
      * @throws InvalidApiVersionException if given invalid API version
+     * @throws ApiModuleNotFoundException if the module could not be found
      */
-    public static ApiModuleBase bootstrapApiModule(HttpServletRequest request) throws ServletException
+    public static ApiModuleBase bootstrapApiModule(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException
     {
         String apiModulePattern = "_default";
         String apiVersionPattern;
@@ -64,7 +62,7 @@ public class ApiBootstrap
         String pathPattern = request.getPathInfo();
 
         if (null == pathPattern) {
-            return getNotFoundErrorModule(request);
+            throw new ApiModuleNotFoundException("Empty path");
         }
         Path path = Paths.get(pathPattern);
 
@@ -76,6 +74,11 @@ public class ApiBootstrap
                     break;
             }
         }
+
+        if (apiModuleVersion == ApiVersion.NONE) {
+            throw new InvalidApiVersionException("Invalid API version");
+        }
+
         if (2 <= path.getNameCount()) {
             apiModulePattern = path.getName(1).toString();
         }
@@ -83,20 +86,15 @@ public class ApiBootstrap
         synchronized (mInstances) {
             if (mInstances.containsKey(apiModulePattern)) {
                 ApiModuleBase instance = mInstances.get(apiModulePattern);
-                instance.initApiRequest(request);
+                instance.initApiRequest(request, response);
                 return instance;
             }
 
-            ApiModuleBase instance;
-            if (apiModuleVersion == ApiVersion.V1) {
-                instance = AnnotationClassLoader.newInstance(
-                        "de.webis.chatnoir2.webclient.api.v1",
-                        apiModulePattern,
-                        ApiModuleV1.class,
-                        ApiModuleBase.class);
-            } else {
-                throw new InvalidApiVersionException("Invalid API version");
-            }
+            ApiModuleBase instance = AnnotationClassLoader.newInstance(
+                    "de.webis.chatnoir2.webclient.api.v1",
+                    apiModulePattern,
+                    ApiModuleV1.class,
+                    ApiModuleBase.class);
 
             if (null != instance) {
                 mInstances.put(apiModulePattern, instance);
@@ -104,35 +102,54 @@ public class ApiBootstrap
             }
         }
 
-        return getNotFoundErrorModule(request);
+        throw new ApiModuleNotFoundException("No API endpoint found for path " + apiModulePattern);
     }
 
     /**
-     * Get initialized 404 Not Found error module.
+     * Return a configured API error module instance.
      *
      * @param request HTTP request
      */
-    public synchronized static ApiModuleBase getNotFoundErrorModule(HttpServletRequest request) throws ServletException
+    public synchronized static ApiModuleBase getErrorModule(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException
     {
-        if (null == mNotFoundModule) {
-            mNotFoundModule = new NotFoundError();
+        if (null == mErrorModule) {
+            mErrorModule = new ApiErrorModule();
         }
-        mNotFoundModule.initApiRequest(request);
-        return mNotFoundModule;
+        mErrorModule.initApiRequest(request, response);
+        return mErrorModule;
     }
 
     /**
-     * Get initialized 401 Authentication error module.
+     * Set the given HTTP status code and write an appropriate error response.
      *
      * @param request HTTP request
+     * @param response HTTP response
+     * @param statusCode response status code
      */
-    public synchronized static ApiModuleBase getAuthenticationErrorModule(HttpServletRequest request) throws ServletException
+    public static void handleApiError(HttpServletRequest request, HttpServletResponse response,  int statusCode)
+            throws ServletException, IOException
     {
-        if (null == mAuthenticationModule) {
-            mAuthenticationModule = new AuthenticationError();
+        response.setStatus(statusCode);
+        ApiBootstrap.getErrorModule(request, response).service(request, response);
+    }
+
+    /**
+     * Write an appropriate error response and set HTTP status code.
+     *
+     * @param request HTTP request
+     * @param response HTTP response
+     * @param statusCode response status code
+     * @param errorMessage custom error message (null for default message)
+     */
+    public static void handleApiError(HttpServletRequest request, HttpServletResponse response,  int statusCode,
+                                      @Nullable String errorMessage) throws ServletException, IOException
+    {
+        if (null != errorMessage) {
+            request.setAttribute(ApiErrorModule.CUSTOM_ERROR_MSG_ATTR, errorMessage);
         }
-        mAuthenticationModule.initApiRequest(request);
-        return mAuthenticationModule;
+        response.setStatus(statusCode);
+        ApiBootstrap.getErrorModule(request, response).service(request, response);
     }
 
     /**
@@ -142,38 +159,27 @@ public class ApiBootstrap
      * @param request HTTP request
      * @param response HTTP response
      */
-    public static void handleException(Exception exception, HttpServletRequest request, HttpServletResponse response)
+    public static void handleException(Throwable exception, HttpServletRequest request, HttpServletResponse response)
     {
+        int statusCode;
         String message;
-        int responseCode;
-        if (exception instanceof ApiModuleBase.UserErrorException) {
+        if (exception instanceof ApiModuleNotFoundException) {
+            statusCode = ApiErrorModule.SC_NOT_FOUND;
+            message = "API endpoint not found";
+        } else if (exception instanceof UserErrorException) {
+            statusCode = ApiErrorModule.SC_BAD_REQUEST;
             message = exception.getMessage();
-            responseCode = HttpServletResponse.SC_BAD_REQUEST;
         } else {
+            statusCode = ApiErrorModule.SC_INTERNAL_SERVER_ERROR;
             message = "An internal server error occurred. Please try again later.";
-            responseCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
             Configured.getInstance().getSysLogger().error("Internal server exception:", exception);
         }
 
-        ApiModuleBase moduleBase = new ApiModuleBase()
-        {
-            @Override
-            public void doGet(HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {}
-
-            @Override
-            public void doPost(HttpServletRequest request, HttpServletResponse response)
-                    throws IOException, ServletException {}
-        };
         try {
-            moduleBase.initApiRequest(request);
-        } catch (Exception ignored) {}
-        final XContentBuilder errorObj = moduleBase.generateErrorResponse(request, responseCode, message);
-        try {
-            moduleBase.writeResponse(response, errorObj, responseCode);
-        } catch (IOException e) {
+            ApiBootstrap.handleApiError(request, response, statusCode, message);
+        } catch (Throwable e) {
             Configured.getInstance().getSysLogger().error(
-                    "While writing an error response, the following exception occurred:", exception);
+                    "While writing an error response, the following exception occurred:", e);
         }
     }
 }

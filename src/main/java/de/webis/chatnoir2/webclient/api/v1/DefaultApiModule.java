@@ -8,8 +8,9 @@
 
 package de.webis.chatnoir2.webclient.api.v1;
 
+import de.webis.chatnoir2.webclient.api.ApiBootstrap;
+import de.webis.chatnoir2.webclient.api.ApiErrorModule;
 import de.webis.chatnoir2.webclient.api.ApiModuleBase;
-import org.elasticsearch.common.xcontent.XContentBuilder;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -25,9 +26,8 @@ public class DefaultApiModule extends ApiModuleBase
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
-        final XContentBuilder errorObj = generateErrorResponse(request,
-                HttpServletResponse.SC_BAD_REQUEST, "No specific API module selected");
-        writeResponse(response, errorObj, HttpServletResponse.SC_BAD_REQUEST);
+        ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST,
+                "No specific API module selected");
     }
 
     @Override
