@@ -242,6 +242,10 @@ public abstract class SearchProvider extends IndexRetrievalOperator
      */
     protected String truncateSnippet(String snippet, final int numCharacters)
     {
+        if (null == snippet) {
+            return "";
+        }
+
         if (snippet.length() > numCharacters) {
             final boolean wordEnded = (snippet.charAt(numCharacters) == ' ');
             snippet = snippet.substring(0, numCharacters);
