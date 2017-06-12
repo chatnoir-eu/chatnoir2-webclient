@@ -159,7 +159,7 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
      *
      * @param subject subject to validate API quota for
      * @return true if API quota not exceeded
-     * @throws IllegalArgumentException if subject's session is not a properly initialize API session
+     * @throws IllegalArgumentException if subject's session is not a properly initialized API session
      */
     public boolean validateApiSessionQuota(Subject subject) throws IllegalArgumentException
     {
