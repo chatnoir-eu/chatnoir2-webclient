@@ -8,14 +8,19 @@
 package de.webis.chatnoir2.webclient.auth.api;
 
 import de.webis.chatnoir2.webclient.util.Configured;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
+import org.apache.shiro.cache.Cache;
+import org.apache.shiro.mgt.RealmSecurityManager;
 import org.apache.shiro.realm.AuthorizingRealm;
+import org.apache.shiro.realm.Realm;
 import org.apache.shiro.subject.PrincipalCollection;
+import org.apache.shiro.subject.Subject;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.get.GetResponse;
@@ -35,6 +40,8 @@ import java.util.*;
  */
 public class ApiTokenRealm extends AuthorizingRealm implements Serializable
 {
+    private static final String PRINCIPALS_CACHE_NAME = ApiTokenRealm.class.getName() + "-0-principals";
+
     /**
      * DAO representing API call limits.
      */
@@ -124,12 +131,14 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
         return token != null && ApiKeyAuthenticationToken.class.isAssignableFrom(token.getClass());
     }
 
-    @Override
+    /**
+     * Helper method for refreshing principals cache from API token index.
+     *
+     * @param apiKey API token for which to refresh the principals cache
+     */
     @SuppressWarnings("unchecked")
-    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException
+    private void refreshPrincipalsCache(String apiKey)
     {
-        String apiKey = (String) token.getPrincipal();
-
         GetResponse response = Configured.getInstance().getClient().prepareGet(KEY_INDEX, "apikey", apiKey).get();
         if (!response.isExists()) {
             throw new AuthenticationException("No user found for key " + apiKey);
@@ -156,9 +165,9 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
             Map<String, Object> l = (Map) source.get("limits");
             limits = new ApiLimits(
                     apiKey,
-                    (Long) l.get("day"),
-                    (Long) l.get("week"),
-                    (Long) l.get("month"));
+                    l.get("day") != null ? ((Number) l.get("day")).longValue() : null,
+                    l.get("week") != null ? ((Number) l.get("week")).longValue() : null,
+                    l.get("month") != null ? ((Number) l.get("month")).longValue() : null);
         } else {
             limits = new ApiLimits(apiKey, null, null, null);
         }
@@ -171,14 +180,103 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
         }
         principalData.put("roles", roles);
 
-        return new SimpleAuthenticationInfo(principalData, apiKey, getName());
+        getPrincipalsCache().put(apiKey, principalData);
+    }
+
+    /**
+     * Get a specific field from a subject's primary principal.
+     *
+     * @param subject subject
+     * @param field field to retrieve from principal
+     * @param <T> return type
+     * @return typed field value or null if it does not exist
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T getTypedPrincipalField(Subject subject, String field)
+    {
+        RealmSecurityManager securityManager = ((RealmSecurityManager) SecurityUtils.getSecurityManager());
+
+        String apiKey = (String) subject.getPrincipal();
+        Cache<String, Map<String, Object>> cache;
+        synchronized (apiKey.intern()) {
+            cache = securityManager.getCacheManager().getCache(PRINCIPALS_CACHE_NAME);
+
+            if (null == cache.get(apiKey)) {
+                Collection<Realm> realms = securityManager.getRealms();
+                for (Realm r : realms) {
+                    if (r instanceof ApiTokenRealm) {
+                        ((ApiTokenRealm) r).refreshPrincipalsCache(apiKey);
+                        break;
+                    }
+                }
+            }
+
+            Map<String, Object> principals = cache.get(apiKey);
+            if (null != principals) {
+                return (T) principals.get(field);
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException
+    {
+        String apiKey = (String) token.getPrincipal();
+        synchronized (apiKey.intern()) {
+            refreshPrincipalsCache(apiKey);
+            return new SimpleAuthenticationInfo(apiKey, apiKey, getName());
+        }
     }
 
     @Override
     @SuppressWarnings("unchecked")
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals)
     {
-        Map<String, Object> principalMap = (Map<String, Object>) principals.getPrimaryPrincipal();
-        return new SimpleAuthorizationInfo((Set<String>) principalMap.get("roles"));
+        String apiKey = (String) principals.getPrimaryPrincipal();
+        Map<String, Object> principalData;
+        synchronized (apiKey.intern()) {
+            principalData = getPrincipalsCache().get(apiKey);
+            if (null == principalData) {
+                refreshPrincipalsCache(apiKey);
+                principalData = getPrincipalsCache().get(apiKey);
+            }
+
+            return new SimpleAuthorizationInfo((Set<String>) principalData.get("roles"));
+        }
+    }
+
+    /**
+     * Retrieve principals cache or create a new one of it does not exist.
+     *
+     * @return credentials cache
+     */
+    private Cache<String, Map<String, Object>> getPrincipalsCache()
+    {
+        return getCacheManager().getCache(PRINCIPALS_CACHE_NAME);
+    }
+
+    /**
+     * Clear any cached principal data as well as any associated authentication and authorization data.
+     *
+     * @param principals principals of the account
+     */
+    public void clearCachedPrincipals(PrincipalCollection principals)
+    {
+        if (null == principals || principals.isEmpty()) {
+            return;
+        }
+
+        String apiKey = (String) principals.getPrimaryPrincipal();
+        synchronized (apiKey.intern()) {
+            Cache<String, Map<String, Object>> credentialsCache = getPrincipalsCache();
+            if (null != credentialsCache) {
+                credentialsCache.remove(apiKey);
+            }
+        }
+
+        clearCachedAuthenticationInfo(principals);
+        clearCachedAuthorizationInfo(principals);
     }
 }

@@ -9,6 +9,7 @@ package de.webis.chatnoir2.webclient.api;
 
 import de.webis.chatnoir2.webclient.api.exceptions.ApiModuleNotFoundException;
 import de.webis.chatnoir2.webclient.api.exceptions.InvalidApiVersionException;
+import de.webis.chatnoir2.webclient.api.exceptions.QuotaExceededException;
 import de.webis.chatnoir2.webclient.api.exceptions.UserErrorException;
 import de.webis.chatnoir2.webclient.api.v1.ApiModuleV1;
 import de.webis.chatnoir2.webclient.util.AnnotationClassLoader;
@@ -171,6 +172,9 @@ public class ApiBootstrap
         if (exception instanceof ApiModuleNotFoundException) {
             statusCode = ApiErrorModule.SC_NOT_FOUND;
             message = "API endpoint not found";
+        } else if (exception instanceof QuotaExceededException) {
+            statusCode = ApiErrorModule.SC_TOO_MANY_REQUESTS;
+            message = "Quota exceeded";
         } else if (exception instanceof UserErrorException) {
             statusCode = ApiErrorModule.SC_BAD_REQUEST;
             message = exception.getMessage();

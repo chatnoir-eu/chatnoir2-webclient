@@ -8,11 +8,14 @@
 package de.webis.chatnoir2.webclient.auth;
 
 import de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm;
+import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.AnnotationClassLoader;
+import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.shiro.cache.ehcache.EhCacheManager;
 import org.apache.shiro.mgt.DefaultSecurityManager;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.realm.Realm;
+import org.apache.shiro.session.mgt.ExecutorServiceSessionValidationScheduler;
 import org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO;
 import org.apache.shiro.web.env.DefaultWebEnvironment;
 import org.apache.shiro.web.filter.mgt.DefaultFilterChainManager;
@@ -53,10 +56,24 @@ public class ChatNoirEnvironment extends DefaultWebEnvironment
 
                 mSecurityManager = new DefaultWebSecurityManager(realms);
 
-                // configure session management
+                // set session storage
                 ChatNoirWebSessionManager sessionManager = new ChatNoirWebSessionManager();
+                sessionManager.setSecurityManager(mSecurityManager);
                 EnterpriseCacheSessionDAO sessionDAO = new ChatNoirSessionDAO();
                 sessionManager.setSessionDAO(sessionDAO);
+
+                // set default session timeout
+                ConfigLoader.Config sessionConf = Configured.getInstance().getConf().get("auth");
+                sessionManager.setGlobalSessionTimeout(sessionConf.getLong("default_session_timeout", 900000L));
+
+                // configure periodic session validator
+                ExecutorServiceSessionValidationScheduler validator = new ExecutorServiceSessionValidationScheduler();
+                validator.setInterval(sessionConf.getLong("session_validation_interval", 600000L));
+                validator.setSessionManager(sessionManager);
+                validator.enableSessionValidation();
+                sessionManager.setSessionValidationScheduler(validator);
+                sessionManager.setSessionValidationSchedulerEnabled(true);
+
                 mSecurityManager.setSessionManager(sessionManager);
 
                 // use EHCache for caching and session persistence

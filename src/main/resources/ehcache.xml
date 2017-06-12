@@ -89,6 +89,11 @@
            diskPersistent="true"
            diskExpiryThreadIntervalSeconds="600"/>
 
+    <cache name="de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm-0-principals"
+           maxElementsInMemory="1000"
+           eternal="true"
+           overflowToDisk="true"/>
+
     <cache name="org.apache.shiro.realm.text.PropertiesRealm-0-accounts"
            maxElementsInMemory="1000"
            eternal="true"

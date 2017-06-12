@@ -84,9 +84,29 @@ hdfs:
 # ------------------------------------------------------------------------------------
 
 auth:
-  # Authentication source for API keys
+  # Default session timeout in milliseconds
+  default_session_timeout: 900000
+
+  # Interval in which to run the periodic session validator in milliseconds
+  session_validation_interval: 600000
+
+  # Default API authentication settings
   api:
+    # Cache life time of API authentication and authorization info in milliseconds.
+    # After this time, cached user principals will be cleared.
+    # Principals older than this age will be cleared in intervals of
+    # auth.session_validation_interval.
+    auth_cache_ttl: 600000
+
+    # User index for API keys
     key_index: chatnoir2_apikeys
+
+    # Default API quota limits to apply when no specific per-user limits are set
+    # a value of -1 means unlimited
+    default_quota_limits:
+      day: 1000      # limit for last 24 hours
+      week: 70000    # limit for last 7 days
+      month: 1000000 # limit for last 30 days
 
 # ------------------------------------------------------------------------------------
 # Search engine result page display settings
