@@ -16,10 +16,7 @@ import java.io.IOException;
 import de.webis.chatnoir2.webclient.response.Renderer;
 
 /**
- * Index Servlet for Chatnoir 2.
- *
- * @author Janek Bevendorff
- * @version 1
+ * Index Servlet for ChatNoir 2.
  */
 @WebServlet(IndexServlet.ROUTE)
 public class IndexServlet extends ChatNoirServlet
@@ -39,14 +36,17 @@ public class IndexServlet extends ChatNoirServlet
      *
      * @param request   The HTTP request
      * @param response  The HTTP response
-     * @throws ServletException
-     * @throws IOException
      */
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
     {
         if (null != request.getParameter("q")) {
             getServletContext().getRequestDispatcher(SearchServlet.ROUTE).forward(request, response);
+            return;
+        }
+
+        if (!request.getRequestURI().equals(ROUTE)) {
+            forwardError(request, response, HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 

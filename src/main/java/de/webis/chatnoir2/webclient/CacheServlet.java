@@ -71,14 +71,14 @@ public class CacheServlet extends ChatNoirServlet
         if (null == indexParam) {
             String[] effectiveIndices = retriever.getEffectiveIndices();
             if (effectiveIndices.length == 0) {
-                redirectError(request, response);
+                forwardError(request, response, HttpServletResponse.SC_BAD_REQUEST);
                 return;
             }
             indexParam = effectiveIndices[0];
         }
 
         if (!retriever.isIndexAllowed(indexParam)) {
-            redirectError(request, response);
+            forwardError(request, response, HttpServletResponse.SC_FORBIDDEN);
             return;
         }
 
@@ -98,7 +98,7 @@ public class CacheServlet extends ChatNoirServlet
                 doc = retriever.getByIndexDocID(indexParam, uuidParam);
 
                 if (null == doc) {
-                    redirectError(request, response);
+                    forwardError(request, response, HttpServletResponse.SC_NOT_FOUND);
                     return;
                 }
             }
@@ -139,11 +139,5 @@ public class CacheServlet extends ChatNoirServlet
             templateVars.put("plainTextMode", "1");
         }
         Renderer.render(getServletContext(), request, response, TEMPLATE_INDEX, templateVars);
-    }
-
-    private void redirectError(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
-    {
-        response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-        getServletContext().getRequestDispatcher(SearchServlet.ROUTE).forward(request, response);
     }
 }

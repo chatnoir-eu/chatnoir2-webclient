@@ -11,8 +11,11 @@ import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.AuthorizationException;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * Base servlet class for ChatNoir servlets.
@@ -54,5 +57,31 @@ public abstract class ChatNoirServlet extends HttpServlet
         msg.append("QUERY: ").append(queryString);
 
         searchProvider.getLogger(web ? "Web" : "Api").info(msg);
+    }
+
+    /**
+     * Forward to an error page displaying the given HTTP status code and a user-readable error message.
+     *
+     * @param request HTTP request
+     * @param response HTTP response
+     * @param errorCode HTTP error code
+     */
+    protected void forwardError(HttpServletRequest request, HttpServletResponse response, int errorCode) throws ServletException, IOException
+    {
+        response.setStatus(errorCode);
+        getServletContext().getRequestDispatcher(ErrorServlet.ROUTE).forward(request, response);
+    }
+
+    /**
+     * Check if a request was forwarded from a certain URL.
+     *
+     * @param request HTTP request
+     * @param uri URI to check against
+     * @return true if the request was forwarded from the given uri
+     */
+    protected boolean isForwardedForm(HttpServletRequest request, String uri)
+    {
+        return request.getAttribute("javax.servlet.forward.request_uri") != null &&
+                request.getAttribute("javax.servlet.forward.request_uri").equals(IndexServlet.ROUTE);
     }
 }

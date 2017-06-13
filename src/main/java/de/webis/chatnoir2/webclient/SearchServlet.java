@@ -64,6 +64,12 @@ public class SearchServlet extends ChatNoirServlet
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
     {
+        // only allow access via index servlet forward
+        if (!isForwardedForm(request, IndexServlet.ROUTE)) {
+            forwardError(request, response, HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
         final String searchQueryString = request.getParameter("q");
         if (null == searchQueryString || searchQueryString.trim().isEmpty()) {
             response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);

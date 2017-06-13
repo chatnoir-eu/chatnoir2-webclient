@@ -55,7 +55,7 @@ public class DocServlet extends ChatNoirServlet
 
         String docName = "index";
         if (requestURI.getNameCount() < 1) {
-            redirectError(request, response);
+            forwardError(request, response, HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
@@ -65,7 +65,7 @@ public class DocServlet extends ChatNoirServlet
 
         Path markdownFilePath = Paths.get(getServletContext().getRealPath("/docs/" + docName + ".md"));
         if (null == markdownFilePath || !Files.exists(markdownFilePath)) {
-            redirectError(request, response);
+            forwardError(request, response, HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
@@ -77,7 +77,7 @@ public class DocServlet extends ChatNoirServlet
         String[] contentSplit = contents.toString().split("(?:^|\n)---\n", 3);
 
         if (contentSplit.length != 3) {
-            redirectError(request, response);
+            forwardError(request, response, HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
@@ -102,10 +102,5 @@ public class DocServlet extends ChatNoirServlet
         docParams.put("isIndex", docName.equals("index"));
 
         Renderer.render(getServletContext(), request, response, TEMPLATE_INDEX, docParams);
-    }
-
-    private void redirectError(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
-    {
-        getServletContext().getRequestDispatcher(IndexServlet.ROUTE).forward(request, response);
     }
 }
