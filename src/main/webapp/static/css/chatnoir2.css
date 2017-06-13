@@ -477,6 +477,36 @@ a {
 }
 
 /* ===========================================================================
+ * Error template
+ * ===========================================================================*/
+
+#Main.error {
+    max-width: 74rem;
+    padding: 3rem 5rem;
+}
+
+#Error #Logo img {
+    width: 180px;
+    position: relative;
+}
+
+#Error #Logo img:hover {
+    left: -90px;
+}
+
+#Error #Logo {
+    float: left;
+    overflow: hidden;
+    width: 90px;
+    padding: 17rem 0 0 0;
+}
+
+#Error .message {
+    margin-left: 130px;
+    padding-top: 16rem;
+}
+
+/* ===========================================================================
  * Responsive changes
  * ===========================================================================*/
 @media screen and (max-width: 991px) {
@@ -569,6 +599,14 @@ a {
     .back-to-index {
         margin: 2em 0 -1em 0;
     }
+
+    #Error #Logo {
+        display: none;
+    }
+
+    #Error .message {
+        margin-left: 0;
+    }
 }
 
 @media screen and (max-width: 600px) {
@@ -579,5 +617,13 @@ a {
 
     .search-info h1 {
         margin: .5em 0;
+    }
+
+    #Error #Logo {
+        padding-top: 7rem;
+    }
+
+    #Error .message {
+        padding-top: 6rem;
     }
 }

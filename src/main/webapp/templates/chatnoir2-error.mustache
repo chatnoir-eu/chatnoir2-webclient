@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Oops! Error: {{errorCode}}</title>
+    {{> bootstrap-head}}
+    {{> chatnoir2-head}}
+</head>
+<body class="index-page">
+    <div id="Main" class="container error">
+        <div id="Error">
+            <div id="Logo">
+                <img src="/static/img/chatnoir.png">
+            </div>
+            <section class="message">
+                {{#notFound}}
+                    <h1>Quo vadis?</h1>
+                    <p>The requested URL could not be found on the server.</p>
+                    <p>(Error: 404 – Not Found)</p>
+
+                    <p><a href="/{{contextpath}}">Back to search…</a></p>
+                {{/notFound}}
+                {{#forbidden}}
+                    <h1>Not so fast!</h1>
+                    <p>You are not allowed to access this URL.</p>
+                    <p>(Error: 403 – Forbidden)</p>
+
+                    <p><a href="/{{contextpath}}">Back to search…</a></p>
+                {{/forbidden}}
+                {{#badRequest}}
+                    <h1>Sorry…</h1>
+                    <p>…we couldn't understand your request.</p>
+                    <p>(Error: 400 – Bad Request)</p>
+
+                    <p><a href="/{{contextpath}}">Back to search…</a></p>
+                {{/badRequest}}
+                {{#internalServerError}}
+                    <h1>Oops! This shouldn't happen!</h1>
+                    <p>We experienced an internal error. Our server monkeys have been notified
+                        and are working hard to fix it. Please try again later.</p>
+                    <p>(Error: 500 – Internal Server Error)</p>
+                {{/internalServerError}}
+                {{#other}}
+                    <h1>Error: {{errorCode}}</h1>
+                    <p>Whoopsie… An error occurred.</p>
+
+                    <p><a href="/{{contextpath}}">Back to search…</a></p>
+                {{/other}}
+            </section>
+        </div>
+    </div>
+
+    {{> chatnoir2-page-foot}}
+
+    {{> jquery-foot}}
+    {{> bootstrap-foot}}
+</body>
+</html>
