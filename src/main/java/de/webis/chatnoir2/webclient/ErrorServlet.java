@@ -58,6 +58,10 @@ public class ErrorServlet extends ChatNoirServlet
                 templateVars.put("other", true);
                 break;
         }
+        String errorString = (String) request.getAttribute("javax.servlet.error.message");
+        if (null != errorString) {
+            templateVars.put("errorString", errorString);
+        }
         templateVars.put("errorCode", response.getStatus());
 
         Renderer.render(getServletContext(), request, response, TEMPLATE_INDEX, templateVars);

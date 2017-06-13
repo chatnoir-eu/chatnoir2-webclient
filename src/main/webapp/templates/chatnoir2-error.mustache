@@ -7,11 +7,11 @@
 </head>
 <body class="index-page">
     <div id="Main" class="container error">
-        <div id="Error">
+        <section id="Error">
             <div id="Logo">
                 <img src="/static/img/chatnoir.png">
             </div>
-            <section class="message">
+            <div class="message">
                 {{#notFound}}
                     <h1>Quo vadis?</h1>
                     <p>The requested URL could not be found on the server.</p>
@@ -40,13 +40,13 @@
                     <p>(Error: 500 – Internal Server Error)</p>
                 {{/internalServerError}}
                 {{#other}}
-                    <h1>Error: {{errorCode}}</h1>
-                    <p>Whoopsie… An error occurred.</p>
+                    <h1>Whoopsie… Something went wrong!</h1>
+                    <p>Error: {{errorCode}}{{#errorString}} – {{errorString}}{{/errorString}}</p>
 
                     <p><a href="/{{contextpath}}">Back to search…</a></p>
                 {{/other}}
-            </section>
-        </div>
+            </div>
+        </section>
     </div>
 
     {{> chatnoir2-page-foot}}

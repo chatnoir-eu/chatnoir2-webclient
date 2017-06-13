@@ -85,7 +85,8 @@ public class ErrorFilter extends ShiroFilter
                         "Follow-up exception while handling exception:", followUpException);
             }
         } catch (Throwable dead) {
-            // whatever is happening here must be really bad
+            // whatever is happening here must be really bad, so try one last thing...
+            dead.printStackTrace();
         }
     }
 }
