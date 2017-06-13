@@ -82,6 +82,6 @@ public abstract class ChatNoirServlet extends HttpServlet
     protected boolean isForwardedForm(HttpServletRequest request, String uri)
     {
         return request.getAttribute("javax.servlet.forward.request_uri") != null &&
-                request.getAttribute("javax.servlet.forward.request_uri").equals(IndexServlet.ROUTE);
+                request.getAttribute("javax.servlet.forward.request_uri").equals(uri);
     }
 }
