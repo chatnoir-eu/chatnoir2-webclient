@@ -24,12 +24,11 @@ repositories {
 
 dependencies {
     compile group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
+    compile group: 'org.elasticsearch.client', name: 'transport', version: '5.4.1'
     compile group: 'org.apache.shiro', name: 'shiro-core', version: '1.4.0'
     compile group: 'org.apache.shiro', name: 'shiro-web', version: '1.4.0'
     compile group: 'org.apache.shiro', name: 'shiro-ehcache', version: '1.4.0'
-    compile group: 'org.elasticsearch.client', name: 'transport', version: '5.4.1'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
-    compile group: 'io.netty', name: 'netty-all', version: '4.1.6.Final'
     compile group: 'com.github.spullara.mustache.java', name: 'compiler', version: '0.9.4'
     compile group: 'org.json', name: 'json', version: '20160810'
     compile group: 'org.reflections', name: 'reflections', version: '0.9.10'
