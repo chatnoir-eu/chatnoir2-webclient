@@ -11,11 +11,11 @@
         <div id="SearchHeader" class="row">
             <div id="Logo" class="col-sm-2">
                 <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
-                    <img src="/static/img/chatnoir-logo.png" alt="ChatNoir Logo">
+                    <img src="{{contextPath}}/static/img/chatnoir-logo.png" alt="ChatNoir Logo">
                 </a>
             </div>
             <div class="col-sm-8" id="SearchField">
-                <form role="search" action="/" method="get">
+                <form role="search" action="{{contextPath}}/" method="get">
                     <div class="input-group">
                         <input type="text" class="form-control input-lg" placeholder="Search" name="q" value="{{searchQuery}}" id="SearchInput">
                         {{#indicesString}}<input type="hidden" name="index" value="{{.}}">{{/indicesString}}

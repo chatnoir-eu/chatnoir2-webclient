@@ -86,7 +86,6 @@ public class SearchServlet extends ChatNoirServlet
         final HashMap<String, Object> templateVars = new HashMap<>();
         templateVars.put("searchQuery", searchQueryString);
         templateVars.put("searchQueryUrlEnc", URLEncoder.encode(searchQueryString, "UTF-8"));
-        templateVars.put("pageUrl", request.getAttribute("javax.servlet.forward.request_uri"));
         templateVars.put("queryString", request.getAttribute("javax.servlet.forward.query_string"));
 
         final SimpleSearch search = new SimpleSearch(indices);

@@ -9,11 +9,11 @@
     <div id="Main" class="container">
         <div id="Logo">
             <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
-                <img src="/static/img/chatnoir-logo.png">
+                <img src="{{contextPath}}/static/img/chatnoir-logo.png">
             </a>
         </div>
         <div id="SearchField">
-            <form role="search" method="get">
+            <form role="search" method="get" action="{{contextPath}}/">
                 <div class="input-group">
                     <input type="text" class="form-control input-lg" placeholder="Search" name="q" id="SearchInput">
                     <span class="input-group-btn">

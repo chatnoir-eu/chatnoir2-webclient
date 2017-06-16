@@ -51,7 +51,7 @@ public class DocServlet extends ChatNoirServlet
     @Override
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
     {
-        Path requestURI = Paths.get(request.getRequestURI()).normalize();
+        Path requestURI = Paths.get(getStrippedRequestURI(request)).normalize();
 
         String docName = "index";
         if (requestURI.getNameCount() < 1) {

@@ -10,16 +10,16 @@
     <div id="CacheHeader">
         <div id="Logo">
             <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
-                <img src="/static/img/chatnoir-logo.png">
+                <img src="{{contextPath}}/static/img/chatnoir-logo.png">
             </a>
         </div>
         <div id="CacheMeta">
             <h1>Cache Result for document <em>{{uuid}}</em> ({{index}})</h1>
             <p>
-                <a href="/" class="back">Back to search</a> –
+                <a href="{{contextPath}}/" class="back">Back to search</a> –
                 <a href="{{origUri}}" class="weblink" target="_blank">View original web page</a> –
-                <a href="/cache?uuid={{uuidUrlEnc}}&amp;index={{index}}" class="html"{{^plainTextMode}} style="display: none"{{/plainTextMode}}>View original HTML</a>
-                <a href="/cache?uuid={{uuidUrlEnc}}&amp;index={{index}}&amp;plain" class="plaintext"{{#plainTextMode}} style="display: none"{{/plainTextMode}}>View plain text</a>
+                <a href="{{contextPath}}/cache?uuid={{uuidUrlEnc}}&amp;index={{index}}" class="html"{{^plainTextMode}} style="display: none"{{/plainTextMode}}>View original HTML</a>
+                <a href="{{contextPath}}/cache?uuid={{uuidUrlEnc}}&amp;index={{index}}&amp;plain" class="plaintext"{{#plainTextMode}} style="display: none"{{/plainTextMode}}>View plain text</a>
             </p>
         </div>
     </div>

@@ -7,6 +7,7 @@
 
 package de.webis.chatnoir2.webclient.auth;
 
+import de.webis.chatnoir2.webclient.ChatNoirServlet;
 import de.webis.chatnoir2.webclient.api.exceptions.UserErrorException;
 import de.webis.chatnoir2.webclient.auth.api.ApiAuthenticationFilter;
 import de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm;
@@ -235,7 +236,7 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
      */
     protected Serializable getApiUserToken(HttpServletRequest request, HttpServletResponse response) throws UserErrorException
     {
-        if (!mPathMatcher.matches(ApiAuthenticationFilter.PATH, request.getRequestURI())) {
+        if (!mPathMatcher.matches(ApiAuthenticationFilter.PATH, ChatNoirServlet.getStrippedRequestURI(request))) {
             return null;
         }
 
@@ -266,7 +267,8 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
         super.onStart(session, context);
 
         // initialize session as API session if this is an API request
-        if (mPathMatcher.matches(ApiAuthenticationFilter.PATH, WebUtils.getHttpRequest(context).getRequestURI())) {
+        if (mPathMatcher.matches(ApiAuthenticationFilter.PATH,
+                ChatNoirServlet.getStrippedRequestURI(WebUtils.getHttpRequest(context)))) {
             initApiSession(session);
         }
     }
@@ -339,7 +341,8 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
     protected Serializable getSessionId(ServletRequest request, ServletResponse response)
     {
         Serializable sessionId = super.getSessionId(request, response);
-        if (null == sessionId && mPathMatcher.matches(ApiAuthenticationFilter.PATH, WebUtils.toHttp(request).getRequestURI())) {
+        if (null == sessionId && mPathMatcher.matches(ApiAuthenticationFilter.PATH,
+                ChatNoirServlet.getStrippedRequestURI(WebUtils.toHttp(request)))) {
             sessionId = getApiUserToken(WebUtils.toHttp(request), WebUtils.toHttp(response));
         }
 

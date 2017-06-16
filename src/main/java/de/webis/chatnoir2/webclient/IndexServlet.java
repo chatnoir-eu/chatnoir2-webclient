@@ -45,7 +45,7 @@ public class IndexServlet extends ChatNoirServlet
             return;
         }
 
-        if (!request.getRequestURI().equals(ROUTE)) {
+        if (!getStrippedRequestURI(request).equals(ROUTE)) {
             forwardError(request, response, HttpServletResponse.SC_NOT_FOUND);
             return;
         }

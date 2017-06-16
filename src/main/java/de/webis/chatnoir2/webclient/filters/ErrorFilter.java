@@ -7,6 +7,7 @@
 
 package de.webis.chatnoir2.webclient.filters;
 
+import de.webis.chatnoir2.webclient.ChatNoirServlet;
 import de.webis.chatnoir2.webclient.ErrorServlet;
 import de.webis.chatnoir2.webclient.api.ApiBootstrap;
 import de.webis.chatnoir2.webclient.api.exceptions.UserErrorException;
@@ -60,7 +61,8 @@ public class ErrorFilter extends ShiroFilter
                 HttpServletResponse httpResponse = WebUtils.toHttp(response);
 
                 // handle API errors separately
-                if (mPathmatcher.matches(ApiAuthenticationFilter.PATH, WebUtils.toHttp(request).getRequestURI())) {
+                if (mPathmatcher.matches(ApiAuthenticationFilter.PATH,
+                        ChatNoirServlet.getStrippedRequestURI(WebUtils.toHttp(request)))) {
                     ApiBootstrap.handleException(exception, WebUtils.toHttp(request), WebUtils.toHttp(response));
                     return;
                 }

@@ -26,6 +26,17 @@ import java.io.IOException;
 public abstract class ChatNoirServlet extends HttpServlet
 {
     /**
+     * Get request URI without the context path.
+     *
+     * @param request HTTP request
+     * @return request URI with context path stripped
+     */
+    public static String getStrippedRequestURI(HttpServletRequest request)
+    {
+        return request.getRequestURI().substring(request.getContextPath().length());
+    }
+
+    /**
      * Write the given user query to the query log.
      *
      * @param searchProvider search provider for which to log the query
@@ -81,7 +92,11 @@ public abstract class ChatNoirServlet extends HttpServlet
      */
     protected boolean isForwardedForm(HttpServletRequest request, String uri)
     {
-        return request.getAttribute("javax.servlet.forward.request_uri") != null &&
-                request.getAttribute("javax.servlet.forward.request_uri").equals(uri);
+        String forwardUri = (String) request.getAttribute("javax.servlet.forward.request_uri");
+        if (null == forwardUri) {
+            return false;
+        }
+        forwardUri = forwardUri.substring(request.getContextPath().length());
+        return  forwardUri.equals(uri);
     }
 }
