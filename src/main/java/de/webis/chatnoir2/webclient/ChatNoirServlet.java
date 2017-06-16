@@ -99,4 +99,15 @@ public abstract class ChatNoirServlet extends HttpServlet
         forwardUri = forwardUri.substring(request.getContextPath().length());
         return  forwardUri.equals(uri);
     }
+
+    /**
+     * Redirect to a path while taking into account any custom context paths.
+     *
+     * @param request HTTP request
+     * @param response HTTP response
+     */
+    protected void redirect(HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
+        response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+        response.sendRedirect(request.getContextPath() + path);
+    }
 }

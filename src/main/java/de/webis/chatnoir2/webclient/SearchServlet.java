@@ -72,8 +72,7 @@ public class SearchServlet extends ChatNoirServlet
 
         final String searchQueryString = request.getParameter("q");
         if (null == searchQueryString || searchQueryString.trim().isEmpty()) {
-            response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-            response.sendRedirect(IndexServlet.ROUTE);
+            redirect(request, response, IndexServlet.ROUTE);
             return;
         }
 
