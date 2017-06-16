@@ -23,7 +23,9 @@ repositories {
 }
 
 dependencies {
+    def withoutNetty =
     compile group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
+    compile group: 'io.netty', name: 'netty-all', version: '4.1.11.Final'
     compile group: 'org.elasticsearch.client', name: 'transport', version: '5.4.1'
     compile group: 'org.apache.shiro', name: 'shiro-core', version: '1.4.0'
     compile group: 'org.apache.shiro', name: 'shiro-web', version: '1.4.0'
@@ -33,7 +35,8 @@ dependencies {
     compile group: 'org.json', name: 'json', version: '20160810'
     compile group: 'org.reflections', name: 'reflections', version: '0.9.10'
     compile group: 'com.cybozu.labs', name: 'langdetect', version: '1.1-20120112'
-    compile group: 'org.apache.hadoop', name: 'hadoop-client', version: '2.7.3'
+    compile group: 'org.apache.hadoop', name: 'hadoop-client', version: '2.7.3',
+            { exclude group: 'io.netty', module: 'netty' } // exclude conflicting antique  netty dependency
     compile group: 'org.jsoup', name: 'jsoup', version: '1.10.2'
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
     compile group: 'com.vladsch.flexmark', name: 'flexmark', version: '0.19.5'
