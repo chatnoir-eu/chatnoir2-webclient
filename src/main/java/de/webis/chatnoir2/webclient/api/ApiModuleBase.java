@@ -263,7 +263,8 @@ public abstract class ApiModuleBase extends ChatNoirServlet
                     return (T) body.get(nameSplit[i]);
                 } else if (type.getSuperclass() == Number.class && body.get(nameSplit[i]) instanceof Number) {
                     // convert to correct Number type if we are dealing with numeric types
-                    return (T) body.get(nameSplit[i]);
+                    // convert to String first and then back to a number to allow type conversion
+                    return convertToTypedNumber(type, body.get(nameSplit[i]).toString());
                 } else if (body.get(nameSplit[i]) instanceof String && type.isAssignableFrom(JSONArray.class)) {
                     // split value if a JSONArray is wanted, but have a string
                     JSONArray arr = new JSONArray();
@@ -292,12 +293,8 @@ public abstract class ApiModuleBase extends ChatNoirServlet
                 return (T) evaluatesTrue(value);
             }
             // convert to correct Number if dealing with numeric types
-            if (NumberUtils.isNumber(value)) {
-                try {
-                    if (type.getSuperclass() == Number.class) {
-                        return (T) Double.valueOf(value);
-                    }
-                } catch (NumberFormatException ignored) {}
+            if (NumberUtils.isNumber(value) && type.getSuperclass() == Number.class) {
+                return convertToTypedNumber(type, value);
             }
             // otherwise split value if JSONArray is wanted
             if (type.isAssignableFrom(JSONArray.class)) {
@@ -314,6 +311,42 @@ public abstract class ApiModuleBase extends ChatNoirServlet
         return null;
     }
 
+    /**
+     * Convert a number String to a given specific {@link Number} type.
+     * Valid Number types are {@link Byte}, {@link Short}, {@link Integer},
+     * {@link Long}, {@link Float} and {@link Double}.
+     *
+     * @param type number type
+     * @param value String value
+     * @param <T> number type
+     * @return typed Number, 0 if conversion fails, null if T is an invalid Number type
+     */
+    @SuppressWarnings("unchecked")
+    private <T> T convertToTypedNumber(Class<T> type, String value)
+    {
+        if (type.isAssignableFrom(Byte.class)) {
+            return (T) (Byte) NumberUtils.toByte(value);
+        } else if (type.isAssignableFrom(Short.class)) {
+            return (T) (Short) NumberUtils.toShort(value);
+        } else if (type.isAssignableFrom(Integer.class)) {
+            return (T) (Integer) NumberUtils.toInt(value);
+        } else if (type.isAssignableFrom(Long.class)) {
+            return (T) (Long) NumberUtils.toLong(value);
+        } else if (type.isAssignableFrom(Float.class)) {
+            return (T) (Float) NumberUtils.toFloat(value);
+        } else if (type.isAssignableFrom(Double.class)) {
+            return (T) (Double) NumberUtils.toDouble(value);
+        }
+        return  null;
+    }
+
+    /**
+     * Check whether a String evaluates to true. 0, 0.0, "false", "none" or "null" evaluate to false,
+     * everything else (including an empty String) evaluates to true.
+     *
+     * @param value String value
+     * @return true if String evaluates to true according to the rules defined above
+     */
     private Boolean evaluatesTrue(String value)
     {
         if (value == null || value.equalsIgnoreCase("false") ||
