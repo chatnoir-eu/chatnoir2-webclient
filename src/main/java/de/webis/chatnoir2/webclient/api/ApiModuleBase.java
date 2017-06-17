@@ -253,7 +253,6 @@ public abstract class ApiModuleBase extends ChatNoirServlet
                 if (body.get(nameSplit[i]) == null) {
                     return null;
                 }
-
                 if (type.isAssignableFrom(Boolean.class)) {
                     // check boolean parameters first
                     return (T) evaluatesTrue(body.get(nameSplit[i]).toString());
@@ -261,12 +260,14 @@ public abstract class ApiModuleBase extends ChatNoirServlet
                 if (type.isInstance(body.get(nameSplit[i]))) {
                     // return if parameter already has correct type
                     return (T) body.get(nameSplit[i]);
-                } else if (type.getSuperclass() == Number.class && body.get(nameSplit[i]) instanceof Number) {
+                }
+                if (type.getSuperclass() == Number.class && body.get(nameSplit[i]) instanceof Number) {
                     // convert to correct Number type if we are dealing with numeric types
                     // convert to String first and then back to a number to allow type conversion
                     return convertToTypedNumber(type, body.get(nameSplit[i]).toString());
-                } else if (body.get(nameSplit[i]) instanceof String && type.isAssignableFrom(JSONArray.class)) {
-                    // split value if a JSONArray is wanted, but have a string
+                }
+                if (body.get(nameSplit[i]) instanceof String && type.isAssignableFrom(JSONArray.class)) {
+                    // split value if a JSONArray is wanted, but we have a string
                     JSONArray arr = new JSONArray();
                     if (type.isInstance(arr)) {
                         String[] split = body.getString(nameSplit[i]).split(",");
