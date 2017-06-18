@@ -5,7 +5,7 @@
  * Main Contributor: Janek Bevendorff
  */
 
-package de.webis.chatnoir2.test.util;
+package de.webis.chatnoir2.webclient.test.util;
 
 import org.junit.Test;
 import static org.junit.Assert.assertThat;
@@ -57,7 +57,7 @@ public class AnnotationClassLoaderTest
     public void testNewInstance()
     {
         LoaderTestClass1 instance = AnnotationClassLoader.newInstance(
-                "de.webis.chatnoir2.test.util.AnnotationClassLoaderTest",
+                "de.webis.chatnoir2.webclient.test.util.AnnotationClassLoaderTest",
                 null,
                 LoaderTestAnnotation.class,
                 LoaderTestClass1.class);
@@ -69,7 +69,7 @@ public class AnnotationClassLoaderTest
     public void testNewInstanceWithValue()
     {
         LoaderTestClass2 instance = AnnotationClassLoader.newInstance(
-                "de.webis.chatnoir2.test.util.AnnotationClassLoaderTest",
+                "de.webis.chatnoir2.webclient.test.util.AnnotationClassLoaderTest",
                 "foo",
                 LoaderTestAnnotation.class,
                 LoaderTestClass2.class);
@@ -81,7 +81,7 @@ public class AnnotationClassLoaderTest
     public void testNewInstanceWithValueException()
     {
         AnnotationClassLoader.newInstance(
-                "de.webis.chatnoir2.test.util.AnnotationClassLoaderTest",
+                "de.webis.chatnoir2.webclient.test.util.AnnotationClassLoaderTest",
                 "foo",
                 LoaderTestAnnotationWithoutValue.class,
                 LoaderTestClass3.class);
@@ -91,7 +91,7 @@ public class AnnotationClassLoaderTest
     public void testNewInstanceWithValueEmpty()
     {
         LoaderTestClass2 instance = AnnotationClassLoader.newInstance(
-                "de.webis.chatnoir2.test.util.AnnotationClassLoaderTest",
+                "de.webis.chatnoir2.webclient.test.util.AnnotationClassLoaderTest",
                 "foobar",
                 LoaderTestAnnotation.class,
                 LoaderTestClass2.class);
@@ -103,7 +103,7 @@ public class AnnotationClassLoaderTest
     public void testNewInstances()
     {
         List<LoaderTestClass2> instances = AnnotationClassLoader.newInstances(
-                "de.webis.chatnoir2.test.util.AnnotationClassLoaderTest",
+                "de.webis.chatnoir2.webclient.test.util.AnnotationClassLoaderTest",
                 null,
                 LoaderTestAnnotation.class,
                 LoaderTestClass2.class);
@@ -115,7 +115,7 @@ public class AnnotationClassLoaderTest
     public void testNewInstancesWithSubclasses()
     {
         List<LoaderTestClass1> instances = AnnotationClassLoader.newInstances(
-                "de.webis.chatnoir2.test.util.AnnotationClassLoaderTest",
+                "de.webis.chatnoir2.webclient.test.util.AnnotationClassLoaderTest",
                 null,
                 LoaderTestAnnotation.class,
                 LoaderTestClass1.class);
@@ -127,7 +127,7 @@ public class AnnotationClassLoaderTest
     public void testNewInstancesWithSubclassesRestricted()
     {
         List<LoaderTestClass1> instances = AnnotationClassLoader.newInstances(
-                "de.webis.chatnoir2.test.util.AnnotationClassLoaderTest",
+                "de.webis.chatnoir2.webclient.test.util.AnnotationClassLoaderTest",
                 null,
                 LoaderTestAnnotation.class,
                 LoaderTestClass1.class,

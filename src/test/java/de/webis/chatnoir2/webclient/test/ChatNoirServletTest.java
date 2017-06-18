@@ -5,7 +5,7 @@
  * Main Contributor: Janek Bevendorff
  */
 
-package de.webis.chatnoir2.test;
+package de.webis.chatnoir2.webclient.test;
 
 import de.webis.chatnoir2.webclient.ChatNoirServlet;
 import org.junit.runner.RunWith;
