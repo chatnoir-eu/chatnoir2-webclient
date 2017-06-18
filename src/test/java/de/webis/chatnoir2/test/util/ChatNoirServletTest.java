@@ -60,6 +60,8 @@ public class ChatNoirServletTest
         when(request.getAttribute("javax.servlet.forward.request_uri")).thenReturn("/test");
         assertFalse(mServlet.isForwardedForm(request, "/xyz"));
         assertTrue(mServlet.isForwardedForm(request, "/test"));
+
+        verify(request, atLeastOnce()).getAttribute("javax.servlet.forward.request_uri");
     }
 
     @Test
@@ -73,5 +75,7 @@ public class ChatNoirServletTest
         when(request.getAttribute("javax.servlet.forward.request_uri")).thenReturn("/test/test");
         assertFalse(mServlet.isForwardedForm(request, "/xyz"));
         assertTrue(mServlet.isForwardedForm(request, "/test"));
+
+        verify(request, atLeastOnce()).getAttribute("javax.servlet.forward.request_uri");
     }
 }
