@@ -5,7 +5,7 @@
  * Main Contributor: Janek Bevendorff
  */
 
-package de.webis.chatnoir2.test.util;
+package de.webis.chatnoir2.test;
 
 import de.webis.chatnoir2.webclient.ChatNoirServlet;
 import org.junit.runner.RunWith;
@@ -29,9 +29,9 @@ public class ChatNoirServletTest
     public void testGetStrippedRequestURI()
     {
         HttpServletRequest request = mock(HttpServletRequest.class);
-
         when(request.getRequestURI()).thenReturn("/test/");
         when(request.getContextPath()).thenReturn("");
+
         assertThat(ChatNoirServlet.getStrippedRequestURI(request), is("/test/"));
     }
 
@@ -39,9 +39,9 @@ public class ChatNoirServletTest
     public void testGetStrippedRequestURINonRootContext()
     {
         HttpServletRequest request = mock(HttpServletRequest.class);
-
         when(request.getRequestURI()).thenReturn("/test/");
         when(request.getContextPath()).thenReturn("/test");
+
         assertThat(ChatNoirServlet.getStrippedRequestURI(request), is("/"));
 
         when(request.getRequestURI()).thenReturn("/test/foo");
