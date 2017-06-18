@@ -11,15 +11,12 @@ allprojects {
     targetCompatibility = 1.8
 }
 
-idea {
-    project {
-        jdkName       = 1.8
-        languageLevel = 1.8
-    }
-}
-
 repositories {
     mavenCentral()
+}
+
+test {
+    systemProperties = [ 'catalina.home': '/tmp/chatnoir2-test' ]
 }
 
 dependencies {
@@ -43,4 +40,6 @@ dependencies {
     compile group: 'com.vladsch.flexmark', name: 'flexmark-ext-tables', version: '0.19.5'
 
     compile files("$projectDir/../webis-uuid/jar/webis-uuid.jar")
+
+    testCompile 'junit:junit:4.11'
 }
