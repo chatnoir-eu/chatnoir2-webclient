@@ -37,7 +37,7 @@ public class AnnotationClassLoader
     }
 
     /**
-     * Dynamically create instances of a class annotated with a specific {@link Annotation}.
+     * Dynamically create instances of classes annotated with a specific {@link Annotation}.
      *
      * @param packagePath package path the class can be found in as String
      * @param matchValue value() property of {@link Annotation} must match (null if annotation has no value())
@@ -54,7 +54,7 @@ public class AnnotationClassLoader
     }
 
     /**
-     * Dynamically create a limited number of instances of a class annotated with a specific {@link Annotation}.
+     * Dynamically create a limited number of instances of classes annotated with a specific {@link Annotation}.
      *
      * @param packagePath package path the class can be found in as String
      * @param matchValue value() property of {@link Annotation} must match (null if annotation has no value())
@@ -83,12 +83,15 @@ public class AnnotationClassLoader
 
                 if (null == matchValue) {
                     instances.add((T) apiModuleClass.getConstructor().newInstance());
-                    continue;
+                } else {
+                    Method valueMethod = moduleAnnotation.annotationType().getMethod("value");
+                    if (((String[]) valueMethod.invoke(moduleAnnotation))[0].equals(matchValue)) {
+                        instances.add((T) apiModuleClass.getConstructor().newInstance());
+                    }
                 }
 
-                Method valueMethod = moduleAnnotation.annotationType().getMethod("value");
-                if (((String[]) valueMethod.invoke(moduleAnnotation))[0].equals(matchValue)) {
-                    instances.add((T) apiModuleClass.getConstructor().newInstance());
+                if (numInstances > 0 && instances.size() >= numInstances) {
+                    return instances;
                 }
             } catch (NoSuchMethodException | ClassCastException | ArrayIndexOutOfBoundsException e) {
                 throw new RuntimeException("Annotation " + annotationType.getName() +
