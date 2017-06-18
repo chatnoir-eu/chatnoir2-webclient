@@ -90,7 +90,7 @@ public abstract class ChatNoirServlet extends HttpServlet
      * @param uri URI to check against
      * @return true if the request was forwarded from the given uri
      */
-    protected boolean isForwardedForm(HttpServletRequest request, String uri)
+    public boolean isForwardedForm(HttpServletRequest request, String uri)
     {
         String forwardUri = (String) request.getAttribute("javax.servlet.forward.request_uri");
         if (null == forwardUri) {
