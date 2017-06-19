@@ -59,7 +59,7 @@ public class PhraseSearchApiModule extends ApiModuleBase
         Integer size = getTypedNestedParameter(Integer.class, "size", request);
         Integer slop = getTypedNestedParameter(Integer.class, "slop", request);
         boolean doExplain = isNestedParameterSet("explain", request);
-        boolean snippetOnly = isNestedParameterSet("snippet_only", request);
+        boolean minimal = isNestedParameterSet("minimal", request);
         if (null == from || from < 0) {
             from = 0;
         }
@@ -94,22 +94,26 @@ public class PhraseSearchApiModule extends ApiModuleBase
             .startArray("results");
                 for (final SearchResultBuilder.SearchResult result : results) {
                     builder.startObject();
-                        builder.field("score", result.score());
+                        builder.field("score", result.score())
+                                .field("uuid", result.documentId());
 
-                        if (!snippetOnly) {
-                            builder.field("uuid", result.documentId())
-                                    .field("index", result.index())
+                        if (!minimal) {
+                            builder.field("index", result.index())
                                     .field("trec_id", result.trecId())
-                                    .field("target_hostname", result.targetHostname())
-                                    .field("target_uri", result.targetUri())
-                                    .field("page_rank", result.pageRank())
+                                    .field("target_hostname", result.targetHostname());
+                        }
+
+                        builder.field("target_uri", result.targetUri());
+
+                        if (!minimal) {
+                            builder.field("page_rank", result.pageRank())
                                     .field("spam_rank", result.spamRank())
                                     .field("title", result.title());
                         }
 
                         builder.field("snippet", result.snippet());
 
-                        if (!snippetOnly || doExplain) {
+                        if (!minimal || doExplain) {
                             builder.field("explanation");
                             new ExplanationXContent(result.explanation()).toXContent(builder, ToXContent.EMPTY_PARAMS);
                         }

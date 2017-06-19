@@ -138,7 +138,8 @@ The API endpoint for the phrase search module is: `/api/v1/_phrases`.
 - `index`: list of indices to search (see above)
 - `from`: result pagination begin
 - `size`: number of results per page
-- `snippet_only`: reduce result list to `score` and `snippet` for each hit (boolean flag)
+- `minimal`: reduce result list to `score`, `uuid`, `target_uri` and `snippet` for each
+  hit (boolean flag)
 - `explain`: return additional scoring information (boolean flag)
 
 ### Response Data:
@@ -149,19 +150,19 @@ The API endpoint for the phrase search module is: `/api/v1/_phrases`.
 - `results`: list of search results
     - each entry has the following properties:
         - `score`: ranking score of this result
-        - `uuid`: Webis UUID of this document **\***
+        - `uuid`: Webis UUID of this document
         - `index`: index the document was retrieved from **\***
         - `trec_id`: TREC ID of the result if available (`null` otherwise) **\***
         - `target_hostname`: web host this document was crawled from **\***
-        - `target_uri`: full web URI **\***
+        - `target_uri`: full web URI
         - `page_rank`: page rank of this document if available (`null` otherwise) **\***
         - `spam_rank`: spam rank of this document if available (`null` otherwise) **\***
         - `title`: document title with highlights **\***
         - `snippet`: document body snippet with highlights
         - `explanation`: additional scoring information if `explain` was set to `true` **\*\***
 
-**\*** field is not returned if `snippetOnly` is set. \
-**\*\*** `explanation` is only returned if `snippetOnly` is not set or `explain` is `true`.
+**\*** field is not returned if `minimal` is set. \
+**\*\*** `explanation` is only returned if `minimal` is not set or `explain` is `true`.
 
 ### Example:
 #### Request:
@@ -173,15 +174,15 @@ POST /api/v1/_phrases
     "index": ["cw12", "cc1511"],
     "size": 1,
     "pretty": true,
-    "snippet_only": true
+    "minimal": true
 }
 ```
 #### Response:
 ```
 {
   "meta" : {
-    "query_time" : 4372,
-    "total_results" : 334060,
+    "query_time" : 575,
+    "total_results" : 267741,
     "indices" : [
       "cw12",
       "cc1511"
@@ -189,8 +190,10 @@ POST /api/v1/_phrases
   },
   "results" : [
     {
-      "score" : 13.189068,
-      "snippet" : "How can I retreive a String variable in javascript from a jsp variable? Spring <em>Hello</em> <em>World</em> Application <em>Hello</em> <em>World</em> Example using Spring, The tutorial given below describes you the way to make a spring web application that displays <em>Hello</em> <em>World</em> Spring <em>Hello</em> <em>World</em> prog I used running the helloworld"
+      "score" : 194.76102,
+      "uuid" : "caccc982-ed46-51c6-a935-1d91fefbc166",
+      "target_uri" : "http://cboard.cprogramming.com/brief-history-cprogramming-com/46831-hello-world.html",
+      "snippet" : "This is a discussion on <em>Hello</em> <em>World</em>! within the A Brief History of Cprogramming.com forums, part of the Community Boards category; <em>Hello</em> <em>World</em>! I thought people might find this link intresting, it&#x27;s a collection of how to say <em>Hello</em> <em>World</em> in . <em>Hello</em> <em>World</em>! I thought people might find this link"
     }
   ]
 }
