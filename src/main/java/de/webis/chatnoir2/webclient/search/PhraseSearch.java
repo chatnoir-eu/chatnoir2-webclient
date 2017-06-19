@@ -85,7 +85,7 @@ public class PhraseSearch extends SimpleSearch
         addSimpleSearchFields(boolQuery, queryString, phraseFields);
 
         addFilters(boolQuery);
-        addBoosts(boolQuery, false);
+        addBoosts(boolQuery, true);
 
         return boolQuery;
     }
