@@ -12,6 +12,9 @@ import de.webis.chatnoir2.webclient.resources.ConfigLoader.Config;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Provider for pure phrase search.
  */
@@ -78,21 +81,29 @@ public class PhraseSearch extends SimpleSearch
     {
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
+        // score by phrase search fields, but don't do actual phrase search again
+        // (results already contain only phrase matches)
         Config[] fields = mPhraseConfig.getArray("fields");
+        List<String> phraseFields = new ArrayList<>();
         for (Config c: fields) {
-            MatchPhraseQueryBuilder matchPhraseQuery = QueryBuilders.matchPhraseQuery(
-                    replaceLocalePlaceholders(c.getString("name")),
-                    queryString.toString());
-            matchPhraseQuery.boost(c.getFloat("boost", 1.0f));
-            boolQuery.must(matchPhraseQuery);
+            String fieldName = replaceLocalePlaceholders(c.getString("name"));
+            MatchQueryBuilder matchQuery = QueryBuilders.matchQuery(fieldName, queryString.toString());
+            matchQuery.boost(c.getFloat("boost", 1.0f));
+
+            boolQuery.must(matchQuery);
+            phraseFields.add(fieldName);
         }
 
-        // add fields from simple search for additional scoring
+        // score by fields from simple search for additional scoring, but
         ConfigLoader.Config[] simpleSearchFields = mSimpleConfig.getArray("main_fields");
-        for (final ConfigLoader.Config field : simpleSearchFields) {
-            MatchQueryBuilder matchQuery = QueryBuilders.matchQuery(
-                    replaceLocalePlaceholders(field.getString("name", "")),
-                    queryString.toString());
+        for (ConfigLoader.Config field : simpleSearchFields) {
+            String fieldName = replaceLocalePlaceholders(field.getString("name"));
+            if (phraseFields.contains(fieldName)) {
+                // we already scored by this field
+                continue;
+            }
+
+            MatchQueryBuilder matchQuery = QueryBuilders.matchQuery(fieldName, queryString.toString());
             matchQuery.boost(field.getFloat("boost", 1.0f));
             boolQuery.should(matchQuery);
         }
