@@ -130,7 +130,7 @@ public abstract class SearchProvider extends IndexRetrievalOperator
 
             final SearchResultBuilder.SearchResult result = new SearchResultBuilder()
                     .score(hit.getScore())
-                    .index(hit.index())
+                    .index(hit.getIndex())
                     .documentId(hit.getId())
                     .trecId((String) source.get("warc_trec_id"))
                     .title(title)
@@ -141,7 +141,7 @@ public abstract class SearchProvider extends IndexRetrievalOperator
                     .fullBody((String) source.get("body_lang." + getSearchLanguage()))
                     .pageRank((Double) source.get("page_rank"))
                     .spamRank((Integer) source.get("spam_rank"))
-                    .explanation(hit.explanation())
+                    .explanation(hit.getExplanation())
                     .build();
             results.add(result);
         }
