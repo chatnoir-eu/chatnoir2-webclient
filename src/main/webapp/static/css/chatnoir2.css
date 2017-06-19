@@ -247,6 +247,10 @@ a {
     padding: .5rem .3rem;
 }
 
+.js #SearchOptions {
+    display: none;
+}
+
 #SearchOptions::after {
     display: block;
     content: "";
