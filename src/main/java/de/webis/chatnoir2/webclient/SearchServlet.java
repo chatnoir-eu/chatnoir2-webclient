@@ -119,6 +119,7 @@ public class SearchServlet extends ChatNoirServlet
         }
         templateVars.put("allowedIndices", allowedIndices);
         templateVars.put("indices", effectiveArr);
+        templateVars.put("isSearch", true);
 
         long numResults = search.getTotalResultNumber();
         final long currentPageCapped = Math.max(1, Math.min((long) Math.ceil((double) numResults / mResultsPerPage), currentPage));

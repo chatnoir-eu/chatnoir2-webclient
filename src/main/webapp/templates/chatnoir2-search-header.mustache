@@ -8,17 +8,21 @@
         <div class="col-sm-8">
             {{> chatnoir2-search-field }}
         </div>
-        <div id="SearchOptionsToggle">
-            <button class="btn fa fa-cog active">Options</button>
-        </div>
+        {{#isSearch}}
+            <div id="SearchOptionsToggle">
+                <button class="btn fa fa-cog active">Options</button>
+            </div>
+        {{/isSearch}}
     </div>
-    <div id="SearchOptions">
-        <div class="indices">
-            <select data-placeholder="Select…" name="index" id="SearchIndices"multiple>
-                {{#allowedIndices}}
-                    <option value="{{name}}"{{#selected}} selected{{/selected}}>{{displayName}}</option>
-                {{/allowedIndices}}
-            </select>
+    {{#isSearch}}
+        <div id="SearchOptions">
+            <div class="indices">
+                <select data-placeholder="Select…" name="index" id="SearchIndices"multiple>
+                    {{#allowedIndices}}
+                        <option value="{{name}}"{{#selected}} selected{{/selected}}>{{displayName}}</option>
+                    {{/allowedIndices}}
+                </select>
+            </div>
         </div>
-    </div>
+    {{/isSearch}}
 </form>
