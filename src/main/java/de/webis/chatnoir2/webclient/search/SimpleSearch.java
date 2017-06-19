@@ -327,7 +327,7 @@ public class SimpleSearch extends SearchProvider
     }
 
     /**
-     * Add (positive and negative) boosts from config to the given query.
+     * Add (positive) boosts from config to the given query.
      *
      * @param query query which to add boosting fields to
      * @param match only add boosts which are allowed during match phase (pre-query)
