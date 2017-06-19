@@ -60,8 +60,17 @@ public class SimpleSearch extends SearchProvider
      *
      * @param doExplain true if query shall be explained
      */
-    public void setExplain(final boolean doExplain) {
+    public void setExplain(final boolean doExplain)
+    {
         this.mExplain = doExplain;
+    }
+
+    /**
+     * @return whether to explain search queries.
+     */
+    public boolean isExplain()
+    {
+        return mExplain;
     }
 
     /**
@@ -83,7 +92,7 @@ public class SimpleSearch extends SearchProvider
                 .setSize(size)
                 .highlighter(buildFieldHighlighter())
                 .setExplain(mExplain)
-                .setTerminateAfter(mSimpleSearchConfig.getInteger("node_limit", 200000))
+                .setTerminateAfter(getNodeLimit())
                 .setProfile(false)
                 .get();
     }
@@ -111,6 +120,16 @@ public class SimpleSearch extends SearchProvider
                 .field("title_lang." + getSearchLanguage(), getTitleLength(), 1)
                 .field("body_lang." + getSearchLanguage(), getSnippetLength(), 1)
                 .encoder("html");
+    }
+
+    /**
+     * Get node limit after which to terminate search.
+     *
+     * @return node limit
+     */
+    protected int getNodeLimit()
+    {
+        return mSimpleSearchConfig.getInteger("node_limit", 200000);
     }
 
     /**
