@@ -7,15 +7,14 @@
 
 package de.webis.chatnoir2.webclient.search;
 
+import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader.Config;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.*;
-import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 
 /**
  * Provider for pure phrase search.
  */
-public class PhraseSearch extends SearchProvider
+public class PhraseSearch extends SimpleSearch
 {
     /**
      * Phrase matching slop.
@@ -23,53 +22,30 @@ public class PhraseSearch extends SearchProvider
     private int mSlop = 0;
 
     /**
-     * Config object shortcut.
+     * Config object shortcut to phrase search config.
      */
     private final Config mPhraseConfig;
 
     /**
-     * Elasticsearch response object of the last search.
+     * Config object shortcut to simple search config.
      */
-    private SearchResponse mResponse;
-
-    /**
-     * Whether to add explanation to search results.
-     */
-    private boolean mExplain = false;
+    private final Config mSimpleConfig;
 
     public PhraseSearch(final String[] indices)
     {
         super(indices);
         mPhraseConfig = getConf().get("search.phrase_search");
+        mSimpleConfig = getConf().get("search.default_simple");
     }
 
     @Override
-    public void doSearch(String query, int from, int size)
+    protected int getNodeLimit()
     {
-        QueryBuilder phraseQuery = buildPreQuery(new StringBuffer(query));
-
-        mResponse = getClient()
-                .prepareSearch(getEffectiveIndices())
-                .setQuery(phraseQuery)
-                .setFrom(from)
-                .setSize(size)
-                .highlighter(new HighlightBuilder()
-                        .field("title_lang." + getSearchLanguage(), getTitleLength(), 1)
-                        .field("body_lang." + getSearchLanguage(), getSnippetLength(), 1)
-                        .encoder("html"))
-                .setExplain(mExplain)
-                .setTerminateAfter(mPhraseConfig.getInteger("node_limit", 200000))
-                .setProfile(false)
-                .get();
+        return mPhraseConfig.getInteger("node_limit", 10000);
     }
 
     @Override
-    protected SearchResponse getResponse()
-    {
-        return mResponse;
-    }
-
-    private QueryBuilder buildPreQuery(StringBuffer queryString)
+    protected QueryBuilder buildPreQuery(StringBuffer queryString)
     {
         BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
 
@@ -82,7 +58,45 @@ public class PhraseSearch extends SearchProvider
             boolQuery.must(matchPhraseQuery);
         }
 
+        addFilters(boolQuery);
+        addBoosts(boolQuery, true);
+
         return boolQuery;
+    }
+
+    @Override
+    protected QueryBuilder buildRescoreQuery(StringBuffer queryString)
+    {
+        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+
+        Config[] fields = mPhraseConfig.getArray("fields");
+        for (Config c: fields) {
+            MatchPhraseQueryBuilder matchPhraseQuery = QueryBuilders.matchPhraseQuery(
+                    replaceLocalePlaceholders(c.getString("name")),
+                    queryString.toString());
+            matchPhraseQuery.boost(c.getFloat("boost", 1.0f));
+            boolQuery.must(matchPhraseQuery);
+        }
+
+        // add fields from simple search for additional scoring
+        ConfigLoader.Config[] simpleSearchFields = mSimpleConfig.getArray("main_fields");
+        for (final ConfigLoader.Config field : simpleSearchFields) {
+            MatchQueryBuilder matchQuery = QueryBuilders.matchQuery(
+                    replaceLocalePlaceholders(field.getString("name", "")),
+                    queryString.toString());
+            matchQuery.boost(field.getFloat("boost", 1.0f));
+            boolQuery.should(matchQuery);
+        }
+
+        addFilters(boolQuery);
+        addBoosts(boolQuery, false);
+
+        // up-cast and decorate query
+        QueryBuilder mainQuery = boolQuery;
+        mainQuery = decorateFieldValueFactors(mainQuery);
+        mainQuery = decorateNegativeBoost(mainQuery);
+
+        return mainQuery;
     }
 
     /**
@@ -100,21 +114,5 @@ public class PhraseSearch extends SearchProvider
     {
         slop = Math.min(Math.max(0, slop), mPhraseConfig.getInteger("max_slop", 2));
         mSlop = slop;
-    }
-
-    /**
-     * @return whether to add explanation to search results
-     */
-    public boolean isExplain()
-    {
-        return mExplain;
-    }
-
-    /**
-     * @param explain whether to add explanation to search results
-     */
-    public void setExplain(boolean explain)
-    {
-        mExplain = explain;
     }
 }
