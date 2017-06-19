@@ -8,12 +8,13 @@
 package de.webis.chatnoir2.webclient.search;
 
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.common.unit.Fuzziness;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
+import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
@@ -73,28 +74,10 @@ public class SimpleSearch extends SearchProvider
         return mExplain;
     }
 
-    /**
-     * Perform a simple search.
-     */
     @Override
     public void doSearch(String query, int from, int size)
     {
-        StringBuffer queryBuffer = new StringBuffer(query);
-
-        QueryBuilder preQuery = buildPreQuery(queryBuffer);
-        QueryBuilder rescoreQuery = buildRescoreQuery(queryBuffer);
-
-        mResponse = getClient()
-                .prepareSearch(getEffectiveIndices())
-                .setQuery(preQuery)
-                .setRescorer(buildRescorer(rescoreQuery), mSimpleSearchConfig.getInteger("rescore_window", size))
-                .setFrom(from)
-                .setSize(size)
-                .highlighter(buildFieldHighlighter())
-                .setExplain(mExplain)
-                .setTerminateAfter(getNodeLimit())
-                .setProfile(false)
-                .get();
+        mResponse = buildSearchRequest(new StringBuffer(query), from, size).get();
     }
 
     @Override
@@ -110,7 +93,40 @@ public class SimpleSearch extends SearchProvider
     }
 
     /**
+     * Build search request including pre-query, rescorer, node limit, highlighters etc..
+     *
+     * @param queryString user query string
+     * @param from first result to return
+     * @param size number of results to return
+     * @return configured SearchRequestBuilder
+     */
+    protected SearchRequestBuilder buildSearchRequest(StringBuffer queryString, int from, int size)
+    {
+        SearchRequestBuilder requestBuilder = getClient()
+                .prepareSearch(getEffectiveIndices())
+                .setQuery(buildPreQuery(queryString))
+                .setFrom(from)
+                .setSize(size)
+                .setExplain(isExplain())
+                .setTerminateAfter(getNodeLimit())
+                .setProfile(false);
+
+        QueryRescorerBuilder rescorer = buildRescorer(buildRescoreQuery(queryString));
+        if (null != rescorer) {
+            requestBuilder.setRescorer(rescorer, getRescoreWindow());
+        }
+
+        HighlightBuilder highlightBuilder = buildFieldHighlighter();
+        if (null != highlightBuilder) {
+            requestBuilder.highlighter(highlightBuilder);
+        }
+
+        return requestBuilder;
+    }
+
+    /**
      * Build highlighter for highlighting search result snippets.
+     * If you override this method, you can return null to disable highlighting.
      *
      * @return Highlighter
      */
@@ -130,6 +146,16 @@ public class SimpleSearch extends SearchProvider
     protected int getNodeLimit()
     {
         return mSimpleSearchConfig.getInteger("node_limit", 200000);
+    }
+
+    /**
+     * Get window size for query rescorer.
+     *
+     * @return rescore window size
+     */
+    protected int getRescoreWindow()
+    {
+        return mSimpleSearchConfig.getInteger("rescore_window", 400);
     }
 
     /**
@@ -176,6 +202,7 @@ public class SimpleSearch extends SearchProvider
 
     /**
      * Build query rescorer used to run more expensive query on pre-query results.
+     * If you override this method, you can return null to disable rescoring.
      *
      * @param query query to rescore
      * @return assembled RescoreBuilder

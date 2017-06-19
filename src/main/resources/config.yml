@@ -290,7 +290,7 @@ search:
     max_slop: 2
 
     # Limit on each node after which to terminate search and return early
-    node_limit: 10000
+    node_limit: 4000
 
     # Index fields to search.
     # Use the placeholder %lang% instead of actual language codes in language-specific fields.
