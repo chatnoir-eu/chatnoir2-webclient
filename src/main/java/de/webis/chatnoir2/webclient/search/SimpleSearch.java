@@ -78,14 +78,10 @@ public class SimpleSearch extends SearchProvider
         mResponse = getClient()
                 .prepareSearch(getEffectiveIndices())
                 .setQuery(preQuery)
-                .setRescorer(buildRescorer(rescoreQuery),
-                        mSimpleSearchConfig.getInteger("rescore_window", size))
+                .setRescorer(buildRescorer(rescoreQuery), mSimpleSearchConfig.getInteger("rescore_window", size))
                 .setFrom(from)
                 .setSize(size)
-                .highlighter(new HighlightBuilder()
-                        .field("title_lang." + getSearchLanguage(), getTitleLength(), 1)
-                        .field("body_lang." + getSearchLanguage(), getSnippetLength(), 1)
-                        .encoder("html"))
+                .highlighter(buildFieldHighlighter())
                 .setExplain(mExplain)
                 .setTerminateAfter(mSimpleSearchConfig.getInteger("node_limit", 200000))
                 .setProfile(false)
@@ -105,12 +101,24 @@ public class SimpleSearch extends SearchProvider
     }
 
     /**
+     * Build highlighter for highlighting search result snippets.
+     *
+     * @return Highlighter
+     */
+    protected HighlightBuilder buildFieldHighlighter()
+    {
+        return new HighlightBuilder()
+                .field("title_lang." + getSearchLanguage(), getTitleLength(), 1)
+                .field("body_lang." + getSearchLanguage(), getSnippetLength(), 1)
+                .encoder("html");
+    }
+
+    /**
      * Assemble the fast pre-query for use with a rescorer.
      *
      * @return assembled pre-query
      */
-    private QueryBuilder buildPreQuery(StringBuffer userQueryString)
-    {
+    protected QueryBuilder buildPreQuery(StringBuffer userQueryString) {
         BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
 
         // parse query string filters
@@ -140,6 +148,110 @@ public class SimpleSearch extends SearchProvider
             mainQuery.must(searchQuery);
         }
 
+        addFilters(mainQuery);
+        addBoosts(mainQuery, true);
+
+        return mainQuery;
+    }
+
+    /**
+     * Build query rescorer used to run more expensive query on pre-query results.
+     *
+     * @param mainQuery query to rescore
+     * @return assembled RescoreBuilder
+     */
+    protected QueryRescorerBuilder buildRescorer(final QueryBuilder mainQuery)
+    {
+        final QueryRescorerBuilder rescorer = RescoreBuilder.queryRescorer(mainQuery);
+        rescorer.setQueryWeight(0.0f).
+                setRescoreQueryWeight(1.0f).
+                setScoreMode(QueryRescoreMode.Total);
+        return rescorer;
+    }
+
+    /**
+     * Assemble the more expensive query for rescoring the results returned by the pre-query.
+     *
+     * @return rescore query
+     */
+    protected QueryBuilder buildRescoreQuery(StringBuffer userQueryString)
+    {
+        // parse query string
+        final SimpleQueryStringBuilder simpleQuery = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());
+        simpleQuery.minimumShouldMatch("30%");
+
+        final ConfigLoader.Config[] mainFields = mSimpleSearchConfig.getArray("main_fields");
+
+        final List<Object[]> proximityFields = new ArrayList<>();
+        final List<String> fuzzyFields = new ArrayList<>();
+
+        for (final ConfigLoader.Config field : mainFields) {
+            simpleQuery.field(
+                    replaceLocalePlaceholders(field.getString("name", "")),
+                    field.getFloat("boost", 1.0f)).
+                    defaultOperator(Operator.AND).
+                    flags(SimpleQueryStringFlag.AND,
+                            SimpleQueryStringFlag.OR,
+                            SimpleQueryStringFlag.NOT,
+                            SimpleQueryStringFlag.PHRASE,
+                            SimpleQueryStringFlag.PREFIX,
+                            SimpleQueryStringFlag.WHITESPACE);
+
+            // add field to list of proximity-aware fields for later processing
+            if (field.getBoolean("proximity_matching", false)) {
+                proximityFields.add(new Object[]{
+                        replaceLocalePlaceholders(field.getString("name")),
+                        field.getInteger("proximity_slop", 1),
+                        field.getFloat("proximity_boost", 1.0f)
+                });
+            }
+
+            if (field.getBoolean("fuzzy_matching", false)) {
+                fuzzyFields.add(field.getString("name"));
+            }
+        }
+
+        // assemble main query
+        BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
+
+        // proximity matching
+        for (Object[] o : proximityFields) {
+            final MatchPhraseQueryBuilder proximityQuery = QueryBuilders.matchPhraseQuery(
+                    replaceLocalePlaceholders((String) o[0]),
+                    userQueryString.toString()
+            );
+            proximityQuery
+                    .slop((Integer) o[1])
+                    .boost((Float) o[2] / 2.0f);
+            mainQuery.should(proximityQuery);
+        }
+
+        // fuzzy fields
+        for (String f : fuzzyFields) {
+            final FuzzyQueryBuilder fuzzyQuery = QueryBuilders.fuzzyQuery(f, userQueryString.toString());
+            fuzzyQuery.fuzziness(Fuzziness.AUTO);
+            mainQuery.should(fuzzyQuery);
+        }
+
+        mainQuery.must(simpleQuery);
+
+        // field value boosts
+        addBoosts(mainQuery, false);
+
+        // up-cast and decorate query
+        QueryBuilder mainQueryGeneral = mainQuery;
+        mainQueryGeneral = decorateFieldValueFactors(mainQueryGeneral);
+        mainQueryGeneral = decorateNegativeBoost(mainQueryGeneral);
+
+        return mainQueryGeneral;
+    }
+
+    /**
+     * Add defined filters from config to the given query.
+     *
+     * @param mainQuery query to add filters to
+     */
+    protected void addFilters(BoolQueryBuilder mainQuery) {
         // add range filters (e.g. to filter by minimal content length)
         final ConfigLoader.Config[] rangeFilters = mSimpleSearchConfig.getArray("range_filters");
         for (final ConfigLoader.Config filterConfig : rangeFilters) {
@@ -164,11 +276,20 @@ public class SimpleSearch extends SearchProvider
             else
                 mainQuery.filter(rangeFilter);
         }
+    }
 
+    /**
+     * Add (positive and negative) boosts from config to the given query.
+     *
+     * @param mainQuery query which to add boosting fields to
+     * @param match only add boosts which are allowed during match phase (pre-query)
+     */
+    protected void addBoosts(BoolQueryBuilder mainQuery, boolean match)
+    {
         // field value boosts
         final ConfigLoader.Config[] boosts = mSimpleSearchConfig.getArray("boosts");
         for (ConfigLoader.Config c: boosts) {
-            if (!c.getBoolean("match")) {
+            if (match && !c.getBoolean("match")) {
                 continue;
             }
             RegexpQueryBuilder regExpQuery = QueryBuilders.regexpQuery(
@@ -177,8 +298,55 @@ public class SimpleSearch extends SearchProvider
             regExpQuery.boost(c.getFloat("match_boost", 1.0f));
             mainQuery.should(regExpQuery);
         }
+    }
 
-        return mainQuery;
+    /**
+     * Decorate query with field value factors
+     *
+     * @param query query to decorate
+     * @return decorated query
+     */
+    protected QueryBuilder decorateFieldValueFactors(QueryBuilder query)
+    {
+        ConfigLoader.Config[] funcScoreCfgs = mSimpleSearchConfig.getArray("field_value_factors");
+        for (ConfigLoader.Config c : funcScoreCfgs) {
+            FieldValueFactorFunctionBuilder valueFactor = new FieldValueFactorFunctionBuilder(c.getString("name"));
+            valueFactor
+                    .factor(c.getFloat("factor", 1.0f))
+                    .modifier(FieldValueFactorFunction.Modifier.fromString(c.getString("modifier", "")))
+                    .missing(c.getFloat("missing", 1.0f));
+            query = QueryBuilders.functionScoreQuery(query, valueFactor);
+        }
+
+        return query;
+    }
+
+    /**
+     * Decorate query with negative boosting (penalty) query as defined in the configuration.
+     *
+     * @param query query to decorate
+     * @return decorated query
+     */
+    protected QueryBuilder decorateNegativeBoost(QueryBuilder query)
+    {
+        final ConfigLoader.Config penalties = mSimpleSearchConfig.get("penalties");
+        final ConfigLoader.Config[] penaltyFields = penalties.getArray("fields");
+        if (penaltyFields.length > 0) {
+            BoolQueryBuilder penaltyQuery = QueryBuilders.boolQuery();
+            for (ConfigLoader.Config c: penaltyFields) {
+                RegexpQueryBuilder regExpQuery = QueryBuilders.regexpQuery(
+                        replaceLocalePlaceholders(c.getString("name")),
+                        replaceLocalePlaceholders(c.getString("value")));
+                regExpQuery.boost(c.getFloat("boost", 2.0f));
+                penaltyQuery.should(regExpQuery);
+            }
+
+            BoostingQueryBuilder boostingQuery = QueryBuilders.boostingQuery(query, penaltyQuery);
+            boostingQuery.negativeBoost(penalties.getFloat("penalty_factor", 0.2f));
+            query = boostingQuery;
+        }
+
+        return query;
     }
 
     /**
@@ -188,7 +356,7 @@ public class SimpleSearch extends SearchProvider
      * @param queryString user query string
      * @return filter query
      */
-    private QueryBuilder parseQueryStringOperators(StringBuffer queryString)
+    protected QueryBuilder parseQueryStringOperators(StringBuffer queryString)
     {
         // replace AND and OR with + and |
         queryString.replace(0, queryString.length(),
@@ -267,131 +435,5 @@ public class SimpleSearch extends SearchProvider
         }
 
         return filterQuery;
-    }
-
-    /**
-     * Build query rescorer used to run more expensive query on pre-query results.
-     *
-     * @param mainQuery query to rescore
-     * @return assembled RescoreBuilder
-     */
-    private QueryRescorerBuilder buildRescorer(final QueryBuilder mainQuery)
-    {
-        final QueryRescorerBuilder rescorer = RescoreBuilder.queryRescorer(mainQuery);
-        rescorer.setQueryWeight(0.0f).
-                setRescoreQueryWeight(1.0f).
-                setScoreMode(QueryRescoreMode.Total);
-        return rescorer;
-    }
-
-    /**
-     * Assemble the more expensive query for rescoring the results returned by the pre-query.
-     *
-     * @return rescore query
-     */
-    private QueryBuilder buildRescoreQuery(StringBuffer userQueryString)
-    {
-        // parse query string
-        final SimpleQueryStringBuilder simpleQuery = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());
-        simpleQuery.minimumShouldMatch("30%");
-
-        final ConfigLoader.Config[] mainFields = mSimpleSearchConfig.getArray("main_fields");
-
-        final List<Object[]> proximityFields = new ArrayList<>();
-        final List<String>   fuzzyFields     = new ArrayList<>();
-
-        for (final ConfigLoader.Config field : mainFields) {
-            simpleQuery.field(
-                    replaceLocalePlaceholders(field.getString("name", "")),
-                    field.getFloat("boost", 1.0f)).
-                    defaultOperator(Operator.AND).
-                    flags(SimpleQueryStringFlag.AND,
-                            SimpleQueryStringFlag.OR,
-                            SimpleQueryStringFlag.NOT,
-                            SimpleQueryStringFlag.PHRASE,
-                            SimpleQueryStringFlag.PREFIX,
-                            SimpleQueryStringFlag.WHITESPACE);
-
-            // add field to list of proximity-aware fields for later processing
-            if (field.getBoolean("proximity_matching", false)) {
-                proximityFields.add(new Object[] {
-                        replaceLocalePlaceholders(field.getString("name")),
-                        field.getInteger("proximity_slop", 1),
-                        field.getFloat("proximity_boost", 1.0f)
-                });
-            }
-
-            if (field.getBoolean("fuzzy_matching", false)) {
-                fuzzyFields.add(field.getString("name"));
-            }
-        }
-
-        // assemble main query
-        BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
-
-        // proximity matching
-        for (Object[] o : proximityFields) {
-            final MatchPhraseQueryBuilder proximityQuery = QueryBuilders.matchPhraseQuery(
-                    replaceLocalePlaceholders((String) o[0]),
-                    userQueryString.toString()
-            );
-            proximityQuery
-                    .slop((Integer) o[1])
-                    .boost((Float) o[2] / 2.0f);
-            mainQuery.should(proximityQuery);
-        }
-
-        // fuzzy fields
-        for (String f: fuzzyFields) {
-            final FuzzyQueryBuilder fuzzyQuery = QueryBuilders.fuzzyQuery(f, userQueryString.toString());
-            fuzzyQuery.fuzziness(Fuzziness.AUTO);
-            mainQuery.should(fuzzyQuery);
-        }
-
-        mainQuery.must(simpleQuery);
-
-        // field value boosts
-        final ConfigLoader.Config[] boosts = mSimpleSearchConfig.getArray("boosts");
-        for (ConfigLoader.Config c: boosts) {
-            RegexpQueryBuilder regExpQuery = QueryBuilders.regexpQuery(
-                    replaceLocalePlaceholders(c.getString("name")),
-                    replaceLocalePlaceholders(c.getString("value")));
-            regExpQuery.boost(c.getFloat("boost", 2.0f));
-            mainQuery.should(regExpQuery);
-        }
-
-        // we start wrapping the main query here, so we upcast its reference
-        QueryBuilder mainQueryGeneral = mainQuery;
-
-        // field value factor function scores
-        ConfigLoader.Config[] funcScoreCfgs = mSimpleSearchConfig.getArray("field_value_factors");
-        for (ConfigLoader.Config c: funcScoreCfgs) {
-            FieldValueFactorFunctionBuilder valueFactor = new FieldValueFactorFunctionBuilder(c.getString("name"));
-            valueFactor
-                    .factor(c.getFloat("factor", 1.0f))
-                    .modifier(FieldValueFactorFunction.Modifier.fromString(c.getString("modifier", "")))
-                    .missing(c.getFloat("missing", 1.0f));
-            mainQueryGeneral = QueryBuilders.functionScoreQuery(mainQueryGeneral, valueFactor);
-        }
-
-        // field value penalties
-        final ConfigLoader.Config penalties = mSimpleSearchConfig.get("penalties");
-        final ConfigLoader.Config[] penaltyFields = penalties.getArray("fields");
-        if (penaltyFields.length > 0) {
-            BoolQueryBuilder penaltyQuery = QueryBuilders.boolQuery();
-            for (ConfigLoader.Config c: penaltyFields) {
-                RegexpQueryBuilder regExpQuery = QueryBuilders.regexpQuery(
-                        replaceLocalePlaceholders(c.getString("name")),
-                        replaceLocalePlaceholders(c.getString("value")));
-                regExpQuery.boost(c.getFloat("boost", 2.0f));
-                penaltyQuery.should(regExpQuery);
-            }
-
-            BoostingQueryBuilder boostingQuery = QueryBuilders.boostingQuery(mainQuery, penaltyQuery);
-            boostingQuery.negativeBoost(penalties.getFloat("penalty_factor", 0.2f));
-            mainQueryGeneral = boostingQuery;
-        }
-
-        return mainQueryGeneral;
     }
 }
