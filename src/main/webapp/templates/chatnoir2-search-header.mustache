@@ -1,8 +1,24 @@
-<div id="SearchHeader" class="row">
-    <div id="Logo" class="col-sm-2">
-        <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
-            <img src="{{contextPath}}/static/img/chatnoir-logo.png" alt="ChatNoir Logo">
-        </a>
+<form role="search" action="{{contextPath}}/" method="get">
+    <div id="SearchHeader" class="row">
+        <div id="Logo" class="col-sm-2">
+            <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
+                <img src="{{contextPath}}/static/img/chatnoir-logo.png" alt="ChatNoir Logo">
+            </a>
+        </div>
+        <div class="col-sm-8">
+            {{> chatnoir2-search-field }}
+        </div>
+        <div id="SearchOptionsToggle">
+            <button class="btn fa fa-cog active">Options</button>
+        </div>
     </div>
-    <div class="col-sm-8">{{> chatnoir2-search-field }}</div>
-</div>
+    <div id="SearchOptions">
+        <div class="indices">
+            <select data-placeholder="Select…" name="index" id="SearchIndices"multiple>
+                {{#allowedIndices}}
+                    <option value="{{name}}"{{#selected}} selected{{/selected}}>{{displayName}}</option>
+                {{/allowedIndices}}
+            </select>
+        </div>
+    </div>
+</form>

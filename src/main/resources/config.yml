@@ -40,7 +40,7 @@ cluster:
   index_aliases:
     - index: webis_warc_commoncrawl15_001
       alias: cc1511
-      display_name: CommonCrawl 11/15
+      display_name: CommonCrawl 11/2015
 
     - index: webis_warc_clueweb09_002
       alias: cw09

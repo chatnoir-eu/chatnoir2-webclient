@@ -37,7 +37,7 @@
                                     <li role="presentation" class="dropdown-header">Spam Rank: {{spamRankFormatted}}</li>
                                     <li role="presentation" class="divider"></li>
                                     <li role="presentation" class="result-explain">
-                                    <a role="menuitem" class="result-explain" tabindex="-1" href="{{contextPath}}/?q={{{searchQueryUrlEnc}}}&p={{#currentPage}}{{.}}{{/currentPage}}{{#indicesUrlEnc}}&index={{.}}{{/indicesUrlEnc}}&explain#result-{{documentId}}">Explain</a>
+                                    <a role="menuitem" class="result-explain" tabindex="-1" href="{{contextPath}}/?q={{{searchQueryUrlEnc}}}&p={{#currentPage}}{{.}}{{/currentPage}}{{#indices}}&index={{.}}{{/indices}}&explain#result-{{documentId}}">Explain</a>
                                     </li>
                                 </ul>
                             </div>
@@ -60,7 +60,7 @@
                 <ul class="pagination">
                     {{#pagination}}
                         <li{{#active}} class="active"{{/active}}>
-                                <a href="{{contextPath}}/?q={{{searchQueryUrlEnc}}}&p={{pageNumber}}{{#isExplainMode}}&explain{{/isExplainMode}}{{#indicesUrlEnc}}&index={{.}}{{/indicesUrlEnc}}" {{#hiddenLabel}} title="{{hiddenLabel}}"{{/hiddenLabel}}>
+                                <a href="{{contextPath}}/?q={{{searchQueryUrlEnc}}}&p={{pageNumber}}{{#isExplainMode}}&explain{{/isExplainMode}}{{#indices}}&index={{.}}{{/indices}}" {{#hiddenLabel}} title="{{hiddenLabel}}"{{/hiddenLabel}}>
                                 {{label}}{{#ariaHiddenLabel}} <span aria-hidden="true">{{ariaHiddenLabel}}</span>{{/ariaHiddenLabel}}
                                 {{#hiddenLabel}} <span class="sr-only">{{hiddenLabel}}</span>{{/hiddenLabel}}
                         </a>

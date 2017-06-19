@@ -12,7 +12,9 @@
                 <img src="{{contextPath}}/static/img/chatnoir-logo.png">
             </a>
         </div>
-        {{> chatnoir2-search-field }}
+        <form role="search" action="{{contextPath}}/" method="get">
+            {{> chatnoir2-search-field }}
+        </form>
     </div>
 
     {{> chatnoir2-page-foot}}

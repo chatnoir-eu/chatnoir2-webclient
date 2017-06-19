@@ -83,6 +83,70 @@ a {
 }
 
 
+.chosen-container-multi {
+    min-width: 20rem;
+}
+
+/* ===========================================================================
+ * Multi select overrides
+ * ===========================================================================*/
+
+.ms-options {
+    text-align: right;
+}
+
+.ms-options ul {
+    text-align: left;
+}
+
+.ms-options-wrap > button {
+    border-radius: 3px;
+    border-color: #ddd;
+}
+
+.ms-options-wrap > button:after {
+    border-top-color: #ddd;
+}
+
+.ms-options-wrap a {
+    color: #c04223;
+}
+
+.ms-options-wrap label {
+    cursor: pointer;
+}
+
+.ms-options-wrap > .ms-options > ul li.selected label {
+    background-color: #f0f0f0;
+}
+
+.ms-options-wrap > .ms-options > ul li label:hover,
+.ms-options-wrap > .ms-options > ul li label:focus {
+    background-color: #f5f5f5;
+    border: 1px solid #f5f5f5;
+}
+
+.ms-options-wrap > .ms-options {
+    border-color: #ddd;
+    border-radius: 0 0 3px 3px;
+    border-top: none;
+    margin-top: -2px;
+    padding-top: 2px;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, .1);
+}
+
+.ms-options-wrap > button:focus {
+    border-color: #ddd;
+}
+
+.ms-options-wrap > .ms-options > ul input[type="checkbox"] {
+    position: relative;
+    top: 0;
+    left: -6px;
+    border: 1px solid #eee;
+}
+
+
 /*===========================================================================
  * General page elements
  * ===========================================================================*/
@@ -172,8 +236,62 @@ a {
     z-index: 100000;
 }
 
-#SearchHeader form {
+#SearchHeader #SearchField {
     margin-top: 2rem;
+}
+
+#SearchOptions {
+    position: relative;
+    top: -2.4rem;
+    background: #f7f7f7;
+    padding: .5rem .3rem;
+}
+
+#SearchOptions::after {
+    display: block;
+    content: "";
+    clear: both;
+}
+
+#SearchOptions .indices, #SearchOptions select[multiple] {
+    float: right;
+    width: 25rem;
+}
+
+#SearchOptions label {
+    font-weight: normal;
+}
+
+#SearchOptionsToggle {
+    position: absolute;
+    bottom: -.1rem;
+    right: 0;
+}
+
+#SearchOptionsToggle button {
+    font-size: 0;
+    border-bottom: .1rem solid #ddd;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+#SearchOptionsToggle > button.btn.active,
+#SearchOptionsToggle button:focus,
+#SearchOptionsToggle button:active{
+    box-shadow: none;
+    outline: 0;
+    border-bottom-color: #f7f7f7;
+    background-color: #f7f7f7;
+}
+
+#SearchOptionsToggle button.btn {
+    background-color: #ddd;
+    border-bottom-color: #ddd;
+}
+
+#SearchOptionsToggle button:before {
+    font-size: 1.5rem;
+    color: #666;
 }
 
 .search-info {
@@ -183,6 +301,7 @@ a {
 .search-info h1 {
     font-size: 1.3em;
     font-weight: bold;
+    margin-top: 0;
 }
 
 .num-results {
@@ -217,20 +336,11 @@ a {
 .search-result header h2 {
     font-size: 1.3em;
     margin-bottom: 0;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
 }
+
 .search-result header h2 a {
     width: 100%;
     display: inline-block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.search-result header {
-    max-width: 60rem;
 }
 
 .search-result.grouped header h2 {
@@ -238,6 +348,7 @@ a {
 }
 
 .meta {
+    max-width: 60rem;
     margin: -.1rem 0 -.4rem 0;
 }
 
@@ -530,6 +641,14 @@ a {
     .search-page #SearchField form {
         padding-left: 20rem;
     }
+
+    #SearchOptionsToggle button {
+        width: 7rem;
+    }
+
+    #SearchHeader {
+        padding-bottom: 11.5rem;
+    }
 }
 
 @media screen and (max-width: 700px) {
@@ -545,6 +664,19 @@ a {
 @media screen and (max-width: 650px) {
     #SearchHeader {
         height: auto;
+        padding-bottom: 4rem;
+    }
+
+    #SearchOptionsToggle button {
+        width: 10rem;
+    }
+
+    #SearchHeader #Logo {
+        margin-right: 2rem;
+    }
+
+    #SearchHeader #SearchField {
+        margin-top: 0;
     }
 
     #PageFooter {
@@ -564,10 +696,6 @@ a {
         text-align: center;
         clear: left;
         width: 100%;
-    }
-
-    #SearchHeader {
-        margin-bottom: 0;
     }
 
     #CacheResult iframe {
@@ -607,14 +735,17 @@ a {
     #Error .message {
         margin-left: 0;
     }
+
+    .search-info h1, .search-info .num-results {
+        float: none;
+    }
+
+    .search-info h1 {
+        margin-top: 1rem;
+    }
 }
 
 @media screen and (max-width: 600px) {
-    .search-info h1, .search-info .num-results {
-        float: none;
-        margin-top: 2em;
-    }
-
     .search-info h1 {
         margin: .5em 0;
     }

@@ -124,4 +124,14 @@ public abstract class IndexRetrievalOperator extends Configured
     {
         return mActiveIndices.toArray(new String[mActiveIndices.size()]);
     }
+
+    /**
+     * Get a List of all allowed indices for search.
+     *
+     * @return List of index names
+     */
+    public String[] getAllowedIndices()
+    {
+        return mAllowedIndices.toArray(new String[mAllowedIndices.size()]);
+    }
 }

@@ -13,14 +13,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.response.Renderer;
 import de.webis.chatnoir2.webclient.search.SearchResultBuilder;
 import de.webis.chatnoir2.webclient.search.SimpleSearch;
+import de.webis.chatnoir2.webclient.util.Configured;
 
 /**
  * Search Servlet for Chatnoir 2.
@@ -52,13 +51,7 @@ public class SearchServlet extends ChatNoirServlet
     @Override
     public void init()
     {
-        try {
-            // load configuration
-            final ConfigLoader loader = ConfigLoader.getInstance();
-            mResultsPerPage = loader.getConfig().getInteger("serp.results_per_page", mResultsPerPage);
-        } catch (IOException | ConfigLoader.ParseException e) {
-            e.printStackTrace();
-        }
+        mResultsPerPage = Configured.getInstance().getConf().getInteger("serp.results_per_page", mResultsPerPage);
     }
 
     @Override
@@ -76,11 +69,7 @@ public class SearchServlet extends ChatNoirServlet
             return;
         }
 
-        String indicesString = request.getParameter("index");
-        String[] indices = null;
-        if (null != indicesString) {
-            indices = indicesString.split(",");
-        }
+        String[] indices = request.getParameterValues("index");
 
         final HashMap<String, Object> templateVars = new HashMap<>();
         templateVars.put("searchQuery", searchQueryString);
@@ -103,10 +92,33 @@ public class SearchServlet extends ChatNoirServlet
         final long elapsedTime = System.nanoTime() - startTime;
         templateVars.put("queryTime", String.format("%.1fms", elapsedTime * 0.000001));
 
-        templateVars.put("indices", search.getEffectiveIndices());
-        indicesString = String.join(",", search.getEffectiveIndices());
-        templateVars.put("indicesString", indicesString);
-        templateVars.put("indicesUrlEnc", URLEncoder.encode(indicesString, "UTF-8"));
+        // list effective and allowed indices
+        List<Map<String, Object>> allowedIndices = new ArrayList<>();
+        String[] allowedArr = search.getAllowedIndices();
+        List<String> effectiveArr = Arrays.asList(search.getEffectiveIndices());
+
+        // get index display names
+        ConfigLoader.Config[] aliases = Configured.getInstance().getConf().getArray("cluster.index_aliases");
+        for (String allowed: allowedArr) {
+            Map<String, Object> m = new HashMap<>();
+
+            for (ConfigLoader.Config c: aliases) {
+                if (!allowed.equals(c.getString("alias")) && !allowed.equals(c.getString("index"))) {
+                    continue;
+                }
+                String displayName = c.getString("display_name");
+                if (null != displayName) {
+                    m.put("displayName", displayName);
+                } else {
+                    m.put("displayName", allowed);
+                }
+            }
+            m.put("name", allowed);
+            m.put("selected", effectiveArr.contains(allowed));
+            allowedIndices.add(m);
+        }
+        templateVars.put("allowedIndices", allowedIndices);
+        templateVars.put("indices", effectiveArr);
 
         long numResults = search.getTotalResultNumber();
         final long currentPageCapped = Math.max(1, Math.min((long) Math.ceil((double) numResults / mResultsPerPage), currentPage));
