@@ -116,21 +116,22 @@ public class SimpleSearch extends SearchProvider
     /**
      * Assemble the fast pre-query for use with a rescorer.
      *
+     * @param queryString user query string
      * @return assembled pre-query
      */
-    protected QueryBuilder buildPreQuery(StringBuffer userQueryString) {
+    protected QueryBuilder buildPreQuery(StringBuffer queryString) {
         BoolQueryBuilder mainQuery = QueryBuilders.boolQuery();
 
         // parse query string filters
-        QueryBuilder queryStringFilter = parseQueryStringOperators(userQueryString);
+        QueryBuilder queryStringFilter = parseQueryStringOperators(queryString);
         if (null != queryStringFilter) {
             mainQuery.filter(queryStringFilter);
         }
 
         mainQuery.filter(QueryBuilders.termQuery("lang", getSearchLanguage()));
 
-        if (!userQueryString.toString().trim().isEmpty()) {
-            final SimpleQueryStringBuilder searchQuery = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());
+        if (!queryString.toString().trim().isEmpty()) {
+            final SimpleQueryStringBuilder searchQuery = QueryBuilders.simpleQueryStringQuery(queryString.toString());
             searchQuery
                     .defaultOperator(Operator.AND)
                     .flags(SimpleQueryStringFlag.AND,
@@ -157,12 +158,12 @@ public class SimpleSearch extends SearchProvider
     /**
      * Build query rescorer used to run more expensive query on pre-query results.
      *
-     * @param mainQuery query to rescore
+     * @param query query to rescore
      * @return assembled RescoreBuilder
      */
-    protected QueryRescorerBuilder buildRescorer(final QueryBuilder mainQuery)
+    protected QueryRescorerBuilder buildRescorer(QueryBuilder query)
     {
-        final QueryRescorerBuilder rescorer = RescoreBuilder.queryRescorer(mainQuery);
+        final QueryRescorerBuilder rescorer = RescoreBuilder.queryRescorer(query);
         rescorer.setQueryWeight(0.0f).
                 setRescoreQueryWeight(1.0f).
                 setScoreMode(QueryRescoreMode.Total);
@@ -172,12 +173,13 @@ public class SimpleSearch extends SearchProvider
     /**
      * Assemble the more expensive query for rescoring the results returned by the pre-query.
      *
+     * @param queryString user query string
      * @return rescore query
      */
-    protected QueryBuilder buildRescoreQuery(StringBuffer userQueryString)
+    protected QueryBuilder buildRescoreQuery(StringBuffer queryString)
     {
         // parse query string
-        final SimpleQueryStringBuilder simpleQuery = QueryBuilders.simpleQueryStringQuery(userQueryString.toString());
+        final SimpleQueryStringBuilder simpleQuery = QueryBuilders.simpleQueryStringQuery(queryString.toString());
         simpleQuery.minimumShouldMatch("30%");
 
         final ConfigLoader.Config[] mainFields = mSimpleSearchConfig.getArray("main_fields");
@@ -218,7 +220,7 @@ public class SimpleSearch extends SearchProvider
         for (Object[] o : proximityFields) {
             final MatchPhraseQueryBuilder proximityQuery = QueryBuilders.matchPhraseQuery(
                     replaceLocalePlaceholders((String) o[0]),
-                    userQueryString.toString()
+                    queryString.toString()
             );
             proximityQuery
                     .slop((Integer) o[1])
@@ -228,7 +230,7 @@ public class SimpleSearch extends SearchProvider
 
         // fuzzy fields
         for (String f : fuzzyFields) {
-            final FuzzyQueryBuilder fuzzyQuery = QueryBuilders.fuzzyQuery(f, userQueryString.toString());
+            final FuzzyQueryBuilder fuzzyQuery = QueryBuilders.fuzzyQuery(f, queryString.toString());
             fuzzyQuery.fuzziness(Fuzziness.AUTO);
             mainQuery.should(fuzzyQuery);
         }
@@ -249,10 +251,10 @@ public class SimpleSearch extends SearchProvider
     /**
      * Add defined filters from config to the given query.
      *
-     * @param mainQuery query to add filters to
+     * @param query query to add filters to
      */
-    protected void addFilters(BoolQueryBuilder mainQuery) {
-        // add range filters (e.g. to filter by minimal content length)
+    protected void addFilters(BoolQueryBuilder query)
+    {
         final ConfigLoader.Config[] rangeFilters = mSimpleSearchConfig.getArray("range_filters");
         for (final ConfigLoader.Config filterConfig : rangeFilters) {
             final RangeQueryBuilder rangeFilter = QueryBuilders.rangeQuery(
@@ -272,19 +274,19 @@ public class SimpleSearch extends SearchProvider
             }
             final Boolean negate = filterConfig.getBoolean("negate", false);
             if (negate)
-                mainQuery.mustNot(rangeFilter);
+                query.mustNot(rangeFilter);
             else
-                mainQuery.filter(rangeFilter);
+                query.filter(rangeFilter);
         }
     }
 
     /**
      * Add (positive and negative) boosts from config to the given query.
      *
-     * @param mainQuery query which to add boosting fields to
+     * @param query query which to add boosting fields to
      * @param match only add boosts which are allowed during match phase (pre-query)
      */
-    protected void addBoosts(BoolQueryBuilder mainQuery, boolean match)
+    protected void addBoosts(BoolQueryBuilder query, boolean match)
     {
         // field value boosts
         final ConfigLoader.Config[] boosts = mSimpleSearchConfig.getArray("boosts");
@@ -296,7 +298,7 @@ public class SimpleSearch extends SearchProvider
                     replaceLocalePlaceholders(c.getString("name")),
                     replaceLocalePlaceholders(c.getString("value")));
             regExpQuery.boost(c.getFloat("match_boost", 1.0f));
-            mainQuery.should(regExpQuery);
+            query.should(regExpQuery);
         }
     }
 
