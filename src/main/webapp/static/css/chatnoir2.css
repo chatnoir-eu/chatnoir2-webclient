@@ -342,11 +342,6 @@ a {
     margin-bottom: 0;
 }
 
-.search-result header h2 a {
-    width: 100%;
-    display: inline-block;
-}
-
 .search-result.grouped header h2 {
     font-size: 1.0em;
 }
