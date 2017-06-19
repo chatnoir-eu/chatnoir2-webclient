@@ -10,6 +10,7 @@ package de.webis.chatnoir2.webclient.search;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader.Config;
 import org.elasticsearch.index.query.*;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 
 /**
  * Provider for pure phrase search.
@@ -42,6 +43,14 @@ public class PhraseSearch extends SimpleSearch
     protected int getNodeLimit()
     {
         return mPhraseConfig.getInteger("node_limit", 10000);
+    }
+
+    @Override
+    protected HighlightBuilder buildFieldHighlighter()
+    {
+        return new HighlightBuilder()
+                .field("body_lang." + getSearchLanguage(), getSnippetLength(), 1)
+                .encoder("html");
     }
 
     @Override
