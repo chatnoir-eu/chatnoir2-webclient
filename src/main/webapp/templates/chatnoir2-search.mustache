@@ -7,24 +7,7 @@
 </head>
 <body class="search-page">
     <div id="Main" class="container">
-        <div id="SearchHeader" class="row">
-            <div id="Logo" class="col-sm-2">
-                <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
-                    <img src="{{contextPath}}/static/img/chatnoir-logo.png" alt="ChatNoir Logo">
-                </a>
-            </div>
-            <div class="col-sm-8" id="SearchField">
-                <form role="search" action="{{contextPath}}/" method="get">
-                    <div class="input-group">
-                        <input type="text" class="form-control input-lg" placeholder="Search" name="q" value="{{searchQuery}}" id="SearchInput">
-                        {{#indicesString}}<input type="hidden" name="index" value="{{.}}">{{/indicesString}}
-                        <span class="input-group-btn">
-                            <button type="submit" class="btn btn-primary input-lg">Go!</button>
-                        </span>
-                    </div>
-                </form>
-            </div>
-        </div>
+        {{> chatnoir2-search-header }}
 
         <div class="search-info">
             {{#paginationInfo.numResults}}<div class="num-results">Total results: {{paginationInfo.numResults}} (retrieved in {{queryTime}})</div>{{/paginationInfo.numResults}}

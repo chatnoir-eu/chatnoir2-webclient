@@ -1,0 +1,11 @@
+<div id="SearchField">
+    <form role="search" action="{{contextPath}}/" method="get">
+        <div class="input-group">
+            <input type="text" class="form-control input-lg" placeholder="Search" name="q" value="{{searchQuery}}" id="SearchInput">
+            {{#indicesString}}<input type="hidden" name="index" value="{{.}}">{{/indicesString}}
+            <span class="input-group-btn">
+                <button type="submit" class="btn btn-primary input-lg">Go!</button>
+            </span>
+        </div>
+    </form>
+</div>

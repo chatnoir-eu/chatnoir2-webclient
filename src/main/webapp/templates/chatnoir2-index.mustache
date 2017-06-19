@@ -12,16 +12,7 @@
                 <img src="{{contextPath}}/static/img/chatnoir-logo.png">
             </a>
         </div>
-        <div id="SearchField">
-            <form role="search" method="get" action="{{contextPath}}/">
-                <div class="input-group">
-                    <input type="text" class="form-control input-lg" placeholder="Search" name="q" id="SearchInput">
-                    <span class="input-group-btn">
-                        <button type="submit" class="btn btn-primary input-lg">Go!</button>
-                    </span>
-                </div>
-            </form>
-        </div>
+        {{> chatnoir2-search-field }}
     </div>
 
     {{> chatnoir2-page-foot}}
