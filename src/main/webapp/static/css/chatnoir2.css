@@ -144,6 +144,10 @@ a {
     margin-left: 0;
 }
 
+.copyright {
+    padding: 10px 15px;
+}
+
 #Logo a {
      display: inline-block;
      height: 100%;
@@ -677,6 +681,10 @@ a {
 }
 
 @media screen and (max-width: 650px) {
+    #Main {
+        margin-bottom: 2rem;
+    }
+
     #SearchHeader {
         height: auto;
     }
@@ -702,6 +710,11 @@ a {
         text-align: center;
         clear: left;
         width: 100%;
+    }
+
+    #PageFooter .row>.nav li a,
+    #PageFooter .row>.nav li.copyright {
+        padding: 5px;
     }
 
     #CacheResult iframe {

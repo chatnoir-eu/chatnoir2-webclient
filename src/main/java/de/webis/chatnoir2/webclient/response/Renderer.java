@@ -10,6 +10,7 @@ package de.webis.chatnoir2.webclient.response;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,6 +43,12 @@ public class Renderer
         Object[] newScopes = new Object[scopes.length + 1];
         System.arraycopy(scopes, 0, newScopes, 1, scopes.length);
         newScopes[0] = vars;
+
+        String year = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
+        if (!year.equals("2017")) {
+            year = "2017-" + year;
+        }
+        vars.put("copyrightYear", year);
 
         m.execute(new PrintWriter(response.getOutputStream()), newScopes).flush();
     }
