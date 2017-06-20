@@ -88,62 +88,29 @@ a {
 }
 
 /* ===========================================================================
- * Multi select overrides
+ * Sumoselect overrides
  * ===========================================================================*/
 
-.ms-options {
-    text-align: right;
+.CaptionCont.SelectBox,
+.SumoSelect > .optWrapper {
+    width: 24.5rem;
 }
 
-.ms-options ul {
-    text-align: left;
+.SumoSelect .select-all {
+    height: auto;
 }
 
-.ms-options-wrap > button {
-    border-radius: 3px;
-    border-color: #ddd;
-}
-
-.ms-options-wrap > button:after {
-    border-top-color: #ddd;
-}
-
-.ms-options-wrap a {
-    color: #c04223;
-}
-
-.ms-options-wrap label {
-    cursor: pointer;
-}
-
-.ms-options-wrap > .ms-options > ul li.selected label {
+.SumoSelect > .optWrapper > .options li.opt:hover,
+.SumoSelect > .optWrapper > .options li.opt:focus,
+.SumoSelect > .optWrapper > .options li.opt.sel,
+.SumoSelect .select-all.sel,
+.SumoSelect .select-all:hover {
     background-color: #f0f0f0;
 }
 
-.ms-options-wrap > .ms-options > ul li label:hover,
-.ms-options-wrap > .ms-options > ul li label:focus {
-    background-color: #f5f5f5;
-    border: 1px solid #f5f5f5;
-}
-
-.ms-options-wrap > .ms-options {
-    border-color: #ddd;
-    border-radius: 0 0 3px 3px;
-    border-top: none;
-    margin-top: -2px;
-    padding-top: 2px;
-    box-shadow: 0 6px 10px rgba(0, 0, 0, .1);
-}
-
-.ms-options-wrap > button:focus {
-    border-color: #ddd;
-}
-
-.ms-options-wrap > .ms-options > ul input[type="checkbox"] {
-    position: relative;
-    top: 0;
-    left: -6px;
-    border: 1px solid #eee;
+.SumoSelect > .optWrapper.multiple > .options li.opt.selected span i,
+.SumoSelect .select-all.selected > span i, .SumoSelect .select-all.partial > span i {
+    background-color: #c04223;
 }
 
 
