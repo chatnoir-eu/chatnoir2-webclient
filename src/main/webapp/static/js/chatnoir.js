@@ -19,8 +19,7 @@ $.fn.ChatNoir = {};
 // Basic onReady page transformations.
 // --------------------------------------------------------------------
 
-$(document).ready(function () {
-
+$(function () {
     $('.index-page #SearchInput').focus();
 
     var modal = $('#ExplanationModal');
@@ -42,6 +41,26 @@ $(document).ready(function () {
         }
         odd = !odd;
     });
+
+    // initialize search settings
+    $("#SearchIndices").SumoSelect({
+        placeholder: 'Select indices',
+        captionFormat:'{0} indices',
+        captionFormatAllSelected:'All indices',
+        forceCustomRendering: false,
+        nativeOnDevice: ['Android', 'BlackBerry', 'iPhone', 'iPad', 'iPod', 'Opera Mini', 'IEMobile', 'Silk'],
+        selectAll: true,
+        csvDispCount: 2
+    });
+
+    var options = $("#SearchOptions");
+    var optionsToggle = $("#SearchOptionsToggle").find("button");
+
+    optionsToggle.click(function(e) {
+        e.preventDefault();
+        options.slideToggle(300);
+        $(this).toggleClass("active");
+    })
 });
 
 // --------------------------------------------------------------------

@@ -1,28 +1,3 @@
 <script src="{{contextPath}}/static/js/jquery.min.js"></script>
 <script src="{{contextPath}}/static/js/jquery.sumoselect.min.js"></script>
 <script src="{{contextPath}}/static/js/chatnoir.min.js"></script>
-<script>
-    $(function() {
-        $("#SearchIndices").SumoSelect({
-            placeholder: 'Select indices',
-            captionFormat:'{0} indices',
-            captionFormatAllSelected:'All indices',
-            forceCustomRendering: false,
-            nativeOnDevice: ['Android', 'BlackBerry', 'iPhone', 'iPad', 'iPod', 'Opera Mini', 'IEMobile', 'Silk'],
-            selectAll: true,
-            csvDispCount: 2
-        });
-
-        var options = $("#SearchOptions");
-        var optionsToggle = $("#SearchOptionsToggle").find("button");
-
-        options.hide();
-        optionsToggle.removeClass("active");
-
-        optionsToggle.click(function(e) {
-            e.preventDefault();
-            options.slideToggle(300);
-            $(this).toggleClass("active");
-        })
-    });
-</script>

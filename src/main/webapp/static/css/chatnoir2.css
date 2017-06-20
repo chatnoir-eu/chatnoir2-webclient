@@ -70,8 +70,8 @@ a {
 }
 
 .form-control:focus {
-    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(230, 79, 42, .6);
-    border-color: #e64f2a;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(230, 79, 42, 0.59);
+    border-color: #ec7b5f;
 }
 
 .pagination > li > a, .pagination > li > span {
@@ -207,6 +207,10 @@ a {
     margin-top: 2rem;
 }
 
+#SearchHeader #Logo {
+    width: 192px;
+}
+
 #SearchOptions {
     position: relative;
     top: -2.4rem;
@@ -237,13 +241,27 @@ a {
     position: absolute;
     bottom: -.1rem;
     right: 0;
+    display: none;
 }
 
-#SearchOptionsToggle button {
-    font-size: 0;
-    border-bottom: .1rem solid #ddd;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+.js #SearchOptionsToggle {
+    display: block;
+}
+
+#SearchOptionsToggle button.btn {
+    font-size: 1.4rem;
+    border: 0;
+    background: 0;
+    padding: 1rem;
+    font-family: inherit;
+    color: #666;
+}
+
+#SearchOptionsToggle button.btn:before {
+    font-size: 1.6rem;
+    color: #7b7b7b;
+    padding-right: .6rem;
+    font-family: "FontAwesome", serif;
 }
 
 #SearchOptionsToggle > button.btn.active,
@@ -251,18 +269,11 @@ a {
 #SearchOptionsToggle button:active{
     box-shadow: none;
     outline: 0;
-    border-bottom-color: #f7f7f7;
-    background-color: #f7f7f7;
-}
-
-#SearchOptionsToggle button.btn {
-    background-color: #ddd;
-    border-bottom-color: #ddd;
 }
 
 #SearchOptionsToggle button:before {
-    font-size: 1.5rem;
-    color: #666;
+    font-size: 1.6rem;
+    color: #7b7b7b;
 }
 
 .search-info {
@@ -607,13 +618,51 @@ a {
     .search-page #SearchField form {
         padding-left: 20rem;
     }
+}
 
-    #SearchOptionsToggle button {
-        width: 7rem;
+@media screen and (max-width: 767px) {
+    #SearchHeader {
+        padding: 2rem 0;
+        height: auto;
     }
 
-    #SearchHeader {
-        padding-bottom: 11.5rem;
+    #SearchHeader > .col-sm-8 {
+        margin: 0 -15px;
+    }
+
+    #SearchHeader #Logo {
+        width: auto;
+        height: auto;
+        margin: -.8rem 0 1rem 0;
+    }
+
+    #SearchHeader #Logo img {
+        height: 4.5rem;
+    }
+
+    #SearchHeader #SearchField {
+        margin-top: 0;
+    }
+
+    #SearchOptionsToggle {
+        top: 0;
+        left: -15px;
+        right: initial;
+        bottom: initial;
+    }
+
+    #SearchOptionsToggle button.btn {
+        font-size: 0;
+        border: 0;
+        background: 0;
+        padding: 1.8rem 1rem 1rem 2rem;
+        font-family: inherit;
+        color: #666;
+    }
+
+    #SearchOptionsToggle button.btn:before {
+        font-size: 2.4rem;
+        content: "\f0c9";
     }
 }
 
@@ -630,15 +679,6 @@ a {
 @media screen and (max-width: 650px) {
     #SearchHeader {
         height: auto;
-        padding-bottom: 4rem;
-    }
-
-    #SearchOptionsToggle button {
-        width: 10rem;
-    }
-
-    #SearchHeader #Logo {
-        margin-right: 2rem;
     }
 
     #SearchHeader #SearchField {
