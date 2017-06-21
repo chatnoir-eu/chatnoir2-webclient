@@ -1,6 +1,4 @@
-<!--
-    ChatNoir 2 EHCache configuration.
-  -->
+<!-- ChatNoir 2 EHCache configuration. -->
 <ehcache>
     <diskStore path="java.io.tmpdir/chatnoir2-ehcache"/>
 
@@ -13,6 +11,7 @@
             diskPersistent="false"
             diskExpiryThreadIntervalSeconds="120" />
 
+    <!-- Shiro session cache -->
     <cache name="shiro-activeSessionCache"
            maxElementsInMemory="10000"
            overflowToDisk="true"
@@ -22,16 +21,19 @@
            diskPersistent="true"
            diskExpiryThreadIntervalSeconds="600"/>
 
-    <cache name="de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm-0-principals"
-           maxElementsInMemory="1000"
-           eternal="true"
-           overflowToDisk="true"/>
-
+    <!-- Shiro authentication cache -->
     <cache name="org.apache.shiro.realm.text.PropertiesRealm-0-accounts"
            maxElementsInMemory="1000"
            eternal="true"
            overflowToDisk="true"/>
 
+    <!-- ChatNoir API users principal cache -->
+    <cache name="de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm-0-principals"
+           maxElementsInMemory="1000"
+           eternal="true"
+           overflowToDisk="true"/>
+
+    <!-- ChatNoir documents cache -->
     <cache name="de.webis.chatnoir2.webclient.DocServlet-0-docs"
            maxElementsInMemory="50"
            timeToLiveSeconds="900"
