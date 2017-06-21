@@ -10,8 +10,8 @@ package de.webis.chatnoir2.webclient.auth;
 import de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.AnnotationClassLoader;
+import de.webis.chatnoir2.webclient.util.CacheManager;
 import de.webis.chatnoir2.webclient.util.Configured;
-import org.apache.shiro.cache.ehcache.EhCacheManager;
 import org.apache.shiro.mgt.DefaultSecurityManager;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.realm.Realm;
@@ -77,7 +77,7 @@ public class ChatNoirEnvironment extends DefaultWebEnvironment
                 mSecurityManager.setSessionManager(sessionManager);
 
                 // use EHCache for caching and session persistence
-                EhCacheManager cacheManager = new EhCacheManager();
+                CacheManager cacheManager = new CacheManager();
                 cacheManager.setCacheManagerConfigFile("classpath:ehcache.xml");
                 mSecurityManager.setCacheManager(cacheManager);
             }

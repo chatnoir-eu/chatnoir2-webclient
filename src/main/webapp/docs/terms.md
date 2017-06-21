@@ -45,7 +45,7 @@ Webis disclaims any copyrights of contents obtained from a third party which are
 
 While using the services, personal data about you may be gathered by Webis, or by a third party contractor. You agree to transfer usage rights of the gathered data to Webis and third party contractors of Webis without restrictions of time, location, or purpose of use of this data, if the use is directly or indirectly related to providing the services.
 
-You agree to the [privacy policy](/privacy) which is in place at the time at which data is gathered.
+You agree to the [privacy policy](/doc/privacy) which is in place at the time at which data is gathered.
 
 ### Exclusion of Warranties
 

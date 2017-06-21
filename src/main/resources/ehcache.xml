@@ -99,4 +99,10 @@
            eternal="true"
            overflowToDisk="true"/>
 
+    <cache name="de.webis.chatnoir2.webclient.DocServlet-0-docs"
+           maxElementsInMemory="50"
+           timeToLiveSeconds="900"
+           timeToIdleSeconds="900"
+           diskPersistent="false"
+           overflowToDisk="true"/>
 </ehcache>

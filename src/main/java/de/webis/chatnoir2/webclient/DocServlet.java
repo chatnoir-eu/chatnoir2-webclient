@@ -15,10 +15,16 @@ import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.parser.ParserEmulationProfile;
 import com.vladsch.flexmark.util.options.MutableDataSet;
 import de.webis.chatnoir2.webclient.response.Renderer;
+import de.webis.chatnoir2.webclient.util.CacheManager;
+import org.apache.shiro.cache.Cache;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -44,6 +50,11 @@ public class DocServlet extends ChatNoirServlet
     public static final String ROUTE = "/doc/*";
 
     /**
+     * Name of EH document cache.
+     */
+    private static final String CACHE_NAME = DocServlet.class.getName() + "-0-docs";
+
+    /**
      * Default Mustache template.
      */
     private static final String TEMPLATE_INDEX = "/templates/chatnoir2-docs.mustache";
@@ -63,10 +74,38 @@ public class DocServlet extends ChatNoirServlet
             docName = requestURI.getName(1).toString();
         }
 
-        Path markdownFilePath = Paths.get(getServletContext().getRealPath("/docs/" + docName + ".md"));
-        if (null == markdownFilePath || !Files.exists(markdownFilePath)) {
+        Map<String, Object> docParams = getDocument(docName, request);
+        if (null == docParams) {
             forwardError(request, response, HttpServletResponse.SC_NOT_FOUND);
             return;
+        }
+
+        Renderer.render(getServletContext(), request, response, TEMPLATE_INDEX, docParams);
+    }
+
+    /**
+     * Parse and return document with the given name. Returns a map with a "content" key for the parsed contents
+     * and further parameters from the YAML front matter, which can be passed to the template.
+     *
+     * Parsed documents are cached.
+     *
+     * @param docName document name
+     * @param request HTTP request for URL rewriting
+     * @return map containing parsed document and meta data, null if document does not exist
+     */
+    private Map<String, Object> getDocument(String docName, HttpServletRequest request) throws IOException
+    {
+        // try to get parsed document from cache
+        CacheManager cacheManager = new CacheManager();
+        Cache<String, Map<String, Object>> cache = cacheManager.getCache(CACHE_NAME);
+        Map<String, Object> docParams = cache.get(docName);
+        if (null != docParams) {
+            return docParams;
+        }
+
+        Path markdownFilePath = Paths.get(getServletContext().getRealPath("/docs/" + docName + ".md"));
+        if (null == markdownFilePath || !Files.exists(markdownFilePath)) {
+            return null;
         }
 
         final StringBuilder contents = new StringBuilder();
@@ -77,15 +116,14 @@ public class DocServlet extends ChatNoirServlet
         String[] contentSplit = contents.toString().split("(?:^|\n)---\n", 3);
 
         if (contentSplit.length != 3) {
-            forwardError(request, response, HttpServletResponse.SC_NOT_FOUND);
-            return;
+            return null;
         }
 
         contentSplit[1] = "---\n" + contentSplit[1];
 
         Tuple<XContentType, Map<String, Object>> xContent = XContentHelper
                 .convertToMap(new BytesArray(contentSplit[1].getBytes()), false, XContentType.YAML);
-        Map<String, Object> docParams = xContent.v2();
+        docParams = xContent.v2();
 
         MutableDataSet options = new MutableDataSet();
         options.setFrom(ParserEmulationProfile.MARKDOWN);
@@ -98,9 +136,22 @@ public class DocServlet extends ChatNoirServlet
 
         Node document = markdownParser.parse(contentSplit[2]);
         String html = htmlRenderer.render(document);
-        docParams.put("content", html);
+
+        // rewrite links to match servlet context
+        Document htmlDoc = Jsoup.parse(html);
+        Elements links = htmlDoc.select("[href]");
+        for (Element link: links) {
+            if (link.attr("href").startsWith("/")) {
+                link.attr("href", request.getContextPath() + link.attr("href"));
+            }
+        }
+
+        docParams.put("content", htmlDoc.toString());
         docParams.put("isIndex", docName.equals("index"));
 
-        Renderer.render(getServletContext(), request, response, TEMPLATE_INDEX, docParams);
+        // cache document
+        cache.put(docName, docParams);
+
+        return docParams;
     }
 }
