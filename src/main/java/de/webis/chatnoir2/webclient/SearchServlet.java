@@ -155,22 +155,22 @@ public class SearchServlet extends ChatNoirServlet
         /**
          * The registered individual results.
          */
-        private List<SearchResultBuilder.SearchResult> results = new ArrayList<>();
+        private List<SearchResultBuilder.SearchResult> mResults = new ArrayList<>();
 
         /**
          * Total number of results.
          */
-        private long numResults;
+        private long mNumResults;
 
         /**
          * How many results to show per page.
          */
-        private int resultsPerPage;
+        private int mResultsPerPage;
 
         /**
          * Number of the current page.
          */
-        private long currentPage;
+        private long mCurrentPage;
 
         /**
          * Mustache accessor for search results.
@@ -178,7 +178,7 @@ public class SearchServlet extends ChatNoirServlet
          */
         public List<SearchResultBuilder.SearchResult> searchResults()
         {
-            return results;
+            return mResults;
         }
 
         /**
@@ -187,20 +187,20 @@ public class SearchServlet extends ChatNoirServlet
          */
         public List<HashMap<String, String>> pagination()
         {
-            if (0 == numResults) {
+            if (0 == mNumResults) {
                 return null;
             }
 
             // default pagination hard limit by Elasticsearch
-            final int maxPage = 10000 / resultsPerPage;
+            final int maxPage = 10000 / mResultsPerPage;
 
             final List<HashMap<String, String>> pagination = new ArrayList<>();
-            int numPages      = Math.min((int) Math.ceil((double) numResults / resultsPerPage), maxPage);
-            long displayPages = Math.min(Math.min(currentPage + 5, numPages), maxPage);
-            long startingPage = Math.min(Math.max(currentPage - 4, 1), maxPage - 4);
+            int numPages      = Math.min((int) Math.ceil((double) mNumResults / mResultsPerPage), maxPage);
+            long displayPages = Math.min(Math.min(mCurrentPage + 5, numPages), maxPage);
+            long startingPage = Math.min(Math.max(mCurrentPage - 4, 1), maxPage - 4);
 
             // go to first page
-            if (5 < currentPage) {
+            if (5 < mCurrentPage) {
                 final HashMap<String, String> page = new HashMap<>();
                 page.put("pageNumber", Integer.toString(1));
                 page.put("ariaHiddenLabel", "←");
@@ -209,9 +209,9 @@ public class SearchServlet extends ChatNoirServlet
             }
 
             // go to previous page
-            if (1 != currentPage) {
+            if (1 != mCurrentPage) {
                 final HashMap<String, String> page = new HashMap<>();
-                page.put("pageNumber", Long.toString(currentPage - 1));
+                page.put("pageNumber", Long.toString(mCurrentPage - 1));
                 page.put("ariaHiddenLabel", "«");
                 page.put("hiddenLabel", "Previous");
                 pagination.add(page);
@@ -222,16 +222,16 @@ public class SearchServlet extends ChatNoirServlet
                 final HashMap<String, String> page = new HashMap<>();
                 page.put("pageNumber", Long.toString(i));
                 page.put("label", Long.toString(i));
-                if (i == currentPage) {
+                if (i == mCurrentPage) {
                     page.put("active", "1");
                 }
                 pagination.add(page);
             }
 
             // go to next page
-            if (numPages != currentPage) {
+            if (numPages != mCurrentPage) {
                 final HashMap<String, String> page = new HashMap<>();
-                page.put("pageNumber", Long.toString(currentPage + 1));
+                page.put("pageNumber", Long.toString(mCurrentPage + 1));
                 page.put("ariaHiddenLabel", "»");
                 page.put("hiddenLabel", "Next");
                 pagination.add(page);
@@ -247,7 +247,7 @@ public class SearchServlet extends ChatNoirServlet
          */
         public long currentPage()
         {
-            return currentPage;
+            return mCurrentPage;
         }
 
         /**
@@ -257,7 +257,7 @@ public class SearchServlet extends ChatNoirServlet
          */
         public boolean isExplainMode()
         {
-            return 0 != results.size() && results.get(0).explanation() != null;
+            return 0 != mResults.size() && mResults.get(0).explanation() != null;
         }
 
         /**
@@ -267,10 +267,10 @@ public class SearchServlet extends ChatNoirServlet
         public HashMap<String, String> paginationInfo()
         {
             HashMap<String, String> paginationInfo = new HashMap<>();
-            paginationInfo.put("currentPage", Long.toString(currentPage));
-            paginationInfo.put("resultsRangeStart", Long.toString(1 + (currentPage - 1) * resultsPerPage));
-            paginationInfo.put("resultsRangeEnd", Long.toString(Math.min((currentPage - 1) * resultsPerPage + resultsPerPage, numResults)));
-            paginationInfo.put("numResults", Long.toString(numResults));
+            paginationInfo.put("currentPage", Long.toString(mCurrentPage));
+            paginationInfo.put("resultsRangeStart", Long.toString(1 + (mCurrentPage - 1) * mResultsPerPage));
+            paginationInfo.put("resultsRangeEnd", Long.toString(Math.min((mCurrentPage - 1) * mResultsPerPage + mResultsPerPage, mNumResults)));
+            paginationInfo.put("numResults", Long.toString(mNumResults));
 
             return paginationInfo;
         }
@@ -280,7 +280,7 @@ public class SearchServlet extends ChatNoirServlet
          */
         public boolean resultsFound()
         {
-            return numResults != 0;
+            return mNumResults != 0;
         }
 
         /**
@@ -290,7 +290,7 @@ public class SearchServlet extends ChatNoirServlet
          */
         public void addResult(final SearchResultBuilder.SearchResult result)
         {
-            results.add(result);
+            mResults.add(result);
         }
 
         /**
@@ -300,7 +300,7 @@ public class SearchServlet extends ChatNoirServlet
          */
         public void setResults(final List<SearchResultBuilder.SearchResult> results)
         {
-            this.results = results;
+            this.mResults = results;
         }
 
         /**
@@ -312,9 +312,9 @@ public class SearchServlet extends ChatNoirServlet
          */
         public void setPagination(final long numResults, final int resultsPerPage, final long currentPage)
         {
-            this.numResults     = numResults;
-            this.resultsPerPage = resultsPerPage;
-            this.currentPage    = Math.min(currentPage, 1000);
+            this.mNumResults = numResults;
+            this.mResultsPerPage = resultsPerPage;
+            this.mCurrentPage = Math.min(currentPage, 1000);
         }
     }
 }
