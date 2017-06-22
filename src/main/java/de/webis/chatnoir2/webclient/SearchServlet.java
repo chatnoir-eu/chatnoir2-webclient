@@ -22,10 +22,7 @@ import de.webis.chatnoir2.webclient.search.SimpleSearch;
 import de.webis.chatnoir2.webclient.util.Configured;
 
 /**
- * Search Servlet for Chatnoir 2.
- *
- * @author Janek Bevendorff
- * @version 1
+ * ChatNoir 2 mainsearch servlet.
  */
 @WebServlet(SearchServlet.ROUTE)
 public class SearchServlet extends ChatNoirServlet
@@ -147,9 +144,8 @@ public class SearchServlet extends ChatNoirServlet
 
     /**
      * Mustache context class for search results page.
-     *
-     * @author Janek Bevendorff
      */
+    @SuppressWarnings("unused")
     public static class SERPContext
     {
         /**
@@ -312,9 +308,9 @@ public class SearchServlet extends ChatNoirServlet
          */
         public void setPagination(final long numResults, final int resultsPerPage, final long currentPage)
         {
-            this.mNumResults = numResults;
-            this.mResultsPerPage = resultsPerPage;
-            this.mCurrentPage = Math.min(currentPage, 1000);
+            mNumResults = numResults;
+            mResultsPerPage = resultsPerPage;
+            mCurrentPage = Math.min(currentPage, 1000);
         }
     }
 }
