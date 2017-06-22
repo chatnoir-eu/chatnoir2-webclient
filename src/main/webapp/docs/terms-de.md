@@ -9,7 +9,7 @@ ChatNoir 2 ist Gegenstand der Forschung am Lehrstuhl Web-Technology & Informatio
 Martin Potthast\
 Bauhaus-Universität Weimar\
 Fakultät Medien\
-99423 Weimar\
+99423 Weimar
 
 E-Mail: [info@picapica.org](mailto:info@picapica.org)\
 Telefon: +49 3643 58 3720\
