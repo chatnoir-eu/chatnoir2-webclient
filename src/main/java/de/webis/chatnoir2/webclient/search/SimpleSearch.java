@@ -77,6 +77,10 @@ public class SimpleSearch extends SearchProvider
     @Override
     public void doSearch(String query, int from, int size)
     {
+        // Elasticsearch pagination limits
+        from = Math.min(from, 10000);
+        size = from + size <= 10000 ? size : 0;
+
         mResponse = buildSearchRequest(new StringBuffer(query), from, size).get();
     }
 

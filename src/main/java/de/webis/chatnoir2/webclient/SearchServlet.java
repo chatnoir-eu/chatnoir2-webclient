@@ -191,10 +191,13 @@ public class SearchServlet extends ChatNoirServlet
                 return null;
             }
 
+            // default pagination hard limit by Elasticsearch
+            final int maxPage = 10000 / resultsPerPage;
+
             final List<HashMap<String, String>> pagination = new ArrayList<>();
-            int numPages      = Math.min((int) Math.ceil((double) numResults / resultsPerPage), 1000);
-            long displayPages = Math.min(Math.min(currentPage + 5, numPages), 1000);
-            long startingPage = Math.max(currentPage - 4, 1);
+            int numPages      = Math.min((int) Math.ceil((double) numResults / resultsPerPage), maxPage);
+            long displayPages = Math.min(Math.min(currentPage + 5, numPages), maxPage);
+            long startingPage = Math.min(Math.max(currentPage - 4, 1), maxPage - 4);
 
             // go to first page
             if (5 < currentPage) {
