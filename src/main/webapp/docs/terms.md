@@ -2,6 +2,20 @@
 title: Terms of Service - ChatNoir 2
 ---
 
+# Publisher
+ChatNoir 2 is subject to research and development at the Web Technology & Information Systems Group at Bauhaus-Universität Weimar.
+
+#### Contact:
+Martin Potthast\
+Bauhaus-Universität Weimar\
+Fakultät Medien\
+99423 Weimar\
+Germany 
+
+Email: [info@picapica.org](mailto:info@picapica.org)\
+Phone: +49 3643 58 3720\
+Fax: +49 3643 58 3709
+
 # Terms of Service
 ### Preface
 
@@ -23,7 +37,7 @@ Repeated automatic access to the application programming interfaces may not exce
 
 Certain parts of this website may be crawled automatically. These parts are specified using the robots exclusion protocol (robots.txt). If you crawl this website repeatedly, you agree to adjust your crawler to the frequency at which the static contents of this website change.
 
-You may use the services for private and commercial purposes, but agree not to sell the services to a third party, or indidcate to a third party the services are yours.
+You may use the services for private and commercial purposes, but agree not to sell the services to a third party, or indicate to a third party the services are yours.
 
 ### Provision of the services by Webis
 
@@ -62,6 +76,8 @@ YOU EXPRESSLY UNDERSTAND AND AGREE THAT WEBIS, ITS SUBSIDIARIES AND AFFILIATES, 
 Webis may change these terms of service at any time without prior notice or explanation.
 
 Webis may hire third party contractors to provide (parts of) the services.
+
+Webis provides translations of the German version of these terms of service into languages other than German. Only the [German version](/doc/terms-de) of the terms of service is legally binding. In case of inconsistencies or conflicts between the German version of these terms of service and another version in a language other than German, the German version takes precedence.
 
 These terms of service are governed by German law. However, this applies only inasmuch laws in your jurisdiction do not foreclose the choice of applicable law.
 

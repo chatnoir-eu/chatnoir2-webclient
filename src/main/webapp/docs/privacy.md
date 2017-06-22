@@ -16,12 +16,12 @@ Should you paste a text into the search box displayed on this website, enter a U
 
 ### Google Analytics
 
-This website uses Google Analytics, a web usage analysis service by Google Inc. ("Google"). Google Analytics uses so-called "Cookies" which are text files stored on your computer and which are used to analyze your usage of this website. The information about your usage of this website stored within a cookie are typically transfered to a computer within Google's US-based data centers. In case IP anonymization is activated on this website your IP address is shortened on a server within the European Union beforehand. On rare occasions the full IP address may be transfered to an US-based Google server and be shortened there. On behalf of this website's publisher this information will be used by Google to analyze your usage of this website, to generate reports about your activities, and to render services related to analyzing your usage of this website to its publisher. Your IP address will not be connected to other data about you known to Google. You can disable the use of cookies in the preferences of your browser. As a result of that, however, it is possible that you may not be able to access and use all services rendered by this website. Also, you can prevent Google from collecting data about your usage of this website by downloading and installing the browser plugin found under the following address: http://tools.google.com/dlpage/gaoptout. You may demand information about or deletion of the information about you. In such a case, please contact Google under the following address:
+This website uses Google Analytics, a web usage analysis service by Google Inc. ("Google"). Google Analytics uses so-called "Cookies" which are text files stored on your computer and which are used to analyze your usage of this website. The information about your usage of this website stored within a cookie are typically transferred to a computer within Google's US-based data centers. In case IP anonymization is activated on this website your IP address is shortened on a server within the European Union beforehand. On rare occasions the full IP address may be transferred to an US-based Google server and be shortened there. On behalf of this website's publisher this information will be used by Google to analyze your usage of this website, to generate reports about your activities, and to render services related to analyzing your usage of this website to its publisher. Your IP address will not be connected to other data about you known to Google. You can disable the use of cookies in the preferences of your browser. As a result of that, however, it is possible that you may not be able to access and use all services rendered by this website. Also, you can prevent Google from collecting data about your usage of this website by downloading and installing the browser plugin found under the following address: http://tools.google.com/dlpage/gaoptout. You may demand information about or deletion of the information about you. In such a case, please contact Google under the following address:
 
-Privacy Matters \
-c/o Google Inc. \
-1600 Amphitheatre Parkway \
-Mountain View, California, 94043 \
+Privacy Matters\
+c/o Google Inc.\
+1600 Amphitheatre Parkway\
+Mountain View, California, 94043\
 USA
 
 More information can be found here: [http://www.google.com/intl/en/privacy](http://www.google.com/intl/en/privacy)
