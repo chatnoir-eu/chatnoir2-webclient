@@ -27,6 +27,7 @@ package de.webis.chatnoir2.webclient;
 
 import de.webis.chatnoir2.webclient.api.ApiBootstrap;
 import de.webis.chatnoir2.webclient.api.ApiModuleBase;
+import de.webis.chatnoir2.webclient.api.exceptions.NotImplementedException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -36,8 +37,6 @@ import java.io.IOException;
 
 /**
  * REST API Servlet for ChatNoir 2.
- *
- * @author Janek Bevendorff
  */
 @WebServlet(ApiServlet.ROUTE)
 public class ApiServlet extends ChatNoirServlet
@@ -52,11 +51,41 @@ public class ApiServlet extends ChatNoirServlet
     {
         ApiModuleBase apiHandler = ApiBootstrap.bootstrapApiModule(request, response);
 
-        String requestMethod = request.getMethod();
-        if (requestMethod.equals("GET") || requestMethod.equals("POST")) {
-            apiHandler.service(request, response);
-        } else {
-            apiHandler.rejectMethod(request, response);
+        // remove cookie header
+        response.setHeader("Set-Cookie", null);
+
+        String requestMethod = request.getMethod().toUpperCase();
+        switch (requestMethod) {
+            case "HEAD":
+                doHead(request, response);
+                break;
+            case "GET":
+            case "POST":
+                apiHandler.service(request, response);
+                break;
+            case "OPTIONS":
+                doOptions(request, response);
+                response.getWriter().flush();
+                break;
+            default:
+                throw new NotImplementedException("Method not implemented");
         }
+    }
+
+    @Override
+    protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+    {
+    }
+
+    @Override
+    protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+    {
+    }
+
+    @Override
+    protected void doOptions(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
+    {
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setHeader("Allow", "HEAD,GET,POST,OPTIONS");
     }
 }

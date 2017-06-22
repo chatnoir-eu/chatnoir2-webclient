@@ -41,6 +41,8 @@ public class ApiErrorModule extends ApiModuleBase
     public static final int SC_FORBIDDEN             = HttpServletResponse.SC_FORBIDDEN;
     public static final int SC_UNAUTHORIZED          = HttpServletResponse.SC_UNAUTHORIZED;
     public static final int SC_BAD_REQUEST           = HttpServletResponse.SC_BAD_REQUEST;
+    public static final int SC_NOT_IMPLEMENTED       = HttpServletResponse.SC_NOT_IMPLEMENTED;
+    public static final int SC_METHOD_NOT_ALLOWED    = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
     public static final int SC_TOO_MANY_REQUESTS     = 429;
 
     public static final int SC_INTERNAL_SERVER_ERROR = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
@@ -53,11 +55,10 @@ public class ApiErrorModule extends ApiModuleBase
     @Override
     public void service(HttpServletRequest request, HttpServletResponse response)  throws IOException, ServletException
     {
-        super.service(request, response);
+        handleError(request, response);
     }
 
-    @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
+    public void handleError(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
         int errorCode = response.getStatus();
         final XContentBuilder errorObj;
@@ -86,6 +87,14 @@ public class ApiErrorModule extends ApiModuleBase
                 errorObj = generateErrorResponse(request, errorCode, "Unauthorized");
                 break;
 
+            case SC_METHOD_NOT_ALLOWED:
+                errorObj = generateErrorResponse(request, errorCode, "Method not allowed");
+                break;
+
+            case SC_NOT_IMPLEMENTED:
+                errorObj = generateErrorResponse(request, errorCode, "Not implemented");
+                break;
+
             case SC_TOO_MANY_REQUESTS:
                 errorObj = generateErrorResponse(request, errorCode, "Quota exceeded");
                 break;
@@ -100,9 +109,16 @@ public class ApiErrorModule extends ApiModuleBase
         writeResponse(response, errorObj, errorCode);
     }
 
+
+    @Override
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
+    {
+        handleError(request, response);
+    }
+
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
-        doGet(request, response);
+        handleError(request, response);
     }
 }

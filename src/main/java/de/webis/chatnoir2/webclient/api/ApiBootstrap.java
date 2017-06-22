@@ -25,10 +25,7 @@
 
 package de.webis.chatnoir2.webclient.api;
 
-import de.webis.chatnoir2.webclient.api.exceptions.ApiModuleNotFoundException;
-import de.webis.chatnoir2.webclient.api.exceptions.InvalidApiVersionException;
-import de.webis.chatnoir2.webclient.api.exceptions.QuotaExceededException;
-import de.webis.chatnoir2.webclient.api.exceptions.UserErrorException;
+import de.webis.chatnoir2.webclient.api.exceptions.*;
 import de.webis.chatnoir2.webclient.api.v1.ApiModuleV1;
 import de.webis.chatnoir2.webclient.util.AnnotationClassLoader;
 import de.webis.chatnoir2.webclient.util.Configured;
@@ -146,7 +143,7 @@ public class ApiBootstrap
      * @param response HTTP response
      * @param statusCode response status code
      */
-    public static void handleApiError(HttpServletRequest request, HttpServletResponse response,  int statusCode)
+    public static void handleApiError(HttpServletRequest request, HttpServletResponse response, int statusCode)
             throws ServletException, IOException
     {
         response.setStatus(statusCode);
@@ -193,6 +190,14 @@ public class ApiBootstrap
         } else if (exception instanceof QuotaExceededException) {
             statusCode = ApiErrorModule.SC_TOO_MANY_REQUESTS;
             message = "Quota exceeded";
+        } else if (exception instanceof MethodNotAllowedException) {
+            statusCode = ApiErrorModule.SC_METHOD_NOT_ALLOWED;
+            response.setHeader("Allow", String.join(",",
+                    ((MethodNotAllowedException) exception).getAllowedMethods()));
+            message = "Method not allowed";
+        } else if (exception instanceof NotImplementedException) {
+            statusCode = ApiErrorModule.SC_NOT_IMPLEMENTED;
+            message = "Not implemented";
         } else if (exception instanceof UserErrorException) {
             statusCode = ApiErrorModule.SC_BAD_REQUEST;
             message = exception.getMessage();

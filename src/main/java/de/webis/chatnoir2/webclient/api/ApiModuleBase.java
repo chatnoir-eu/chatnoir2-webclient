@@ -101,22 +101,6 @@ public abstract class ApiModuleBase extends ChatNoirServlet
     }
 
     /**
-     * Write an error response for rejecting the used HTTP request method.
-     *
-     * @param request HTTP request object
-     * @param response HTTP response object
-     */
-    public final void rejectMethod(final HttpServletRequest request, final HttpServletResponse response)
-    {
-        try {
-            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST,
-                    "Unsupported request method");
-        } catch (Throwable e) {
-            ApiBootstrap.handleException(e, request, response);
-        }
-    }
-
-    /**
      * Set whether JSON responses should be nicely formatted or not.
      *
      * @param request HTTP request
