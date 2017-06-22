@@ -27,6 +27,7 @@ package de.webis.chatnoir2.webclient.filters;
 
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
@@ -47,6 +48,10 @@ public class CharSetFilter implements Filter
     {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
+
+        // override Server header
+        ((HttpServletResponse) response).setHeader("Server", "ChatNoir 2");
+
         chain.doFilter(request, response);
     }
 
