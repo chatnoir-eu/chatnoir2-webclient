@@ -22,7 +22,7 @@ import de.webis.chatnoir2.webclient.search.SimpleSearch;
 import de.webis.chatnoir2.webclient.util.Configured;
 
 /**
- * ChatNoir 2 mainsearch servlet.
+ * ChatNoir 2 main search servlet.
  */
 @WebServlet(SearchServlet.ROUTE)
 public class SearchServlet extends ChatNoirServlet
