@@ -6,6 +6,16 @@ title: ChatNoir 2 Documentation
 
 The following documentation resources are available:
 
+### Technical Documentation
+
 - [API Documentation](/doc/api)
-- Terms of Service: [English](/doc/terms), [Deutsch](/doc/terms-de)
-- Privacy Policy: [English](/doc/privacy), [Deutsch](/doc/privacy-de)
+
+
+### Legal
+
+- Terms of Service:
+    - [Deutsch](/doc/terms-de)
+    - [English (translation)](/doc/terms)
+- Privacy Policy:
+    - [Deutsch](/doc/privacy-de)
+    - [English (translation)](/doc/privacy)
