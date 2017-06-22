@@ -19,5 +19,6 @@ public class CacheManager extends EhCacheManager
     public CacheManager()
     {
         setCacheManager(net.sf.ehcache.CacheManager.create());
+        setCacheManagerConfigFile("classpath:ehcache.xml");
     }
 }

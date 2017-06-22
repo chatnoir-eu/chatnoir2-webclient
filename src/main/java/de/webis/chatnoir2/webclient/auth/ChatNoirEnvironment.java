@@ -76,10 +76,8 @@ public class ChatNoirEnvironment extends DefaultWebEnvironment
 
                 mSecurityManager.setSessionManager(sessionManager);
 
-                // use EHCache for caching and session persistence
-                CacheManager cacheManager = new CacheManager();
-                cacheManager.setCacheManagerConfigFile("classpath:ehcache.xml");
-                mSecurityManager.setCacheManager(cacheManager);
+                // use ChatNoir cache manager for caching and session persistence
+                mSecurityManager.setCacheManager(new CacheManager());
             }
         }
         return mSecurityManager;

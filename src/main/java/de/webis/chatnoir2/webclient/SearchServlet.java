@@ -296,7 +296,7 @@ public class SearchServlet extends ChatNoirServlet
          */
         public void setResults(final List<SearchResultBuilder.SearchResult> results)
         {
-            this.mResults = results;
+            mResults = results;
         }
 
         /**
