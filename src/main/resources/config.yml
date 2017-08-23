@@ -38,15 +38,15 @@ cluster:
   # Define index aliases.
   # Raw index names in Elasticsearch responses will be replaced with the alias name
   index_aliases:
-    - index: webis_warc_commoncrawl15_001
+    - index: webis_warc_commoncrawl15_002
       alias: cc1511
       display_name: CommonCrawl 11/2015
 
-    - index: webis_warc_clueweb09_002
+    - index: webis_warc_clueweb09_003
       alias: cw09
       display_name: ClueWeb09
 
-    - index: webis_warc_clueweb12_010
+    - index: webis_warc_clueweb12_011
       alias: cw12
       display_name: ClueWeb12
 
