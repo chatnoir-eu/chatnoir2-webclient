@@ -78,7 +78,17 @@ $(function () {
         e.preventDefault();
         options.slideToggle(300);
         $(this).toggleClass("active");
-    })
+    });
+
+    var logo = $("#Logo").find("a img:first-child");
+    var searchInput = $("#SearchInput");
+    searchInput.keyup(function() {
+        if (searchInput.val().trim() !== "") {
+            logo.css("marginLeft", "-155px");
+        } else {
+            logo.css("marginLeft", "0");
+        }
+    });
 });
 
 // --------------------------------------------------------------------

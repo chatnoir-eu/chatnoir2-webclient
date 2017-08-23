@@ -168,11 +168,13 @@ a {
 }
 
 #Logo a {
-     display: inline-block;
-     height: 100%;
-     position: relative;
-     z-index: 100000;
- }
+    display: inline-block;
+    height: 100%;
+    position: relative;
+    z-index: 100000;
+    width: 155px;
+    overflow: hidden;
+}
 
 #SearchField .btn-primary {
     font-size: 0;
@@ -467,6 +469,10 @@ a {
 .cache-page #Logo img {
     height: 12rem;
     padding: 1.2rem;
+}
+
+.cache-page #Logo a {
+    width: 10em;
 }
 
 #CacheHeader {
