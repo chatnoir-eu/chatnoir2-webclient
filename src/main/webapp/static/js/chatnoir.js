@@ -80,15 +80,22 @@ $(function () {
         $(this).toggleClass("active");
     });
 
+    // make cat purr when we are searching something
     var logo = $("#Logo").find("a img:first-child");
     var searchInput = $("#SearchInput");
     searchInput.keyup(function() {
+        if (window.matchMedia('(max-width: 767px)').matches) {
+            return;
+        }
         if (searchInput.val().trim() !== "") {
             logo.css("marginLeft", "-155px");
         } else {
             logo.css("marginLeft", "0");
         }
     });
+    $(window).resize(function() {
+        logo.css("marginLeft", "0");
+    })
 });
 
 // --------------------------------------------------------------------

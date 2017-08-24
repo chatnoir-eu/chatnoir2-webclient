@@ -665,6 +665,10 @@ a {
         margin: -.8rem 0 1rem 0;
     }
 
+    #SearchHeader #Logo a {
+        width: 6.2rem;
+    }
+
     #SearchHeader #Logo img {
         height: 4.5rem;
     }
