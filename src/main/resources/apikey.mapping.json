@@ -28,6 +28,7 @@
                         "month": { "type": "long" }
                     }
                 },
+                "remote_hosts": { "type": "ip" },
                 "roles": { "type": "keyword" }
             }
         }

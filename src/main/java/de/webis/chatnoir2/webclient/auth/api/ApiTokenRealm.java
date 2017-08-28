@@ -47,7 +47,9 @@ import org.elasticsearch.common.xcontent.XContentType;
 
 import javax.annotation.CheckForNull;
 import java.io.Serializable;
+import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -191,6 +193,16 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
         }
         principalData.put("limits", limits);
 
+        Set<InetAddress> remoteHosts = new HashSet<>();
+        if (null != source.get("remote_hosts")) {
+            for (Object ip: (List) source.get("remote_hosts")) {
+                try {
+                    remoteHosts.add(InetAddress.getByName((String) ip));
+                } catch (UnknownHostException ignored) {}
+            }
+        }
+        principalData.put("remote_hosts", remoteHosts);
+
         // user roles
         Set<String> roles = new HashSet<>();
         if (null != source.get("roles")) {
@@ -218,7 +230,6 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
         Cache<String, Map<String, Object>> cache;
         synchronized (apiKey.intern()) {
             cache = securityManager.getCacheManager().getCache(PRINCIPALS_CACHE_NAME);
-
             if (null == cache.get(apiKey)) {
                 Collection<Realm> realms = securityManager.getRealms();
                 for (Realm r : realms) {

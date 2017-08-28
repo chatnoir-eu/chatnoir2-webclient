@@ -187,6 +187,9 @@ public class ApiBootstrap
         if (exception instanceof ApiModuleNotFoundException) {
             statusCode = ApiErrorModule.SC_NOT_FOUND;
             message = "API endpoint not found";
+        } else if (exception instanceof RemoteAddressNotAllowedException) {
+            statusCode = ApiErrorModule.SC_FORBIDDEN;
+            message = "Remote IP not allowed";
         } else if (exception instanceof QuotaExceededException) {
             statusCode = ApiErrorModule.SC_TOO_MANY_REQUESTS;
             message = "Quota exceeded";

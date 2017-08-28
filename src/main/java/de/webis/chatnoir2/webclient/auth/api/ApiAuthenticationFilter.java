@@ -29,6 +29,7 @@ import de.webis.chatnoir2.webclient.api.ApiBootstrap;
 import de.webis.chatnoir2.webclient.api.ApiErrorModule;
 import de.webis.chatnoir2.webclient.api.ApiModuleBase;
 import de.webis.chatnoir2.webclient.api.exceptions.QuotaExceededException;
+import de.webis.chatnoir2.webclient.api.exceptions.RemoteAddressNotAllowedException;
 import de.webis.chatnoir2.webclient.api.exceptions.UserErrorException;
 import de.webis.chatnoir2.webclient.auth.ChatNoirAuthenticationFilter;
 import de.webis.chatnoir2.webclient.auth.ChatNoirAuthenticationFilter.AuthFilter;
@@ -39,6 +40,7 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.apache.shiro.web.subject.WebSubject;
+import org.apache.shiro.web.util.WebUtils;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -47,6 +49,9 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Set;
 
 /**
  * Authentication filter for ChatNoir 2 API requests.
@@ -121,6 +126,26 @@ public class ApiAuthenticationFilter extends ChatNoirAuthenticationFilter
             ChatNoirWebSessionManager sessionManager = (ChatNoirWebSessionManager) securityManager.getSessionManager();
             if (!sessionManager.validateApiSessionQuota(subject)) {
                 throw new QuotaExceededException("API user quota exceeded");
+            }
+
+            // validate remote IP address
+            Set<InetAddress> remoteHosts = ApiTokenRealm.getTypedPrincipalField(subject, "remote_hosts");
+            if (null != remoteHosts && !remoteHosts.isEmpty()) {
+                InetAddress ip = InetAddress.getByName(request.getRemoteHost());
+
+                // trust X-Forwarded-For header only if forwarded from localhost
+                if (InetAddress.getByName("127.0.0.1").equals(ip) || InetAddress.getByName("::1").equals(ip)) {
+                    try {
+                        String forwardedHost = WebUtils.toHttp(request).getHeader("X-Forwarded-For");
+                        if (null != forwardedHost) {
+                            ip = InetAddress.getByName(forwardedHost);
+                        }
+                    } catch (UnknownHostException ignored) {}
+                }
+
+                if (!remoteHosts.contains(ip)) {
+                    throw new RemoteAddressNotAllowedException("Remote IP not allowed");
+                }
             }
 
             sessionManager.incrementApiQuotaUsage(subject.getSession());
