@@ -123,7 +123,7 @@ public class ApiAuthenticationFilter extends ChatNoirAuthenticationFilter
         WebSubject subject = (WebSubject) SecurityUtils.getSubject();
         if (subject.isAuthenticated()) {
             // validate user quota
-            DefaultWebSecurityManager securityManager = ((DefaultWebSecurityManager) SecurityUtils.getSecurityManager());
+            DefaultWebSecurityManager securityManager = (DefaultWebSecurityManager) SecurityUtils.getSecurityManager();
             ChatNoirWebSessionManager sessionManager  = (ChatNoirWebSessionManager) securityManager.getSessionManager();
             if (!sessionManager.validateApiSessionQuota(subject)) {
                 throw new QuotaExceededException("API user quota exceeded");
