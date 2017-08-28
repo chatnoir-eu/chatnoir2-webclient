@@ -115,6 +115,7 @@ public class ApiAuthenticationFilter extends ChatNoirAuthenticationFilter
 
     /**
      * @throws QuotaExceededException if user authenticated, but exceeded their quota
+     * @throws RemoteAddressNotAllowedException if user authenticated, but accesses service from forbidden remote address
      */
     @Override
     protected void executeChain(ServletRequest request, ServletResponse response, FilterChain chain) throws Exception
@@ -123,7 +124,7 @@ public class ApiAuthenticationFilter extends ChatNoirAuthenticationFilter
         if (subject.isAuthenticated()) {
             // validate user quota
             DefaultWebSecurityManager securityManager = ((DefaultWebSecurityManager) SecurityUtils.getSecurityManager());
-            ChatNoirWebSessionManager sessionManager = (ChatNoirWebSessionManager) securityManager.getSessionManager();
+            ChatNoirWebSessionManager sessionManager  = (ChatNoirWebSessionManager) securityManager.getSessionManager();
             if (!sessionManager.validateApiSessionQuota(subject)) {
                 throw new QuotaExceededException("API user quota exceeded");
             }
