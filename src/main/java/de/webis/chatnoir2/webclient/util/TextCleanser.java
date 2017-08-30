@@ -82,7 +82,6 @@ public class TextCleanser
                 .encodingErrors()
                 .doubleHtmlEscape()
                 .unclosedBrackets()
-                .nonWordChars()
                 .repeatedWords()
                 .whitespace()
                 .get();
@@ -168,6 +167,7 @@ public class TextCleanser
     /**
      * Remove consecutive runs of non-word special characters.
      */
+    @Deprecated
     public TextCleanser nonWordChars()
     {
         if (!mIsHtml) {
