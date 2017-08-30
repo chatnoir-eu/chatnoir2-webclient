@@ -156,6 +156,7 @@ public class SearchServlet extends ChatNoirServlet
         final SERPContext serpContext = new SERPContext();
         serpContext.setResults(search.getResults());
         serpContext.setPagination(numResults, mResultsPerPage, currentPage);
+        serpContext.setTerminatedEarly(search.isTerminatedEarly());
 
         Renderer.render(getServletContext(), request, response, TEMPLATE_INDEX, templateVars, serpContext);
     }
@@ -185,6 +186,11 @@ public class SearchServlet extends ChatNoirServlet
          * Number of the current page.
          */
         private long mCurrentPage;
+
+        /**
+         * Whether search terminated early.
+         */
+        private boolean mTerminatedEarly;
 
         /**
          * Mustache accessor for search results.
@@ -262,6 +268,22 @@ public class SearchServlet extends ChatNoirServlet
         public long currentPage()
         {
             return mCurrentPage;
+        }
+
+        /**
+         * Whether search terminated early.
+         */
+        public boolean terminatedEarly()
+        {
+            return mTerminatedEarly;
+        }
+
+        /**
+         * Set whether search terminated early.
+         */
+        public void setTerminatedEarly(boolean terminatedEarly)
+        {
+            mTerminatedEarly = terminatedEarly;
         }
 
         /**

@@ -91,6 +91,16 @@ public abstract class SearchProvider extends IndexRetrievalOperator
     protected abstract SearchResponse getResponse();
 
     /**
+     * Whether the search terminated early.
+     *
+     * @return true if search terminated early
+     */
+    public boolean isTerminatedEarly()
+    {
+        return getResponse().isTerminatedEarly();
+    }
+
+    /**
      * Return a list of {@link SearchResultBuilder.SearchResult} objects for the most recent search.
      * The list will be empty if search yielded no hits or no search has been performed.
      *
