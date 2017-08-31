@@ -306,7 +306,7 @@ public class SearchServlet extends ChatNoirServlet
             paginationInfo.put("currentPage", Long.toString(mCurrentPage));
             paginationInfo.put("resultsRangeStart", Long.toString(1 + (mCurrentPage - 1) * mResultsPerPage));
             paginationInfo.put("resultsRangeEnd", Long.toString(Math.min((mCurrentPage - 1) * mResultsPerPage + mResultsPerPage, mNumResults)));
-            paginationInfo.put("numResults", Long.toString(mNumResults));
+            paginationInfo.put("numResults", String.format("%,d%s", mNumResults, terminatedEarly() ? "+" : ""));
 
             return paginationInfo;
         }
