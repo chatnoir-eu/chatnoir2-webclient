@@ -1,18 +1,18 @@
 ---
-title: Datenschutzerklärung - ChatNoir 2
+title: Datenschutzerklärung - ChatNoir
 ---
 
 # Datenschutzerklärung
 Diese Webseite verwendet die folgenden Dienste:
 
-ChatNoir 2 Search API\
+ChatNoir Search API\
 Google Analytics
 
 Nachfolgend finden Sie eine Datenschutzerklärung für jeden dieser Dienste.
 
-### ChatNoir 2 Search API
+### ChatNoir Search API
 
-Sofern Sie im dafür vorgesehen Textfeld dieser Webseite eine Anfrage oder eine URL eingeben bzw. ein Dokument hochladen wird eine Verbindung zu einem Server ChatNoir 2s aufgebaut, der Ihre Anfrage entgegen nimmt und beantwortet. Es werden dabei folgende Daten erhoben und protokolliert: Datum und Zeit der Verbindungsherstellung, IP-Adresse des anfragenden Rechners, Browsertyp und Browsersprache. Suchanfragen werden protokolliert. Die erhobenen Daten dienen dem Zweck der wissenschaftlichen Erforschung, Evaluierung und Weiterentwicklung von ChatNoir 2 und der statistischen Auswertung des Zugriffs auf diese Webseite. Die Daten werden manuell und automatisiert weiterverarbeitet und mit den im gleichen Protokoll gespeicherten Daten anderer Nutzer verglichen, um Einblicke in die Art und Weise, wie diese Webseite genutzt wird, zu gewinnen. Die Daten werden nicht mit personenbezogenen Daten verknüpft. Auszüge der Daten können in anonymisierter Form Teil wissenschaftlicher Veröffentlichungen werden. Die Daten werden ansonsten nicht an Dritte übertragen und in regelmäßigen Abständen (überlicherweise jährlich) anonymisiert. Anschließend werden die Daten auf unbestimmte Zeit für spätere Auswertungen archiviert. Das Abschicken einer Suchanfrage wird als Einwilligung in die Datenerhebung aufgefasst. Um die Datenerhebung zu verhindern, machen schicken Sie keine Sucheanfrage ab. Sie können jederzeit Auskunft über bzw. Löschung der über Sie gespeicherten Daten verlangen. Um einem solchen Gesuch zu entsprechen, benötigen wir Ihre IP-Adresse und, falls Ihr Internetanbieter Ihre IP-Adresse dynamisch vergibt, die Zeitpunkte zu denen Sie unter Verwendung dieser IP-Adresse Anfragen an ChatNoir 2 gerichtet haben. Bitte richten Sie ihr Gesuch an die im Impressum dieser Seite genannte Adresse.
+Sofern Sie im dafür vorgesehen Textfeld dieser Webseite eine Anfrage oder eine URL eingeben bzw. ein Dokument hochladen wird eine Verbindung zu einem Server ChatNoirs aufgebaut, der Ihre Anfrage entgegen nimmt und beantwortet. Es werden dabei folgende Daten erhoben und protokolliert: Datum und Zeit der Verbindungsherstellung, IP-Adresse des anfragenden Rechners, Browsertyp und Browsersprache. Suchanfragen werden protokolliert. Die erhobenen Daten dienen dem Zweck der wissenschaftlichen Erforschung, Evaluierung und Weiterentwicklung von ChatNoir und der statistischen Auswertung des Zugriffs auf diese Webseite. Die Daten werden manuell und automatisiert weiterverarbeitet und mit den im gleichen Protokoll gespeicherten Daten anderer Nutzer verglichen, um Einblicke in die Art und Weise, wie diese Webseite genutzt wird, zu gewinnen. Die Daten werden nicht mit personenbezogenen Daten verknüpft. Auszüge der Daten können in anonymisierter Form Teil wissenschaftlicher Veröffentlichungen werden. Die Daten werden ansonsten nicht an Dritte übertragen und in regelmäßigen Abständen (überlicherweise jährlich) anonymisiert. Anschließend werden die Daten auf unbestimmte Zeit für spätere Auswertungen archiviert. Das Abschicken einer Suchanfrage wird als Einwilligung in die Datenerhebung aufgefasst. Um die Datenerhebung zu verhindern, machen schicken Sie keine Sucheanfrage ab. Sie können jederzeit Auskunft über bzw. Löschung der über Sie gespeicherten Daten verlangen. Um einem solchen Gesuch zu entsprechen, benötigen wir Ihre IP-Adresse und, falls Ihr Internetanbieter Ihre IP-Adresse dynamisch vergibt, die Zeitpunkte zu denen Sie unter Verwendung dieser IP-Adresse Anfragen an ChatNoir gerichtet haben. Bitte richten Sie ihr Gesuch an die im Impressum dieser Seite genannte Adresse.
 
 ### Google Analytics
 

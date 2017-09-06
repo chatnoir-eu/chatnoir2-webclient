@@ -1,8 +1,8 @@
 ---
-title: ChatNoir 2 Documentation
+title: ChatNoir Documentation
 ---
 
-# ChatNoir 2 Documentation
+# ChatNoir Documentation
 
 The following documentation resources are available:
 

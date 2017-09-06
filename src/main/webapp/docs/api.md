@@ -1,10 +1,10 @@
 ---
-title: ChatNoir 2 API Documentation
+title: ChatNoir API Documentation
 ---
 
-# ChatNoir 2 API Documentation
+# ChatNoir API Documentation
 
-ChatNoir 2 exposes its search interface via a REST API which you can use in
+ChatNoir exposes its search interface via a REST API which you can use in
 your own software to query search results programmatically.
 
 To access the REST API, an API key is required, which we issue upon request to

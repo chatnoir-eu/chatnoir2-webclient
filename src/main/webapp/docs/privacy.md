@@ -1,18 +1,18 @@
 ---
-title: Privacy Policy - ChatNoir 2
+title: Privacy Policy - ChatNoir
 ---
 
 # Privacy Policy
 This website makes use of the following services:
 
-- ChatNoir 2 Search API
+- ChatNoir Search API
 - Google Analytics
 
 In what follows you will find our privacy policies concerning each of these services.
 
-### ChatNoir 2 Search API
+### ChatNoir Search API
 
-Should you paste a text into the search box displayed on this website, enter a URL, or upload a document, your browser connects to the ChatNoir 2 API in order to answer the search request. ChatNoir 2 gathers and logs call data, such as the URLs accessed, the IP address of the caller, the browser used, its language settings as well as the date and time of access. Search requests are logged. The gathered data is used for purposes of research and development of ChatNoir 2 and to analyze its usage. The data is processed manually and automatically and it is connected with other access data stored in the same access logs to gain insights into how this website is used. The data is not connected with personal data about you. Parts of the data may be published in anonymized form as part of scientific publications. Otherwise, the data is not transferred to a third party and it is anonymized periodically (typically once a year). The anonymized data may be stored indefinitely. By making a search request you agree to this privacy policy. To prevent ChatNoir 2 from gathering this data, do not make a search request. You may demand information about or deletion of the data stored about you. In such a case, please include the IP address from which you have accessed ChatNoir 2. In case your internet provider assigns dynamic IP addresses we also need the exact time frames at which you have accessed ChatNoir 2. Please direct your request at the publisher of this website.
+Should you paste a text into the search box displayed on this website, enter a URL, or upload a document, your browser connects to the ChatNoir API in order to answer the search request. ChatNoir gathers and logs call data, such as the URLs accessed, the IP address of the caller, the browser used, its language settings as well as the date and time of access. Search requests are logged. The gathered data is used for purposes of research and development of ChatNoir and to analyze its usage. The data is processed manually and automatically and it is connected with other access data stored in the same access logs to gain insights into how this website is used. The data is not connected with personal data about you. Parts of the data may be published in anonymized form as part of scientific publications. Otherwise, the data is not transferred to a third party and it is anonymized periodically (typically once a year). The anonymized data may be stored indefinitely. By making a search request you agree to this privacy policy. To prevent ChatNoir from gathering this data, do not make a search request. You may demand information about or deletion of the data stored about you. In such a case, please include the IP address from which you have accessed ChatNoir. In case your internet provider assigns dynamic IP addresses we also need the exact time frames at which you have accessed ChatNoir. Please direct your request at the publisher of this website.
 
 ### Google Analytics
 

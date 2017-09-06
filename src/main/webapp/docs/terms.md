@@ -1,9 +1,9 @@
 ---
-title: Terms of Service - ChatNoir 2
+title: Terms of Service - ChatNoir
 ---
 
 # Publisher
-ChatNoir 2 is subject to research and development at the Web Technology & Information Systems Group at Bauhaus-Universität Weimar.
+ChatNoir is subject to research and development at the Web Technology & Information Systems Group at Bauhaus-Universität Weimar.
 
 #### Contact:
 Martin Potthast\
@@ -12,8 +12,8 @@ Fakultät Medien\
 99423 Weimar\
 Germany 
 
-Email: [info@picapica.org](mailto:info@picapica.org)\
-Phone: +49 3643 58 3720\
+Email: [martin.potthast@uni-weimar.de](mailto:martin.potthast@uni-weimar.de)\
+Phone: +49 3643 58 3567\
 Fax: +49 3643 58 3709
 
 # Terms of Service
