@@ -2,20 +2,6 @@
 title: Terms of Service - ChatNoir
 ---
 
-# Publisher
-ChatNoir is subject to research and development at the Web Technology & Information Systems Group at Bauhaus-Universität Weimar.
-
-#### Contact:
-Martin Potthast\
-Bauhaus-Universität Weimar\
-Fakultät Medien\
-99423 Weimar\
-Germany 
-
-Email: [martin.potthast@uni-weimar.de](mailto:martin.potthast@uni-weimar.de)\
-Phone: +49 3643 58 3567\
-Fax: +49 3643 58 3709
-
 # Terms of Service
 ### Preface
 

@@ -2,19 +2,6 @@
 title: Allgemeine Geschäftsbedingungen - ChatNoir
 ---
 
-# Impressum
-ChatNoir ist Gegenstand der Forschung am Lehrstuhl Web-Technology & Information Systems an der Bauhaus-Universität Weimar.
-
-#### Kontakt:
-Martin Potthast\
-Bauhaus-Universität Weimar\
-Fakultät Medien\
-99423 Weimar
-
-E-Mail: [martin.potthast@uni-weimar.de](mailto:martin.potthast@uni-weimar.de)\
-Telefon: +49 3643 58 3567\
-Telefax: +49 3643 58 3709
-
 # Allgemeine Geschäftsbedingungen
 ### Allgemeines
 
