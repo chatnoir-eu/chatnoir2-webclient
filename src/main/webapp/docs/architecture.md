@@ -9,16 +9,16 @@ ChatNoir's architecture consists of three individual components:
 2. Elasticsearch indexer
 3. Web frontend
 
-## 1. Map File Generator
+### 1. Map File Generator
 The map file generator parses the raw web archive (WARC) files, tries to detect the encoding and MIME type of each individual record and generates a JSON-encoded HDFS map file using Hadoop MapReduce. The map file allows random access to each document and its meta data in the collection using a specially calculated UUID key.
 
 ![ChatNoir Architecture](/static/img/architecture.png)\
 *Figure 1: ChatNoir indexing flow and architecture*
 
-## 2. Elasticsearch Indexer
+### 2. Elasticsearch Indexer
 As a next step, the indexer (using [Elasticsearch-Hadoop](https://www.elastic.co/products/hadoop)) uses this map file and (if available) other external data such as page rank information, as input to generate the actual [Elasticsearch](https://www.elastic.co/products/elasticsearch) index. The extracted main content of a document is indexed in multiple ways into separate fields for each language using the **BM25** retrieval model. Other meta data such as URL, host name, title, extracted meta keywords, page ranks etc. are indexed into separate fields. The original HTML body of a document is analyzed, but not stored for retrieval inside the index, as it can be retrieved from the map file at any time.
 
-## 3. Web Frontend
+### 3. Web Frontend
 Finally, the only component the user interacts with is the ChatNoir web frontend. The frontend accepts the user's search query and retrieves matching results from the Elasticsearch index. It also provides an API for programmatic REST access.
 
 For retrieving the original HTML document for a result, the web frontend accesses the formerly created map file, rewrites references and links as needed or renders and caches a plain text version if requested. The extracted main text content from the Elasticsearch index is only used for snippet generation at this time, but may be used for additional features in the future.
