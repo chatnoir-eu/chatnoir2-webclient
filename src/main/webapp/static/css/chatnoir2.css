@@ -362,6 +362,8 @@ a {
     text-overflow: ellipsis;
     max-width: 80%;
     color: #006621;
+    padding-left: 2px;  /* don't cut off glyphs */
+    margin-left: -2px;
 }
 
 .meta .dropdown {
