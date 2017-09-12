@@ -105,7 +105,7 @@ auth:
     default_quota_limits:
       day: 10000     # limit for last 24 hours
       week: 70000    # limit for last 7 days
-      month: 1000000 # limit for last 30 days
+      month: 310000 # limit for last 30 days
 
 # ------------------------------------------------------------------------------------
 # Search engine result page display settings
