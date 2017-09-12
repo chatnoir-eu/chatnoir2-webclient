@@ -103,7 +103,7 @@ auth:
     # Default API quota limits to apply when no specific per-user limits are set.
     # A value of -1 means unlimited.
     default_quota_limits:
-      day: 1000      # limit for last 24 hours
+      day: 10000     # limit for last 24 hours
       week: 70000    # limit for last 7 days
       month: 1000000 # limit for last 30 days
 
