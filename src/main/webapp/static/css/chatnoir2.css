@@ -167,13 +167,13 @@ a {
     padding: 10px 15px;
 }
 
-#Logo a {
+#LogoWrapper a {
     display: inline-block;
     height: 100%;
-    position: relative;
-    z-index: 100000;
-    width: 155px;
-    overflow: hidden;
+}
+
+#LogoWrapper object {
+    pointer-events: none;
 }
 
 #SearchField .btn-primary {
@@ -195,9 +195,13 @@ a {
     max-width: 70rem;
 }
 
-.index-page #Logo {
+.index-page #LogoWrapper {
     text-align: center;
     padding: 20rem 1rem 1rem 1rem;
+}
+
+.index-page #Logo {
+    width: 15rem;
 }
 
 .index-page #SearchField {
@@ -208,13 +212,13 @@ a {
  * Search template
  * ===========================================================================*/
 
-.search-page #Logo {
+.search-page #LogoWrapper {
     height: 12rem;
     width: auto;
     float: left !important;
 }
 
-.search-page #Logo img {
+.search-page #LogoWrapper img {
     max-height: 100%;
 }
 
@@ -229,11 +233,16 @@ a {
 }
 
 #SearchHeader #SearchField {
-    margin-top: 2rem;
+    margin-top: 2.7rem;
+}
+
+#SearchHeader #LogoWrapper {
+    width: 18rem;
 }
 
 #SearchHeader #Logo {
-    width: 192px;
+    width: 14rem;
+    margin-top: -1rem;
 }
 
 #SearchOptions {
@@ -448,8 +457,13 @@ a {
     position: absolute;
 }
 
-.cache-page #Logo {
+.cache-page #LogoWrapper {
     float: left;
+}
+
+.cache-page #Logo {
+    height: 10rem;
+    margin-left: 2rem;
 }
 
 #CacheMeta {
@@ -466,15 +480,6 @@ a {
 #CacheMeta h1 em {
     font-style: normal;
     font-weight: bold;
-}
-
-.cache-page #Logo img {
-    height: 12rem;
-    padding: 1.2rem;
-}
-
-.cache-page #Logo a {
-    width: 10em;
 }
 
 #CacheHeader {
@@ -604,16 +609,16 @@ a {
     padding: 3rem 5rem;
 }
 
-#Error #Logo img {
+#Error #LogoWrapper img {
     width: 180px;
     position: relative;
 }
 
-#Error #Logo img:hover {
+#Error #LogoWrapper img:hover {
     left: -90px;
 }
 
-#Error #Logo {
+#Error #LogoWrapper {
     float: left;
     overflow: hidden;
     width: 90px;
@@ -637,7 +642,7 @@ a {
 }
 
 @media screen and (max-width: 900px) {
-    .index-page #Logo {
+    .index-page #LogoWrapper {
         padding-top: 23vw;
     }
 
@@ -661,17 +666,17 @@ a {
         margin: 0 -15px;
     }
 
-    #SearchHeader #Logo {
+    #SearchHeader #LogoWrapper {
         width: auto;
         height: auto;
         margin: -.8rem 0 1rem 0;
     }
 
-    #SearchHeader #Logo a {
+    #SearchHeader #LogoWrapper a {
         width: 6.2rem;
     }
 
-    #SearchHeader #Logo img {
+    #SearchHeader #LogoWrapper img {
         height: 4.5rem;
     }
 
@@ -702,7 +707,7 @@ a {
 }
 
 @media screen and (max-width: 700px) {
-    #CacheHeader #Logo {
+    #CacheHeader #LogoWrapper {
         display: none;
     }
 
@@ -752,7 +757,7 @@ a {
         min-height: 60rem;
     }
 
-    .search-page #Logo, .cache-page #Logo {
+    .search-page #LogoWrapper, .cache-page #LogoWrapper {
         float: left;
         height: 5.5rem;
         width: auto;
@@ -760,7 +765,7 @@ a {
         margin: 0;
     }
 
-    .search-page #Logo img, .cache-page #Logo img {
+    .search-page #LogoWrapper img, .cache-page #LogoWrapper img {
         height: 100%;
         padding: 2px 0;
     }
@@ -778,7 +783,7 @@ a {
         margin: 2em 0 -1em 0;
     }
 
-    #Error #Logo {
+    #Error #LogoWrapper {
         display: none;
     }
 
@@ -800,7 +805,7 @@ a {
         margin: .5em 0;
     }
 
-    #Error #Logo {
+    #Error #LogoWrapper {
         padding-top: 7rem;
     }
 

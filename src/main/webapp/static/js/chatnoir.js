@@ -81,21 +81,26 @@ $(function () {
     });
 
     // make cat purr when we are searching something
-    var logo = $("#Logo").find("a img:first-child");
-    var searchInput = $("#SearchInput");
-    searchInput.keyup(function() {
-        if (window.matchMedia('(max-width: 767px)').matches) {
-            return;
-        }
-        if (searchInput.val().trim() !== "") {
-            logo.css("marginLeft", "-155px");
-        } else {
-            logo.css("marginLeft", "0");
-        }
+    var logo = $("#Logo");
+    logo.load(function() {
+        var searchInput = $("#SearchInput");
+        var svgEyes = $(logo.get(0).contentDocument).find("#Eyes_1_");
+
+        searchInput.keyup(function () {
+            if (window.matchMedia('(max-width: 767px)').matches) {
+                return;
+            }
+
+            if (searchInput.val().trim() !== "") {
+                svgEyes.attr("visibility", "hidden");
+            } else {
+                svgEyes.attr("visibility", "visible");
+            }
+        });
+        $(window).resize(function () {
+            svgEyes.attr("visibility", "visible");
+        });
     });
-    $(window).resize(function() {
-        logo.css("marginLeft", "0");
-    })
 });
 
 // --------------------------------------------------------------------

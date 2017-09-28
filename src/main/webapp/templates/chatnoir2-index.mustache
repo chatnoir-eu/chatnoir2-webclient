@@ -7,12 +7,14 @@
 </head>
 <body class="index-page">
     <div id="Main" class="container">
-        <div id="Logo">
-            <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
-                <img src="{{contextPath}}/static/img/chatnoir-logo.png" alt="ChatNoir 2">
+        <div id="LogoWrapper">
+            <a rel="home" href="{{contextPath}}/" title="ChatNoir">
+                <object id="Logo" type="image/svg+xml" data="{{contextPath}}/static/img/chatnoir.svg">
+                    ChatNoir Logo
+                </object>
             </a>
         </div>
-        <form role="search" action="{{contextPath}}/" method="get">
+        <form role="search" action="{{contextPath}}/">
             {{> chatnoir2-search-field }}
         </form>
     </div>

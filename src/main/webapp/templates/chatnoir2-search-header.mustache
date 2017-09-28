@@ -1,9 +1,11 @@
 <script>document.body.className = 'js';</script>
 <form role="search" action="{{contextPath}}/" method="get">
     <div id="SearchHeader" class="row">
-        <div id="Logo" class="col-sm-2">
-            <a rel="home" href="{{contextPath}}/" title="ChatNoir 2">
-                <img src="{{contextPath}}/static/img/chatnoir-logo.png" alt="ChatNoir 2">
+        <div id="LogoWrapper" class="col-sm-2">
+            <a rel="home" href="{{contextPath}}/" title="ChatNoir">
+                <object id="Logo" type="image/svg+xml" data="{{contextPath}}/static/img/chatnoir.svg">
+                    ChatNoir Logo
+                </object>
             </a>
         </div>
         <div class="col-sm-8">
