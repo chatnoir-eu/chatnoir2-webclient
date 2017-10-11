@@ -147,13 +147,13 @@ search:
     #
     main_fields:
       - name: title_lang.%lang%
-        boost: 5
+        boost: 70
         proximity_matching: true
         proximity_slop: 2
         proximity_boost: 30
 
       - name: body_lang.%lang%
-        boost: 2
+        boost: 10
         proximity_matching: true
         proximity_slop: 2
         proximity_boost: 20
@@ -161,7 +161,7 @@ search:
       - name: full_body_lang.%lang%
 
       - name: headings_lang.%lang%
-        boost: 4
+        boost: 5
 
       - name: meta_desc_lang.%lang%
         boost: 1
@@ -170,10 +170,10 @@ search:
         boost: 1
 
       - name: warc_target_hostname
-        boost: 10
+        boost: 1
 
       - name: warc_target_path
-        boost: 1
+        boost: 10
 
       - name: warc_target_hostname.raw
         fuzzy_matching: true
@@ -199,17 +199,17 @@ search:
         value: "%lang%\\.wikipedia\\.org"
         match: true
         boost: 30
-        match_boost: 20
+        match_boost: 50
       - name: warc_target_path.raw
         value: "/(wiki/|index\\.[a-z]+)?"
         match: false
-        boost: 75
+        boost: 70
 
     # Penalize (or negatively boost) results if a field contains specific
     # values matched by a regular expression.
     penalties:
       # Overall penalty factor
-      penalty_factor: 0.2
+      penalty_factor: 0.02
 
       # Fields and values to penalize.
       # You can use the %lang% placeholder for the current search language in
@@ -220,7 +220,8 @@ search:
       #
       # Possible parameters are:
       # - name: field name
-      # - value: regular expression
+      # - value: (exact) value to match
+      # - regexp: regular expression to match (only possible on keyword fields, overrides value)
       # - boost: individual boost for this field
       #
       fields: null
@@ -264,15 +265,15 @@ search:
     # - lt: value must be less than
     # - lte: value must be less than or equal
     # - negate: if true, negates the filter
+    # - include_unset: include documents where field is missing (default: false)
     #
     range_filters:
       - name: body_length
         gte: 100
 
       - name: spam_rank
-        gt: 0
-        lte: 50
-        negate: true
+        gte: 66
+        include_unset: true
 
     # Limit on each node after which to terminate search and return early
     node_limit: 70000

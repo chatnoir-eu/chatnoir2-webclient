@@ -177,6 +177,7 @@ public class SearchResultBuilder
     /**
      * Search result.
      */
+    @SuppressWarnings("unused")
     public class SearchResult
     {
         private float mScore = 0.0f;
@@ -288,7 +289,7 @@ public class SearchResultBuilder
 
         public String spamRankFormatted()
         {
-            if (null != mSpamRank && 0 != mSpamRank) {
+            if (null != mSpamRank) {
                 return mSpamRank.toString();
             }
             return "none";

@@ -38,6 +38,7 @@ import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.elasticsearch.search.rescore.RescoreBuilder;
 
+import javax.management.Query;
 import java.util.*;
 
 
@@ -325,8 +326,9 @@ public class SimpleSearch extends SearchProvider
     {
         final ConfigLoader.Config[] rangeFilters = mSimpleSearchConfig.getArray("range_filters");
         for (final ConfigLoader.Config filterConfig : rangeFilters) {
-            final RangeQueryBuilder rangeFilter = QueryBuilders.rangeQuery(
-                    replaceLocalePlaceholders(filterConfig.getString("name", "")));
+            final String fieldName = replaceLocalePlaceholders(filterConfig.getString("name", ""));
+
+            final RangeQueryBuilder rangeFilter = QueryBuilders.rangeQuery(fieldName);
 
             if (null != filterConfig.getDouble("gt")) {
                 rangeFilter.gt(filterConfig.getDouble("gt"));
@@ -340,11 +342,23 @@ public class SimpleSearch extends SearchProvider
             if (null != filterConfig.getDouble("lte")) {
                 rangeFilter.lte(filterConfig.getDouble("lte"));
             }
+
+            QueryBuilder filterQuery = rangeFilter;
+            if (filterConfig.contains("include_unset") && filterConfig.getBoolean("include_unset")) {
+                BoolQueryBuilder mustNotExistQuery = QueryBuilders.boolQuery();
+                mustNotExistQuery.mustNot(QueryBuilders.existsQuery(fieldName));
+
+                BoolQueryBuilder wrapperQuery = QueryBuilders.boolQuery();
+                wrapperQuery.should(rangeFilter);
+                wrapperQuery.should(mustNotExistQuery);
+                filterQuery = wrapperQuery;
+            }
+
             final Boolean negate = filterConfig.getBoolean("negate", false);
             if (negate)
-                query.mustNot(rangeFilter);
+                query.mustNot(filterQuery);
             else
-                query.filter(rangeFilter);
+                query.filter(filterQuery);
         }
     }
 
@@ -404,11 +418,18 @@ public class SimpleSearch extends SearchProvider
         if (penaltyFields.length > 0) {
             BoolQueryBuilder penaltyQuery = QueryBuilders.boolQuery();
             for (ConfigLoader.Config c: penaltyFields) {
-                RegexpQueryBuilder regExpQuery = QueryBuilders.regexpQuery(
-                        replaceLocalePlaceholders(c.getString("name")),
-                        replaceLocalePlaceholders(c.getString("value")));
-                regExpQuery.boost(c.getFloat("boost", 2.0f));
-                penaltyQuery.should(regExpQuery);
+                QueryBuilder penaltyInnerQuery;
+                if (c.contains("regexp")) {
+                    penaltyInnerQuery = QueryBuilders.regexpQuery(
+                            replaceLocalePlaceholders(c.getString("name")),
+                            replaceLocalePlaceholders(c.getString("regexp")));
+                } else {
+                    penaltyInnerQuery = QueryBuilders.matchQuery(
+                            replaceLocalePlaceholders(c.getString("name")),
+                            replaceLocalePlaceholders(c.getString("value")));
+                }
+                penaltyInnerQuery.boost(c.getFloat("boost", 2.0f));
+                penaltyQuery.should(penaltyInnerQuery);
             }
 
             BoostingQueryBuilder boostingQuery = QueryBuilders.boostingQuery(query, penaltyQuery);
