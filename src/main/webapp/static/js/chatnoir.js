@@ -84,7 +84,7 @@ $(function () {
     var logo = $("#Logo");
     logo.load(function() {
         var searchInput = $("#SearchInput");
-        var svgEyes = $(logo.get(0).contentDocument).find("#Eyes_1_");
+        var svgEyes = $(logo.get(0).contentDocument).find("#Eyes_3_");
 
         searchInput.keyup(function () {
             if (window.matchMedia('(max-width: 767px)').matches) {
