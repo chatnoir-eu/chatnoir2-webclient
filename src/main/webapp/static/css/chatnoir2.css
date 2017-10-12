@@ -613,20 +613,11 @@ a {
     padding: 3rem 5rem;
 }
 
-#Error #LogoWrapper img {
-    width: 180px;
-    position: relative;
-}
-
-#Error #LogoWrapper img:hover {
-    left: -90px;
-}
-
-#Error #LogoWrapper {
+#Error #Logo {
     float: left;
-    overflow: hidden;
-    width: 90px;
-    padding: 17rem 0 0 0;
+    width: 12rem;
+    padding-top: 16rem;
+    pointer-events: none;
 }
 
 #Error .message {
@@ -668,7 +659,7 @@ a {
     #LogoIcon {
         display: inline;
     }
-    
+
     #SearchHeader {
         padding: 2rem 0;
         height: auto;

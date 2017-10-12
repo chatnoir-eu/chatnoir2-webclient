@@ -82,25 +82,42 @@ $(function () {
 
     // make cat purr when we are searching something
     var logo = $("#Logo");
-    logo.load(function() {
-        var searchInput = $("#SearchInput");
-        var svgEyes = $(logo.get(0).contentDocument).find("#Eyes_3_");
+    var eyesId = "#Eyes";
 
-        searchInput.keyup(function () {
-            if (window.matchMedia('(max-width: 767px)').matches) {
-                return;
-            }
+    var searchInput = $("#SearchInput");
+    if (searchInput) {
+        logo.load(function() {
+            var svgEyes = $(logo.get(0).contentDocument).find(eyesId);
 
-            if (searchInput.val().trim() !== "") {
-                svgEyes.attr("visibility", "hidden");
-            } else {
+            searchInput.keyup(function() {
+                if (window.matchMedia('(max-width: 767px)').matches) {
+                    return;
+                }
+
+                if (searchInput.val().trim() !== "") {
+                    svgEyes.attr("visibility", "hidden");
+                } else {
+                    svgEyes.attr("visibility", "visible");
+                }
+            });
+            $(window).resize(function() {
                 svgEyes.attr("visibility", "visible");
-            }
+            });
         });
-        $(window).resize(function () {
-            svgEyes.attr("visibility", "visible");
+    }
+
+    var errorPageCat = $("#Error").find("#Logo");
+    if (errorPageCat) {
+        logo.load(function() {
+            var svgEyes = $(logo.get(0).contentDocument).find(eyesId);
+            errorPageCat.parent().mouseenter(function() {
+                svgEyes.attr("visibility", "hidden");
+            });
+            errorPageCat.parent().mouseleave(function() {
+                svgEyes.attr("visibility", "visible");
+            });
         });
-    });
+    }
 });
 
 // --------------------------------------------------------------------
