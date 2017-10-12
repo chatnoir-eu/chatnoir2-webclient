@@ -110,10 +110,10 @@ $(function () {
     if (errorPageCat) {
         logo.load(function() {
             var svgEyes = $(logo.get(0).contentDocument).find(eyesId);
-            errorPageCat.parent().mouseenter(function() {
+            errorPageCat.mouseenter(function() {
                 svgEyes.attr("visibility", "hidden");
             });
-            errorPageCat.parent().mouseleave(function() {
+            errorPageCat.mouseleave(function() {
                 svgEyes.attr("visibility", "visible");
             });
         });

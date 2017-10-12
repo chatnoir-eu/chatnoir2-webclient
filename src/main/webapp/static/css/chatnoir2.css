@@ -616,8 +616,7 @@ a {
 #Error #Logo {
     float: left;
     width: 12rem;
-    padding-top: 16rem;
-    pointer-events: none;
+    margin-top: 16rem;
 }
 
 #Error .message {
