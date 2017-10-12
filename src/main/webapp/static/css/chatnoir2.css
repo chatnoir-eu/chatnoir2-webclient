@@ -176,6 +176,10 @@ a {
     pointer-events: none;
 }
 
+#LogoIcon {
+    display: none;
+}
+
 #SearchField .btn-primary {
     font-size: 0;
 }
@@ -657,6 +661,14 @@ a {
 }
 
 @media screen and (max-width: 767px) {
+    #Logo {
+        display: none;
+    }
+
+    #LogoIcon {
+        display: inline;
+    }
+    
     #SearchHeader {
         padding: 2rem 0;
         height: auto;
