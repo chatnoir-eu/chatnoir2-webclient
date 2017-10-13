@@ -201,7 +201,7 @@ a {
 
 .index-page #LogoWrapper {
     text-align: center;
-    padding: 20rem 1rem 1rem 1rem;
+    padding: 21vh 1rem 1rem 1rem;
 }
 
 .index-page #Logo {
@@ -636,10 +636,6 @@ a {
 }
 
 @media screen and (max-width: 900px) {
-    .index-page #LogoWrapper {
-        padding-top: 23vw;
-    }
-
     .search-info h1, .search-info .num-results {
         font-size: 1em;
         line-height: 1em;
@@ -651,7 +647,11 @@ a {
 }
 
 @media screen and (max-width: 767px) {
-    #Logo {
+    .index-page #LogoWrapper {
+        padding-top: 12vh;
+    }
+
+    #SearchHeader #Logo {
         display: none;
     }
 
