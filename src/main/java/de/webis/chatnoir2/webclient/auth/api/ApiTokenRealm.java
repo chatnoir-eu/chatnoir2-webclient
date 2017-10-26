@@ -65,19 +65,16 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
     /**
      * DAO representing API call limits.
      */
-    public class ApiLimits implements Serializable
+    public class ApiLimits extends HashMap<String, Long> implements Serializable
     {
         private final String mApiKey;
-        private final Long mDay;
-        private final Long mWeek;
-        private final Long mMonth;
 
         public ApiLimits(String apiKey, @Nullable  Long day, @Nullable Long week, @Nullable Long month)
         {
             mApiKey = apiKey;
-            mDay    = day;
-            mWeek   = week;
-            mMonth  = month;
+            put("day", day);
+            put("week", week);
+            put("month", month);
         }
 
         public String getApiKey()
@@ -88,19 +85,19 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
         @CheckForNull
         public Long getDailyLimit()
         {
-            return mDay;
+            return get("day");
         }
 
         @CheckForNull
         public Long getWeeklyLimit()
         {
-            return mWeek;
+            return get("week");
         }
 
         @CheckForNull
         public Long getMonthlyLimit()
         {
-            return mMonth;
+            return get("month");
         }
     }
 
@@ -214,15 +211,12 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
     }
 
     /**
-     * Get a specific field from a subject's primary principal.
+     * Get all fields from a subject's primary principal.
      *
      * @param subject subject
-     * @param field field to retrieve from principal
-     * @param <T> return type
-     * @return typed field value or null if it does not exist
+     * @return map of principal data
      */
-    @SuppressWarnings("unchecked")
-    public static <T> T getTypedPrincipalField(Subject subject, String field)
+    public static Map<String, Object> getPrincipalFields(Subject subject)
     {
         RealmSecurityManager securityManager = ((RealmSecurityManager) SecurityUtils.getSecurityManager());
 
@@ -240,10 +234,23 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
                 }
             }
 
-            Map<String, Object> principals = cache.get(apiKey);
-            if (null != principals) {
-                return (T) principals.get(field);
-            }
+            return cache.get(apiKey);
+        }
+    }
+    /**
+     * Get a specific field from a subject's primary principal.
+     *
+     * @param subject subject
+     * @param field field to retrieve from principal
+     * @param <T> return type
+     * @return typed field value or null if it does not exist
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T getTypedPrincipalField(Subject subject, String field)
+    {
+        Map<String, Object> principals = getPrincipalFields(subject);
+        if (null != principals) {
+            return (T) principals.get(field);
         }
 
         return null;

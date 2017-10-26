@@ -29,7 +29,10 @@
                     }
                 },
                 "remote_hosts": { "type": "ip" },
-                "roles": { "type": "keyword" }
+                "roles": { "type": "keyword" },
+                "parent": { "type": "keyword"},
+                "expires": { "type": "date"},
+                "revoked": { "type": "boolean"}
             }
         }
     }
