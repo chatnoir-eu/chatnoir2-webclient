@@ -231,19 +231,15 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
         }
 
         // check if quota exceeded
-        ConfigLoader.Config conf = Configured.getInstance().getConf().get("auth.api.default_quota_limits");
-        Long lim;
+        long lim;
         if (0 == windowDescriptor) {
             lim = limits.getMonthlyLimit();
-            lim = (null != lim) ? lim : conf.getLong("month", -1L);
         } else if (1 == windowDescriptor) {
             lim = limits.getWeeklyLimit();
-            lim = (null != lim) ? lim : conf.getLong("week", -1L);
         } else {
             lim = limits.getDailyLimit();
-            lim = (null != lim) ? lim : conf.getLong("day", -1L);
         }
-        return (0 > lim) || (windowUsage < lim);
+        return (lim <= 0) || (windowUsage < lim);
     }
 
     /**

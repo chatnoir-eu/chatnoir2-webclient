@@ -25,6 +25,7 @@
 
 package de.webis.chatnoir2.webclient.auth.api;
 
+import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -65,16 +66,24 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
     /**
      * DAO representing API call limits.
      */
-    public class ApiLimits extends HashMap<String, Long> implements Serializable
+    public static class ApiLimits extends HashMap<String, Long> implements Serializable
     {
         private final String mApiKey;
 
+        /**
+         * @param apiKey API key
+         * @param day daily limit (null for default)
+         * @param week weekly limit (null for default)
+         * @param month monthly limit (null for default)
+         */
         public ApiLimits(String apiKey, @Nullable  Long day, @Nullable Long week, @Nullable Long month)
         {
             mApiKey = apiKey;
-            put("day", day);
-            put("week", week);
-            put("month", month);
+
+            ConfigLoader.Config conf = Configured.getInstance().getConf().get("auth.api.default_quota_limits");
+            put("day", null != day ? day : conf.getLong("day", -1L));
+            put("week", null != week ? week : conf.getLong("week", -1L));
+            put("month", null != month ? month : conf.getLong("month", -1L));
         }
 
         public String getApiKey()
@@ -82,20 +91,17 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
             return mApiKey;
         }
 
-        @CheckForNull
-        public Long getDailyLimit()
+        public long getDailyLimit()
         {
             return get("day");
         }
 
-        @CheckForNull
-        public Long getWeeklyLimit()
+        public long getWeeklyLimit()
         {
             return get("week");
         }
 
-        @CheckForNull
-        public Long getMonthlyLimit()
+        public long getMonthlyLimit()
         {
             return get("month");
         }

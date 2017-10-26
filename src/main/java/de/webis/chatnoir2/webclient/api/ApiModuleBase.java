@@ -25,8 +25,10 @@
 
 package de.webis.chatnoir2.webclient.api;
 
+import de.webis.chatnoir2.webclient.ApiServlet;
 import de.webis.chatnoir2.webclient.ChatNoirServlet;
 import de.webis.chatnoir2.webclient.api.exceptions.UserErrorException;
+import de.webis.chatnoir2.webclient.api.v1.ApiModuleV1;
 import de.webis.chatnoir2.webclient.auth.api.ApiKeyAuthenticationToken;
 import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.commons.lang.math.NumberUtils;
@@ -73,6 +75,27 @@ public abstract class ApiModuleBase extends ChatNoirServlet
     {
         String token = getTypedNestedParameter(String.class, "apikey", request);
         return new ApiKeyAuthenticationToken(token);
+    }
+
+    /**
+     * Get extra portion from REQUEST_URI which remains after removing the module prefix.
+     *
+     * @param request HTTP request
+     * @return path as string
+     */
+    public String getActionPath(final HttpServletRequest request) throws ServletException
+    {
+        String requestUri = request.getRequestURI();
+
+        if (getClass().isAnnotationPresent(ApiModuleV1.class)) {
+            String prefix = ApiServlet.ROUTE.replaceAll("\\*", "")
+                    + "v1/"
+                    + getClass().getAnnotation(ApiModuleV1.class).value()[0];
+
+            return requestUri.substring(Math.min(requestUri.length(), prefix.length()));
+        } else {
+            throw new RuntimeException("Missing ApiModule annotation");
+        }
     }
 
     /**
@@ -151,8 +174,6 @@ public abstract class ApiModuleBase extends ChatNoirServlet
 
     /**
      * Handle GET request to API endpoint.
-     * If GET is not supported for this request, {@link #rejectMethod)} should be used to
-     * generate and write an appropriate error response.
      *
      * @param request HTTP request
      * @param response HTTP response
@@ -162,8 +183,6 @@ public abstract class ApiModuleBase extends ChatNoirServlet
 
     /**
      * Handle POST request to API endpoint.
-     * If POST is not supported for this request, {@link #rejectMethod)} should be used to
-     * generate and write an appropriate error response.
      *
      * @param request HTTP request
      * @param response HTTP response
@@ -382,5 +401,38 @@ public abstract class ApiModuleBase extends ChatNoirServlet
             return getTypedNestedParameter(Object.class, name, request) != null;
         }
         return param;
+    }
+
+    /**
+     * Check if any of the given parameters is null.
+     *
+     * @param params parameters
+     * @return true if at least one is null
+     */
+    protected boolean anyNull(Object... params)
+    {
+        for (Object obj: params) {
+            if (null == obj) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if all parameters are of a given type.
+     *
+     * @param params parameters
+     * @param nullOk set to true if null values are ok
+     * @return false if any of the given parameters if of a different type
+     */
+    protected boolean allOfType(Class<?> type, boolean nullOk, Object... params)
+    {
+        for (Object obj: params) {
+            if (null == obj && !nullOk || (obj != null && !type.isAssignableFrom(obj.getClass()))) {
+                return false;
+            }
+        }
+        return true;
     }
 }
