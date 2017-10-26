@@ -25,6 +25,9 @@ cluster:
   # Elasticsearch transport port (default: 9300)
   port: 9300
 
+  # Use sniffing to detect other hosts
+  sniff: true
+
   # Indices the user is allowed to search
   indices:
     - cc1511

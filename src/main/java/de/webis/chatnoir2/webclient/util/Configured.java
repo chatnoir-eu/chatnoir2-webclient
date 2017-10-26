@@ -95,7 +95,7 @@ public class Configured
 
             final Settings settings = Settings.builder()
                     .put("cluster.name", clusterName)
-                    .put("client.transport.sniff", true)
+                    .put("client.transport.sniff", cfg.getBoolean("cluster.sniff", true))
                     .build();
 
             mClient = new PreBuiltTransportClient(settings);
