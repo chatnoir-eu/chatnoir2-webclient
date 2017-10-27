@@ -18,7 +18,7 @@ At the moment we provide three different indices to search from:
 - [CommonCrawl 11/2015](https://commoncrawl.org/2015/11/) (short name: *cc1511*)
 
 ## API Basics
-The current API version is provided at `/api/v1/`. Requests can be sent as either
+The current API version is provided at `/api/v1/`. Search requests can be sent as either
 `GET` or `POST` requests and parameters can be passed either via the `GET` query
 string or as a JSON object in the `POST` body.
 

@@ -8,7 +8,9 @@ The following documentation resources are available:
 
 ### Technical Documentation
 
-- [API Documentation](/doc/api)
+- API Documentation
+    - [General Search API](/doc/api)
+    - [Advanced Management API](/doc/api-advanced-management)
 - [Architecture Overview](/doc/architecture)
 
 
