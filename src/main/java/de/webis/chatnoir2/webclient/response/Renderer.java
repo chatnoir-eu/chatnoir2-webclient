@@ -28,6 +28,8 @@ package de.webis.chatnoir2.webclient.response;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +46,8 @@ import de.webis.chatnoir2.webclient.ChatNoirServlet;
 public class Renderer
 {
     private static final String MIME_TYPE_TEXT_HTML_CHARSET_UTF8 = "text/html; charset=UTF-8";
-    
+    private static long mCssLastModification = -1;
+
     public static void render(final ServletContext context, HttpServletRequest request,
                               HttpServletResponse response, String template, Object... scopes) throws IOException
     {
@@ -67,6 +70,8 @@ public class Renderer
             vars.put("maintenance", "true");
         }
 
+        vars.put("cssLastModified", String.valueOf(getCSSLastModification(context)));
+
         String year = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
         if (!year.equals("2017")) {
             year = "2017-" + year;
@@ -74,5 +79,13 @@ public class Renderer
         vars.put("copyrightYear", year);
 
         m.execute(new PrintWriter(response.getOutputStream()), newScopes).flush();
+    }
+
+    public static synchronized long getCSSLastModification(ServletContext context) throws MalformedURLException {
+        if (mCssLastModification == -1) {
+            final URL cssFileUrl = context.getResource("/static/css/chatnoir2.min.css");
+            mCssLastModification = new File(cssFileUrl.getFile()).lastModified();
+        }
+        return mCssLastModification;
     }
 }
