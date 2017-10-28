@@ -62,6 +62,11 @@ public class Renderer
         System.arraycopy(scopes, 0, newScopes, 1, scopes.length);
         newScopes[0] = vars;
 
+        File maintenanceFile = new File("/etc/chatnoir2/maintenance");
+        if (maintenanceFile.exists()) {
+            vars.put("maintenance", "true");
+        }
+
         String year = String.valueOf(Calendar.getInstance().get(Calendar.YEAR));
         if (!year.equals("2017")) {
             year = "2017-" + year;
