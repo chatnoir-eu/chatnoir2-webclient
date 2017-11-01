@@ -1,0 +1,146 @@
+/*
+ * ChatNoir 2 Web Frontend.
+ * Copyright (C) 2014-2017 Janek Bevendorff, Webis Group
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+package de.webis.chatnoir2.webclient.model;
+
+import de.webis.chatnoir2.webclient.util.Configured;
+import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
+import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.rest.RestStatus;
+
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Model base class which uses Elasticsearch as storage backend.
+ */
+public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
+{
+    private static boolean sExistenceChecked = false;
+
+    /**
+     * Index name.
+     */
+    protected final String mIndexName;
+
+    /**
+     * Index mapping type.
+     */
+    protected final String mType;
+
+    /**
+     * Elasticsearch document ID.
+     */
+    protected String mDocumentId;
+
+    /**
+     * Document JSON data as Map.
+     */
+    protected final Map<String, Object> mJsonData;
+
+    /**
+     * @param indexName Elasticsearch index name
+     * @param type Elasticsearch mapping type
+     */
+    public ElasticsearchModel(String indexName, String type, String mappingFile)
+    {
+        mIndexName  = indexName;
+        mType       = type;
+        mDocumentId = null;
+        mJsonData   = new HashMap<>();
+        ensureIndexCreated(mappingFile);
+    }
+
+    /**
+     * Load model data by Elasticsearch document ID.
+     *
+     * @param documentId Elasticsearch document ID
+     * @return true if record exists and was loaded successfully, otherwise false
+     */
+    public boolean loadById(String documentId)
+    {
+        GetResponse response = Configured.getInstance().getClient().prepareGet(mIndexName, mType, documentId).get();
+        if (!response.isExists()) {
+            return false;
+        }
+
+        mDocumentId = response.getId();
+        mJsonData.putAll(response.getSource());
+
+        return true;
+    }
+
+    @Override
+    public boolean commit() {
+        RestStatus status = Configured.getInstance().getClient()
+                .prepareIndex(mIndexName, mType, mDocumentId).setSource(mJsonData).get().status();
+        return status == RestStatus.OK || status == RestStatus.CREATED;
+    }
+
+    /**
+     * Ensure that the backing index exists.
+     * The actual check is only performed once and then cached statically in memory.
+     *
+     * @param mappingFile path to file containing Elasticsearch index mapping template for creating a new index
+     */
+    private synchronized void ensureIndexCreated(String mappingFile)
+    {
+        if (sExistenceChecked) {
+            return;
+        }
+
+        IndicesExistsRequest request = new IndicesExistsRequest(mIndexName);
+        try {
+            TransportClient client = Configured.getInstance().getClient();
+            IndicesExistsResponse response = client.admin().indices().exists(request).get();
+            if (!response.isExists()) {
+                Configured.getInstance().getSysLogger().info(String.format("" +
+                        "Index '%s' does not exist, creating it.", mIndexName));
+
+                URL mappingFileURL = getClass().getClassLoader().getResource(mappingFile);
+                assert mappingFileURL != null;
+                Path mappingFilePath = Paths.get(mappingFileURL.toURI());
+                final String mapping = Files.lines(mappingFilePath).reduce("", (a, b) -> a + b + "\n");
+                client
+                        .admin()
+                        .indices()
+                        .prepareCreate(mIndexName)
+                        .setSource(mapping, XContentType.JSON)
+                        .get();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        sExistenceChecked = true;
+    }
+}
