@@ -25,20 +25,22 @@
 
 package de.webis.chatnoir2.webclient.model.validation;
 
-import org.apache.commons.validator.routines.EmailValidator;
+import org.apache.commons.validator.routines.InetAddressValidator;
 
 /**
- * Validate that String is an email address.
+ * Abstract base validator for IPv4 and IPv6 addresses.
  */
-public class EmailAddressValidator extends StringValidator
+public class IpAddressValidator extends StringValidator
 {
     @Override
-    protected boolean doValidate(String str)
-    {
-        boolean isValid = EmailValidator.getInstance().isValid(str);
+    public final boolean doValidate(String str) {
+        InetAddressValidator inetValidator = new InetAddressValidator();
+        boolean isValid = inetValidator.isValid(str);
+
         if (!isValid) {
-            mMessage = "Not a valid email address.";
+            mMessage = "Not a valid IP address";
+            return false;
         }
-        return isValid;
+        return true;
     }
 }

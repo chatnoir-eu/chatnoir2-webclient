@@ -25,45 +25,50 @@
 
 package de.webis.chatnoir2.webclient.model.validation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
- * Map for assigning a number of {@link Validator}s to a common key.
+ * Stateful validator that allows optional values (null values).
+ * By default, values are required.
  */
-public abstract class ValidatorMap<K>
+public abstract class OptionalValidator extends StatefulValidator
 {
-    protected Map<K, List<Validator>> mValidators = new HashMap<>();
 
-    /**
-     * Add validator to key.
-     *
-     * @param key data key
-     * @param validator validator
-     */
-    public void addValidator(K key, Validator validator)
+    private boolean mOptional = false;
+
+    @Override
+    public final boolean validate(Object obj)
     {
-        if (!mValidators.containsKey(key)) {
-            mValidators.put(key, new ArrayList<>());
+        if (null == obj && !isOptional()) {
+            mMessage = "Valid value required.";
+            return false;
         }
 
-        mValidators.get(key).add(validator);
+        return doValidate(obj);
     }
 
     /**
-     * Remove validator from key.
+     * Validate <tt>obj</tt>;
      *
-     * @param key data key
-     * @param validator validator to remove
+     * @param obj value object to validate
+     * @return true if <tt>obj</tt> passed validation
      */
-    public void removeValidator(K key, Validator validator)
-    {
-        if (!mValidators.containsKey(key)) {
-            return;
-        }
+    protected abstract boolean doValidate(Object obj);
 
-        mValidators.get(key).remove(validator);
+    /**
+     * Make value optional. If optional mode is enabled, null values are allowed.
+     *
+     * @param optional true to enable optional mode
+     */
+    public OptionalValidator optional(boolean optional)
+    {
+        mOptional = optional;
+        return this;
+    }
+
+    /**
+     * @return true if value is optional
+     */
+    public boolean isOptional()
+    {
+        return mOptional;
     }
 }

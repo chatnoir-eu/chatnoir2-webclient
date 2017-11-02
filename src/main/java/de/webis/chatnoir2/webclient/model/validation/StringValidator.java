@@ -28,15 +28,18 @@ package de.webis.chatnoir2.webclient.model.validation;
 /**
  * Abstract base validator for String validations
  */
-public abstract class StringValidator extends StatefulValidator
+public abstract class StringValidator extends OptionalValidator
 {
     @Override
-    public final boolean validate(Object obj) {
+    protected final boolean doValidate(Object obj)
+    {
         if (!(obj instanceof String)) {
-            throw new RuntimeException("Object is not a String.");
+            mMessage = "Not a string.";
+            return false;
         }
-        return validate((String) obj);
+
+        return doValidate((String) obj);
     }
 
-    public abstract boolean validate(String obj);
+    protected abstract boolean doValidate(String str);
 }

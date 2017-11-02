@@ -25,22 +25,116 @@
 
 package de.webis.chatnoir2.webclient.model.api;
 
+import de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm;
 import de.webis.chatnoir2.webclient.model.ElasticsearchModel;
-import de.webis.chatnoir2.webclient.model.validation.EmailAddressValidator;
-import de.webis.chatnoir2.webclient.model.validation.RecursiveMapValidator;
-import de.webis.chatnoir2.webclient.model.validation.StringNotEmptyValidator;
+import de.webis.chatnoir2.webclient.model.validation.*;
 import de.webis.chatnoir2.webclient.util.Configured;
+import org.apache.shiro.SecurityUtils;
+
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Model with data validations for ChatNoir API keys.
  */
 public class ApiKeyModel extends ElasticsearchModel
 {
+    /**
+     * Parent API key.
+     */
+    private String mParent = null;
+
     public ApiKeyModel()
     {
         super(Configured.getInstance().getConf().getString("auth.api.key_index"),
                 "apikey",
                 "apikey.mapping.json");
 
+        allowedKeys(Arrays.asList(
+                "user",
+                "limits",
+                "remote_hosts",
+                "roles",
+                "expires",
+                "revoked"));
+
+        MapValidator userValidator = new MapValidator();
+        userValidator.allowedKeys(Arrays.asList(
+                "first_name",
+                "last_name",
+                "email",
+                "address",
+                "zip_code",
+                "country",
+                "email"));
+        userValidator.addValidator("first_name", new StringNotEmptyValidator());
+        userValidator.addValidator("last_name",  new StringNotEmptyValidator());
+        userValidator.addValidator("email",      new EmailAddressValidator());
+        userValidator.addValidator("address",    new StringNotEmptyValidator().optional(true));
+        userValidator.addValidator("zip_code",   new StringNotEmptyValidator().optional(true));
+        userValidator.addValidator("country",    new StringNotEmptyValidator().optional(true));
+        addValidator("user", userValidator);
+
+        addValidator("limits", new ApiLimitsValidator(
+                ApiTokenRealm.getTypedPrincipalField(SecurityUtils.getSubject(), "limits")));
+
+        ListValidator remoteHostsValidator = new ListValidator();
+        remoteHostsValidator.addValidator(new IpAddressValidator());
+        addValidator("remote_hosts", remoteHostsValidator);
+
+        addValidator("expires", new DateValidator());
+        addValidator("revoked", new BooleanValidator().strict(true));
+    }
+
+    /**
+     * Set parent API key.
+     *
+     * @param parent parent API key as String
+     */
+    public void setParent(String parent)
+    {
+        mParent = parent;
+    }
+
+    /**
+     * Get parent API key.
+     */
+    public String getParent()
+    {
+        return mParent;
+    }
+
+    @Override
+    protected boolean doCommit()
+    {
+        put("parent", getParent());
+        boolean success = super.doCommit();
+        remove("parent");
+        return success;
+    }
+
+    @Override
+    public boolean loadById(String documentId)
+    {
+        boolean success = super.loadById(documentId);
+
+        if (containsKey("parent")) {
+            setParent(get("parent"));
+            remove("parent");
+        }
+
+        try {
+            Map<String, Object> limits = get("limits");
+            put("limits", new ApiTokenRealm.ApiLimits(
+                    getDocumentId(),
+                    (Long) limits.get("day"),
+                    (Long) limits.get("week"),
+                    (Long) limits.get("month")));
+        } catch (ClassCastException e) {
+            Configured.getInstance().getSysLogger().debug("Error loading model data", e);
+            return false;
+        }
+
+        return success;
     }
 }

@@ -26,12 +26,12 @@
 package de.webis.chatnoir2.webclient.model.validation;
 
 /**
- * Validate that String is not empty.
+ * Validate that a String is not empty.
  */
 public class StringNotEmptyValidator extends StringValidator
 {
     @Override
-    public boolean validate(String str) {
+    public boolean doValidate(String str) {
         boolean isValid = (null != str) && !str.isEmpty();
         if (!isValid) {
             mMessage = "String must not be empty.";

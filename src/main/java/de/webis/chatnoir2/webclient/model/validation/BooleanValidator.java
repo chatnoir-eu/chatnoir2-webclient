@@ -25,45 +25,30 @@
 
 package de.webis.chatnoir2.webclient.model.validation;
 
-import java.util.List;
-import java.util.Map;
-
 /**
- * Stateful proxy validator for recursively validating entries of a Map with other validators.
+ * Validator to check if object is a Boolean.
+ * If strict mode is off, also the Strings "0", "1", "true" and "false" will pass validation.
  */
-public class RecursiveMapValidator<K, V> extends ValidatorMap<K> implements Validator
+public class BooleanValidator extends OptionalValidator
 {
-    /**
-     * Last error message.
-     */
-    protected String mMessage = null;
-
     @Override
-    public boolean validate(Object obj) {
-        Map<K, V> map;
-        try {
-            // noinspection unchecked
-            map = (Map<K, V>) obj;
-        } catch (ClassCastException ignored) {
-            throw new RuntimeException("Object is not a Map of the correct type.");
-        }
-
-        for (K key: mValidators.keySet()) {
-            List<Validator> validators = mValidators.get(key);
-            for (Validator validator: validators) {
-                if (!validator.validate(map.get(key))) {
-                    mMessage = validator.message();
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-    @Override
-    public String message()
+    protected boolean doValidate(Object obj)
     {
-        return mMessage;
+        if (obj instanceof Boolean) {
+            return true;
+        }
+
+        if (!isStrict() && obj instanceof String) {
+            boolean isValid =  obj.equals("1") || obj.equals("0") ||
+                    ((String) obj).toLowerCase().equals("true") || ((String) obj).toLowerCase().equals("false");
+            if (!isValid) {
+                mMessage = "String is not a boolean representation.";
+                return false;
+            }
+            return true;
+        }
+
+        mMessage = "Not a boolean";
+        return false;
     }
 }

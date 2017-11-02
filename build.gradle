@@ -26,6 +26,7 @@ dependencies {
     compile group: 'org.apache.shiro', name: 'shiro-core', version: '1.4.0'
     compile group: 'org.apache.shiro', name: 'shiro-web', version: '1.4.0'
     compile group: 'org.apache.shiro', name: 'shiro-ehcache', version: '1.4.0'
+    compile group: 'commons-validator', name: 'commons-validator', version: '1.6'
     compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
     compile group: 'com.github.spullara.mustache.java', name: 'compiler', version: '0.9.4'
     compile group: 'org.json', name: 'json', version: '20160810'

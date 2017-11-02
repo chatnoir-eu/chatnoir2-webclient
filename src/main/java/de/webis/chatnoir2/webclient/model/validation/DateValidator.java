@@ -25,19 +25,16 @@
 
 package de.webis.chatnoir2.webclient.model.validation;
 
-import org.apache.commons.validator.routines.EmailValidator;
-
 /**
- * Validate that String is an email address.
+ * Validate that String is a date.
  */
-public class EmailAddressValidator extends StringValidator
-{
+public class DateValidator extends StringValidator {
     @Override
     protected boolean doValidate(String str)
     {
-        boolean isValid = EmailValidator.getInstance().isValid(str);
+        boolean isValid = org.apache.commons.validator.routines.DateValidator.getInstance().isValid(str);
         if (!isValid) {
-            mMessage = "Not a valid email address.";
+            mMessage = "Not a valid date.";
         }
         return isValid;
     }

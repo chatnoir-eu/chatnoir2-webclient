@@ -28,16 +28,41 @@ package de.webis.chatnoir2.webclient.model.validation;
 /**
  * Stateful validator base class.
  */
-public abstract class StatefulValidator<T> implements Validator
+public abstract class StatefulValidator implements Validator
 {
     /**
      * Last error message.
      */
     protected String mMessage = null;
 
+    /**
+     * Strict mode.
+     */
+    private boolean mStrict = false;
+
     @Override
     public String message()
     {
         return mMessage;
+    }
+
+    /**
+     * Enable or disable strict validation mode.
+     * Strict mode may enable additional validation constraints in inheriting validators.
+     *
+     * @param strict true to enable strict mode
+     */
+    public StatefulValidator strict(boolean strict)
+    {
+        mStrict = strict;
+        return this;
+    }
+
+    /**
+     * @return true if strict mode is enabled
+     */
+    public boolean isStrict()
+    {
+        return mStrict;
     }
 }

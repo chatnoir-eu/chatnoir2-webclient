@@ -28,21 +28,19 @@ package de.webis.chatnoir2.webclient.model.validation;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Validator to check if object is a Long or Integer or integer String.
+ * Validator to check if object is a Long or Integer or numeric (integer) String.
+ * Numeric Strings require strict mode to be off to pass validation.
  */
-public class IntegerValidator extends StatefulValidator
+public class IntegerValidator extends OptionalValidator
 {
     @Override
-    public boolean validate(Object obj)
+    public boolean doValidate(Object obj)
     {
-        if (null == obj) {
-            mMessage = "null value not allowed.";
-            return false;
-        }
         if (obj instanceof Long || obj instanceof Integer) {
             return true;
         }
-        if (obj instanceof String) {
+
+        if (!isStrict() && obj instanceof String) {
             boolean isValid = StringUtils.isNumeric((String) obj);
             if (!isValid) {
                 mMessage = "String is not a number.";
@@ -51,6 +49,7 @@ public class IntegerValidator extends StatefulValidator
             return true;
         }
 
+        mMessage = "Not a number";
         return false;
     }
 }

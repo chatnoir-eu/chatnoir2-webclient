@@ -29,6 +29,7 @@ import de.webis.chatnoir2.webclient.util.Configured;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
 import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.rest.RestStatus;
@@ -37,8 +38,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Model base class which uses Elasticsearch as storage backend.
@@ -63,11 +62,6 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
     protected String mDocumentId;
 
     /**
-     * Document JSON data as Map.
-     */
-    protected final Map<String, Object> mJsonData;
-
-    /**
      * @param indexName Elasticsearch index name
      * @param type Elasticsearch mapping type
      */
@@ -76,7 +70,6 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
         mIndexName  = indexName;
         mType       = type;
         mDocumentId = null;
-        mJsonData   = new HashMap<>();
         ensureIndexCreated(mappingFile);
     }
 
@@ -93,16 +86,46 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
             return false;
         }
 
-        mDocumentId = response.getId();
-        mJsonData.putAll(response.getSource());
+        setDocumentId(response.getId());
+        putAll(response.getSource());
 
         return true;
     }
 
+    /**
+     * Get Elasticsearch document ID.
+     *
+     * @return document ID as a string (null if document has no ID yet)
+     */
+    public String getDocumentId()
+    {
+        return mDocumentId;
+    }
+
+    /**
+     * Set a new document ID.
+     *
+     * @param documentId new document ID
+     */
+    public void setDocumentId(String documentId)
+    {
+        mDocumentId = documentId;
+    }
+
     @Override
-    public boolean commit() {
-        RestStatus status = Configured.getInstance().getClient()
-                .prepareIndex(mIndexName, mType, mDocumentId).setSource(mJsonData).get().status();
+    protected boolean doCommit()
+    {
+        IndexResponse response = Configured.getInstance()
+                .getClient()
+                .prepareIndex(mIndexName, mType, mDocumentId)
+                .setSource(getAll())
+                .get();
+
+        if (null == mDocumentId) {
+            setDocumentId(response.getId());
+        }
+
+        RestStatus status = response.status();
         return status == RestStatus.OK || status == RestStatus.CREATED;
     }
 

@@ -25,8 +25,7 @@
 
 package de.webis.chatnoir2.webclient.model;
 
-import de.webis.chatnoir2.webclient.model.validation.Validator;
-import de.webis.chatnoir2.webclient.model.validation.ValidatorMap;
+import de.webis.chatnoir2.webclient.model.validation.MapValidator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,30 +33,31 @@ import java.util.Map;
 /**
  * Model with built-in data validation.
  */
-public abstract class ValidatingModel<K, V> extends ValidatorMap<K> implements PersistentModel
+public abstract class ValidatingModel<K, V> extends MapValidator implements PersistentModel
 {
-    /**
-     * Data validation exception.
-     */
-    public static class ValidationException extends Exception
-    {
-        public ValidationException(String message)
-        {
-            super(message);
-        }
-    }
-
     private Map<K, V> mData = new HashMap<>();
 
     /**
-     * Get value for <tt>key</tt>.
+     * Get type-cast value for <tt>key</tt>.
      *
      * @param key field name
      * @return stored data or null if no such value exists
+     * @throws ClassCastException if trying to cast to an invalid type
      */
-    public V get(K key)
+    @SuppressWarnings("unchecked")
+    public <T> T get(K key)
     {
-        return mData.get(key);
+        return (T) mData.get(key);
+    }
+
+    /**
+     * Get all model data as a {@link Map}.
+     *
+     * @return stored data as a Map
+     */
+    public Map<K, V> getAll()
+    {
+        return mData;
     }
 
     /**
@@ -65,18 +65,9 @@ public abstract class ValidatingModel<K, V> extends ValidatorMap<K> implements P
      *
      * @param key field name
      * @param value field value
-     * @throws ValidationException if <tt>value</tt> fails validation
      */
-    public void put(K key, V value) throws ValidationException
+    public void put(K key, V value)
     {
-        if (mValidators.containsKey(key)) {
-            for (Validator validator: mValidators.get(key)) {
-                if (!validator.validate(value)) {
-                    throw new ValidationException(validator.message());
-                }
-            }
-        }
-
         mData.put(key, value);
     }
 
@@ -85,31 +76,54 @@ public abstract class ValidatingModel<K, V> extends ValidatorMap<K> implements P
      * If a single value fails validation, none of the others will be committed either.
      *
      * @param map map of keys and values
-     * @throws ValidationException if an entry in <tt>map</tt> fails validation
      */
-    public void putAll(Map<K, V> map) throws ValidationException
+    public void putAll(Map<K, V> map)
     {
-        for (K key: map.keySet()) {
-            if (mValidators.containsKey(key)) {
-                for (Validator validator : mValidators.get(key)) {
-                    if (!validator.validate(map.get(key))) {
-                        throw new ValidationException(validator.message());
-                    }
-                }
-            }
-        }
-
         mData.putAll(map);
+    }
+
+    /**
+     * Check if model contains a certain key
+     *
+     * @param key key name
+     */
+    public boolean containsKey(K key)
+    {
+        return mData.containsKey(key);
     }
 
     /**
      * Remove key/value mapping.
      * This will only remove the data mapping, not its validators.
      *
-     * @param key field name
+     * @param key key name
      */
-    public void remove(K key) throws ValidationException
+    public void remove(K key)
     {
         mData.remove(key);
     }
+
+    /**
+     * Validate model data.
+     *
+     * @return true if model passes validation
+     */
+    public boolean validate()
+    {
+        return validate(mData);
+    }
+
+    @Override
+    public final boolean commit()
+    {
+        if (!validate()) {
+            return false;
+        }
+        return doCommit();
+    }
+
+    /**
+     * Commit data after validation
+     */
+    protected abstract boolean doCommit();
 }
