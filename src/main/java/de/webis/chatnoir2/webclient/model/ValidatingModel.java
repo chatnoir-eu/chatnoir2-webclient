@@ -116,10 +116,7 @@ public abstract class ValidatingModel<K, V> extends MapValidator implements Pers
     @Override
     public final boolean commit()
     {
-        if (!validate()) {
-            return false;
-        }
-        return doCommit();
+        return validate() && doCommit();
     }
 
     /**
