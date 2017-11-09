@@ -39,7 +39,7 @@ user information for your API key.
 *None*
 
 #### Response Data:
-- `userdata`: stored user data for this key
+- `user`: stored user data for this key
     - `first_name`: user first name
     - `last_name`: user last name
     - `email`: user email address
@@ -61,7 +61,7 @@ GET /api/v1/_manage_keys?apikey=...
 ##### Response:
 ```
 {
-    "userdata": {
+    "user": {
         "country": "de",
         "address": "Example Address,
         "last_name": "Doe",
@@ -101,7 +101,7 @@ current request limits.
 `/create`
 
 #### Parameters:
-- `userdata`: stored user data for this key
+- `user`: stored user data for this key
     - `first_name`: user first name (**required**)
     - `last_name`: user last name (**required**)
     - `email`: user email address (**required**)
@@ -124,7 +124,7 @@ current request limits.
 POST /api/v1/_manage_keys/create
 {
     "apikey": "...",
-    "userdata": {
+    "user": {
         "first_name": "John",
         "last_name": "Doe",
         "address": "Example address",

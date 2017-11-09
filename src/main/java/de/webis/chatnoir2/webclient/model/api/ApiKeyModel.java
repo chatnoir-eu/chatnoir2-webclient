@@ -30,9 +30,10 @@ import de.webis.chatnoir2.webclient.model.ElasticsearchModel;
 import de.webis.chatnoir2.webclient.model.validation.*;
 import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.shiro.SecurityUtils;
+import org.elasticsearch.common.Nullable;
 
-import java.util.Arrays;
-import java.util.Map;
+import java.io.Serializable;
+import java.util.*;
 
 /**
  * Model with data validations for ChatNoir API keys.
@@ -42,7 +43,7 @@ public class ApiKeyModel extends ElasticsearchModel
     /**
      * Parent API key.
      */
-    private String mParent = null;
+    private ApiKeyModel mParent = null;
 
     public ApiKeyModel()
     {
@@ -58,7 +59,7 @@ public class ApiKeyModel extends ElasticsearchModel
                 "expires",
                 "revoked"));
 
-        MapValidator userValidator = new MapValidator();
+        RecursiveMapValidator userValidator = new RecursiveMapValidator();
         userValidator.allowedKeys(Arrays.asList(
                 "first_name",
                 "last_name",
@@ -75,33 +76,76 @@ public class ApiKeyModel extends ElasticsearchModel
         userValidator.addValidator("country",    new StringNotEmptyValidator().optional(true));
         addValidator("user", userValidator);
 
-        addValidator("limits", new ApiLimitsValidator(
-                ApiTokenRealm.getTypedPrincipalField(SecurityUtils.getSubject(), "limits")));
+        addValidator("limits", new ApiLimitsValidator(mParent));
 
-        ListValidator remoteHostsValidator = new ListValidator();
+        RecursiveListValidator remoteHostsValidator = new RecursiveListValidator();
         remoteHostsValidator.addValidator(new IpAddressValidator());
         addValidator("remote_hosts", remoteHostsValidator);
 
+        addValidator("roles", new RolesValidator(mParent));
         addValidator("expires", new DateValidator());
         addValidator("revoked", new BooleanValidator().strict(true));
     }
 
     /**
+     * @param id user ID to load the model for
+     * @throws RuntimeException if model could not be loaded for <tt>id</tt>
+     */
+    public ApiKeyModel(String id) throws RuntimeException
+    {
+        this();
+        if (!loadById(id)) {
+            throw new RuntimeException(String.format("Could not load user model for id: %s", id));
+        }
+    }
+
+    /**
      * Set parent API key.
      *
-     * @param parent parent API key as String
+     * @param parent parent API key model
      */
-    public void setParent(String parent)
+    public void setParent(ApiKeyModel parent)
     {
         mParent = parent;
     }
 
     /**
-     * Get parent API key.
+     * Set parent API key by String id.
+     *
+     * @param parentId parent API key as String
      */
-    public String getParent()
+    public void setParentById(String parentId)
+    {
+        mParent = new ApiKeyModel(parentId);
+    }
+
+    /**
+     * @return parent API key model
+     */
+    public ApiKeyModel getParent()
     {
         return mParent;
+    }
+
+    /**
+     * @return user's API limits
+     */
+    public ApiLimits getApiLimits()
+    {
+        return (ApiLimits) get("limits");
+    }
+
+    /**
+     * @return user's roles
+     */
+    public List<String> getRoles()
+    {
+        Object roles = get("roles");
+        if (null == roles) {
+            return new ArrayList<>();
+        }
+        // noinspection unchecked
+        return (List<String>) roles;
     }
 
     @Override
@@ -125,8 +169,7 @@ public class ApiKeyModel extends ElasticsearchModel
 
         try {
             Map<String, Object> limits = get("limits");
-            put("limits", new ApiTokenRealm.ApiLimits(
-                    getDocumentId(),
+            put("limits", new ApiLimits(
                     (Long) limits.get("day"),
                     (Long) limits.get("week"),
                     (Long) limits.get("month")));
@@ -136,5 +179,49 @@ public class ApiKeyModel extends ElasticsearchModel
         }
 
         return success;
+    }
+
+    /**
+     * API limits data object.
+     */
+    public class ApiLimits extends HashMap<String, Long> implements Serializable
+    {
+        /**
+         * @param day daily limit (null for default)
+         * @param week weekly limit (null for default)
+         * @param month monthly limit (null for default)
+         */
+        public ApiLimits(@Nullable Long day, @Nullable Long week, @Nullable Long month)
+        {
+            put("day", day);
+            put("week", week);
+            put("month", month);
+        }
+
+        public long getDailyLimit()
+        {
+            return getLimit("day");
+        }
+
+        public long getWeeklyLimit()
+        {
+            return getLimit("week");
+        }
+
+        public long getMonthlyLimit()
+        {
+            return getLimit("month");
+        }
+
+        private long getLimit(String field)
+        {
+            if (null != mParent) {
+                return ((ApiLimits) mParent.get("limits")).getLimit(field);
+            }
+            if (null == get(field)) {
+                return Configured.getInstance().getConf().getLong("auth.api.default_quota_limits." + field);
+            }
+            return get(field);
+        }
     }
 }

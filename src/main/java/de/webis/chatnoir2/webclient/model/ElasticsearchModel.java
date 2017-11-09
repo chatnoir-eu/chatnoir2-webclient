@@ -86,30 +86,26 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
             return false;
         }
 
-        setDocumentId(response.getId());
+        setId(response.getId());
         putAll(response.getSource());
 
         return true;
     }
 
-    /**
-     * Get Elasticsearch document ID.
-     *
-     * @return document ID as a string (null if document has no ID yet)
-     */
-    public String getDocumentId()
+    @Override
+    public String getId()
     {
         return mDocumentId;
     }
 
     /**
-     * Set a new document ID.
+     * Set a new record ID.
      *
-     * @param documentId new document ID
+     * @param id new record ID
      */
-    public void setDocumentId(String documentId)
+    public void setId(String id)
     {
-        mDocumentId = documentId;
+        mDocumentId = id;
     }
 
     @Override
@@ -122,7 +118,7 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
                 .get();
 
         if (null == mDocumentId) {
-            setDocumentId(response.getId());
+            setId(response.getId());
         }
 
         RestStatus status = response.status();

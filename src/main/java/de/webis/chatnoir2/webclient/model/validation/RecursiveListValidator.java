@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Stateful recursive list validator.
  */
-public class ListValidator extends OptionalValidator
+public class RecursiveListValidator extends OptionalValidator
 {
     private List<Validator> mValidators = new ArrayList<>();
 
@@ -71,7 +71,7 @@ public class ListValidator extends OptionalValidator
      *
      * @param minElements minimum number of elements
      */
-    public ListValidator minElements(int minElements)
+    public RecursiveListValidator minElements(int minElements)
     {
         mMinElements = minElements;
         return this;

@@ -29,61 +29,64 @@ import de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm;
 import de.webis.chatnoir2.webclient.model.validation.StatefulValidator;
 import org.apache.shiro.SecurityUtils;
 
+import java.util.List;
+
 /**
- * Validator to check if given API limits are within permissible bounds
+ * Validate role assignment to be a subset of allowed roles.
+ * If the allowed rules include "admin", any role assignment will be valid.
  */
-public class ApiLimitsValidator extends StatefulValidator
+public class RolesValidator extends StatefulValidator
 {
-    private final ApiKeyModel.ApiLimits mLimits;
+    private final List<String> mAllowedRoles;
 
     /**
-     * Validate against current user's API limits.
+     * Validate against current user's roles.
      */
-    public ApiLimitsValidator()
+    public RolesValidator()
     {
-        mLimits = null;
+        mAllowedRoles = null;
     }
 
     /**
-     * @param limits Maximum API limits to compare against
+     * @param allowedRoles allowed user roles (null to validate against current user's roles)
      */
-    public ApiLimitsValidator(ApiKeyModel.ApiLimits limits)
-    {
-        mLimits = limits;
+    public RolesValidator(List<String> allowedRoles) {
+        mAllowedRoles = allowedRoles;
     }
 
     /**
-     * @param referenceModel reference model to obtain API limits from (null to validate against current user's limits)
+     * @param referenceModel reference API key model to obtain allowed user roles
      */
-    public ApiLimitsValidator(ApiKeyModel referenceModel)
-    {
-        this(referenceModel.getApiLimits());
+    public RolesValidator(ApiKeyModel referenceModel) {
+        this(referenceModel.getRoles());
     }
 
     @Override
     public boolean validate(Object obj)
     {
-        ApiKeyModel.ApiLimits referenceLimits = mLimits;
-        if (null == mLimits) {
-            referenceLimits = ApiTokenRealm.getUserModel(SecurityUtils.getSubject()).getApiLimits();
+        List<String> allowedRoles = mAllowedRoles;
+        if (null == allowedRoles) {
+            allowedRoles = ApiTokenRealm.getUserModel(SecurityUtils.getSubject()).getRoles();
         }
 
-        if (!(obj instanceof ApiKeyModel.ApiLimits)) {
-            throw new RuntimeException("Object is not of type ApiLimits.");
+        if (allowedRoles.contains("admin")) {
+            return true;
         }
 
-        ApiKeyModel.ApiLimits limits = (ApiKeyModel.ApiLimits) obj;
-        if (referenceLimits.getDailyLimit() > 0 && limits.getDailyLimit() > referenceLimits.getDailyLimit()) {
-            mMessage = "Daily limit out of bounds.";
+        List<String> list;
+        try {
+            //noinspection unchecked
+            list = (List<String>) obj;
+        } catch (ClassCastException ignored) {
+            mMessage = "No permission to assign roles";
             return false;
         }
-        if (referenceLimits.getWeeklyLimit() > 0 && limits.getWeeklyLimit() > referenceLimits.getWeeklyLimit()) {
-            mMessage = "Weekly limit out of bounds.";
-            return false;
-        }
-        if (referenceLimits.getMonthlyLimit() > 0 && limits.getMonthlyLimit() > referenceLimits.getMonthlyLimit()) {
-            mMessage = "Monthly limit out of bounds.";
-            return false;
+
+        for (String role: list) {
+            if (!allowedRoles.contains(role)) {
+                mMessage = String.format("No permission to assign role: %s", role);
+                return false;
+            }
         }
 
         return true;

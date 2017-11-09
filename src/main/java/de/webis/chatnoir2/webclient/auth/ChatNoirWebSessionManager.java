@@ -29,6 +29,7 @@ import de.webis.chatnoir2.webclient.ChatNoirServlet;
 import de.webis.chatnoir2.webclient.api.exceptions.UserErrorException;
 import de.webis.chatnoir2.webclient.auth.api.ApiAuthenticationFilter;
 import de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm;
+import de.webis.chatnoir2.webclient.model.api.ApiKeyModel;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.shiro.mgt.RealmSecurityManager;
@@ -187,7 +188,7 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
             throw new IllegalArgumentException("Session is not an API session");
         }
 
-        ApiTokenRealm.ApiLimits limits = ApiTokenRealm.getTypedPrincipalField(subject, "limits");
+        ApiKeyModel.ApiLimits limits = ApiTokenRealm.getUserModel(subject).getApiLimits();
 
         // validate quota for month, week and day
         return validateApiSessionWindow(session, 2, limits) &&
@@ -204,7 +205,7 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
      * @param limits API limits to validate against
      * @return true if quota window not exceeded
      */
-    private boolean validateApiSessionWindow(Session session, int windowDescriptor, ApiTokenRealm.ApiLimits limits)
+    private boolean validateApiSessionWindow(Session session, int windowDescriptor, ApiKeyModel.ApiLimits limits)
     {
         String windowStartAttr = API_SESSION_DAY_WINDOW_START;
         String windowUsageAttr = API_SESSION_DAY_WINDOW_USAGE;

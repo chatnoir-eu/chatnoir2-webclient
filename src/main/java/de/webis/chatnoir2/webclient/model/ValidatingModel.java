@@ -25,7 +25,7 @@
 
 package de.webis.chatnoir2.webclient.model;
 
-import de.webis.chatnoir2.webclient.model.validation.MapValidator;
+import de.webis.chatnoir2.webclient.model.validation.RecursiveMapValidator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +33,7 @@ import java.util.Map;
 /**
  * Model with built-in data validation.
  */
-public abstract class ValidatingModel<K, V> extends MapValidator implements PersistentModel
+public abstract class ValidatingModel<K, V> extends RecursiveMapValidator implements PersistentModel
 {
     private Map<K, V> mData = new HashMap<>();
 

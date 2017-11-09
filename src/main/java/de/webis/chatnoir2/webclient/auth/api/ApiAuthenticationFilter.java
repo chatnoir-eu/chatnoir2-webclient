@@ -130,7 +130,7 @@ public class ApiAuthenticationFilter extends ChatNoirAuthenticationFilter
             }
 
             // validate remote IP address
-            Set<InetAddress> remoteHosts = ApiTokenRealm.getTypedPrincipalField(subject, "remote_hosts");
+            Set<InetAddress> remoteHosts = ApiTokenRealm.getUserModel(subject).get("remote_hosts");
             if (null != remoteHosts && !remoteHosts.isEmpty()) {
                 InetAddress ip = InetAddress.getByName(request.getRemoteHost());
 

@@ -29,15 +29,11 @@ import de.webis.chatnoir2.webclient.api.ApiBootstrap;
 import de.webis.chatnoir2.webclient.api.ApiErrorModule;
 import de.webis.chatnoir2.webclient.api.ApiModuleBase;
 import de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm;
-import de.webis.chatnoir2.webclient.resources.ConfigLoader;
-import de.webis.chatnoir2.webclient.util.Configured;
+import de.webis.chatnoir2.webclient.model.api.ApiKeyModel;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.web.subject.WebSubject;
-import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.rest.RestStatus;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -60,9 +56,10 @@ public class ApiKeyManagerApiModule extends ApiModuleBase
 
         final XContentBuilder builder = getResponseBuilder(request);
         builder.startObject();
-        Map<String, Object> principalData = ApiTokenRealm.getPrincipalFields(subject);
-        for (String key: principalData.keySet()) {
-            builder.field(key, principalData.get(key));
+        ApiKeyModel userModel = ApiTokenRealm.getUserModel(subject);
+        Map<String, Object> modelMap = userModel.getAll();
+        for (String key: modelMap.keySet()) {
+            builder.field(key, modelMap.get(key));
         }
         builder.endObject();
 
@@ -95,115 +92,35 @@ public class ApiKeyManagerApiModule extends ApiModuleBase
     private void actionCreate(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         WebSubject subject = (WebSubject) SecurityUtils.getSubject();
         String candidateApiKey = UUID.randomUUID().toString();
-        HashMap<String, Object> newPrincipals = new HashMap<>();
         JSONObject requestPayload = getPayload(request);
 
-        try {
-            // validate API key creation permissions
-            Set<String> userRoles = ApiTokenRealm.getTypedPrincipalField(subject, "roles");
-            // TODO: change to dedicated role
-            if (null == userRoles || !userRoles.contains("dev")) {
-                ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_FORBIDDEN,
-                        "You are not allowed to create new API keys");
-                return;
-            }
+        ApiKeyModel userModel = ApiTokenRealm.getUserModel(subject);
+        ApiKeyModel candiateModel = new ApiKeyModel();
 
-            // validate user data
-            JSONObject newUserDataRaw = requestPayload.has("userdata") ? requestPayload.getJSONObject("userdata") : null;
-            if (null == newUserDataRaw ||
-                    anyNull(
-                            newUserDataRaw.has("first_name") ? newUserDataRaw.get("first_name") : null,
-                            newUserDataRaw.has("last_name") ? newUserDataRaw.get("last_name") : null,
-                            newUserDataRaw.has("email") ? newUserDataRaw.get("email") : null
-                    )) {
-                ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST,
-                        "Incomplete userdata: first_name, last_name and email are required");
-                return;
-            }
-
-            // validate limits
-            JSONObject newLimitsRaw = requestPayload.has("limits") ? requestPayload.getJSONObject("limits") : null;
-            if (null == newLimitsRaw ||
-                    !allOfType(
-                            Integer.class,
-                            true,
-                            newLimitsRaw.has("day") ? newLimitsRaw.get("day") : null,
-                            newLimitsRaw.has("week") ? newLimitsRaw.get("week") : null,
-                            newLimitsRaw.has("month") ? newLimitsRaw.get("month") : null
-                    )) {
-                ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST,
-                        "Invalid or missing API limits");
-                return;
-            }
-
-            ApiTokenRealm.ApiLimits userLimits = ApiTokenRealm.getTypedPrincipalField(subject, "limits");
-            assert userLimits != null;
-            ApiTokenRealm.ApiLimits newLimits = new ApiTokenRealm.ApiLimits(
-                    candidateApiKey,
-                    newLimitsRaw.has("day") ? (Integer) newLimitsRaw.get("day") : userLimits.getDailyLimit(),
-                    newLimitsRaw.has("week") ? (Integer) newLimitsRaw.get("week") : userLimits.getDailyLimit(),
-                    newLimitsRaw.has("month") ? (Integer) newLimitsRaw.get("month") : userLimits.getDailyLimit());
-            if ((userLimits.getDailyLimit() > 0 && newLimits.getDailyLimit() > userLimits.getDailyLimit()) ||
-                    (userLimits.getWeeklyLimit() > 0 && newLimits.getWeeklyLimit() > userLimits.getWeeklyLimit()) ||
-                    (userLimits.getMonthlyLimit() > 0 && newLimits.getMonthlyLimit() > userLimits.getMonthlyLimit()) ||
-                    (userLimits.getDailyLimit() > 0 && newLimits.getDailyLimit() <= 0) ||
-                    (userLimits.getWeeklyLimit() > 0 && newLimits.getWeeklyLimit() <= 0) ||
-                    (userLimits.getMonthlyLimit() > 0 && newLimits.getMonthlyLimit() <= 0)
-                    ) {
-                ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_FORBIDDEN,
-                        "API limits cannot exceed user limits");
-                return;
-            }
-
-            // validate additional roles
-            JSONArray newRoles = requestPayload.has("roles") ? requestPayload.getJSONArray("roles") : null;
-            if (null != newRoles && !userRoles.contains("admin")) {
-                for (Object role : newRoles) {
-                    if (!userRoles.contains(role.toString())) {
-                        ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_FORBIDDEN,
-                                String.format("No permission to assign role '%s'", role));
-                        return;
-                    }
-                }
-            }
-
-            // everything fine if we got here, so go ahead and assemble new principal data
-            HashMap<String, Object> newUserData = new HashMap<>();
-            Map<String, Object> newUserDataRawMap = newUserDataRaw.toMap();
-            newUserData.put("first_name", newUserDataRawMap.get("first_name"));
-            newUserData.put("last_name", newUserDataRawMap.get("last_name"));
-            newUserData.put("email", newUserDataRawMap.get("email"));
-            newUserData.put("address", newUserDataRawMap.get("address"));
-            newUserData.put("zip_code", newUserDataRawMap.get("zip_code"));
-            newUserData.put("country", newUserDataRawMap.get("country"));
-            newPrincipals.put("user", newUserData);
-
-            newPrincipals.put("limits", newLimits);
-            newPrincipals.put("roles", null != newRoles ? newRoles : new ArrayList<String>());
-            newPrincipals.put("parent", ApiTokenRealm.getTypedPrincipalField(subject, "apikey"));
-
-            // TODO: add remote_hosts and expires
-
-        } catch (Exception ignored) {
-            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST,
-                    "Invalid request");
+        // validate API key creation permissions
+        List<String> userRoles = userModel.getRoles();
+        if (null == userRoles || !(userRoles.contains("dev") || userRoles.contains("keycreate") || userRoles.contains("admin"))) {
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_FORBIDDEN,
+                    "You are not allowed to create new API keys");
             return;
         }
 
-        // create the API key
-        TransportClient client = Configured.getInstance().getClient();
-        ConfigLoader.Config config = Configured.getInstance().getConf();
-        IndexResponse indexResponse = client.prepareIndex(config.getString(
-                "auth.api.key_index"),
-                "apikey",
-                candidateApiKey).setSource(newPrincipals).get();
+        candiateModel.setId(candidateApiKey);
+        candiateModel.setParent(userModel);
+        candiateModel.putAll(requestPayload.toMap());
+        if (!candiateModel.validate()) {
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST, candiateModel.message());
+            return;
+        }
+        boolean isCreated = candiateModel.commit();
 
-        if (indexResponse.status() == RestStatus.CREATED) {
+        // generate API response
+        if (isCreated) {
             XContentBuilder builder = getResponseBuilder(request)
                     .startObject()
                         .field("status", RestStatus.CREATED.getStatus())
                         .field("message", "API key created")
-                        .field("apikey", candidateApiKey)
+                        .field("apikey", candiateModel.getId())
                     .endObject();
             writeResponse(response, builder, RestStatus.CREATED.getStatus());
         } else {

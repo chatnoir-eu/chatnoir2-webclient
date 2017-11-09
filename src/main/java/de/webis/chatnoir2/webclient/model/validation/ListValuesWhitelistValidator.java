@@ -23,24 +23,54 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package de.webis.chatnoir2.webclient.model;
+package de.webis.chatnoir2.webclient.model.validation;
 
-import java.io.Serializable;
+import java.util.List;
 
 /**
- * Base interface for storage-supported persistent models.
+ * Validate a list of values against a whitelist of allowed values.
  */
-public interface PersistentModel extends Serializable
+public class ListValuesWhitelistValidator extends StatefulValidator
 {
-    /**
-     * @return unique record ID (may be null if record has no ID)
-     */
-    String getId();
+    private final List mAllowedValues;
+
+    private Object mOffendingItem = null;
 
     /**
-     * Commit model state to persistent storage.
-     *
-     * @return true if transaction was successful
+     * @param allowedValues list of allowed values (null means allow all)
      */
-    boolean commit();
+    public ListValuesWhitelistValidator(List allowedValues)
+    {
+        mAllowedValues = allowedValues;
+    }
+
+    @Override
+    public boolean validate(Object obj)
+    {
+        if (null == mAllowedValues) {
+            return true;
+        }
+
+        if (!(obj instanceof List)) {
+            mMessage = "Not a list";
+            return false;
+        }
+
+        for (Object item: (List) obj) {
+            if (!mAllowedValues.contains(item)) {
+                mMessage = String.format("List value %s not allowed", item);
+                mOffendingItem = item;
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @return get last offending item (or null if {@link #validate(Object)} passes)
+     */
+    public Object getOffendingItem()
+    {
+        return mOffendingItem;
+    }
 }

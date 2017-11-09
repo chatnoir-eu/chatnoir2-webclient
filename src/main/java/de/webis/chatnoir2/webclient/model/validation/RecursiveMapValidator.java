@@ -33,7 +33,7 @@ import java.util.Map;
 /**
  * Recursively validate map entries.
  */
-public class MapValidator extends OptionalValidator
+public class RecursiveMapValidator extends OptionalValidator
 {
     /**
      * Last error message.
@@ -155,7 +155,7 @@ public class MapValidator extends OptionalValidator
      *
      * @param keys allowed keys
      */
-    public MapValidator allowedKeys(List<Object> keys)
+    public RecursiveMapValidator allowedKeys(List<Object> keys)
     {
         mAllowedKeys.clear();
         mAllowedKeys.addAll(keys);
