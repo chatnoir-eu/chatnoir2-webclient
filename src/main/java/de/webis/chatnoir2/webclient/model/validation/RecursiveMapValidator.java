@@ -83,7 +83,7 @@ public class RecursiveMapValidator extends OptionalValidator
             List<Validator> validators = mValidators.get(key);
             for (Validator validator: validators) {
                 if (!validator.validate(map.get(key))) {
-                    mMessage = validator.message();
+                    mMessage = String.format("Error validating '%s': %s", key.toString(), validator.message());
                     return false;
                 }
             }

@@ -40,6 +40,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.*;
 
 /**
@@ -53,12 +54,26 @@ public class ApiKeyManagerApiModule extends ApiModuleBase
     {
         // return user info
         WebSubject subject = (WebSubject) SecurityUtils.getSubject();
+        ApiKeyModel userModel = ApiTokenRealm.getUserModel(subject);
 
         final XContentBuilder builder = getResponseBuilder(request);
         builder.startObject();
-        ApiKeyModel userModel = ApiTokenRealm.getUserModel(subject);
+        builder.field("apikey", userModel.getId());
+        builder.field("parent", userModel.getParent());
+
         Map<String, Object> modelMap = userModel.getAll();
         for (String key: modelMap.keySet()) {
+            if (key.equals("remote_hosts")) {
+                builder.startArray("remote_hosts");
+                // noinspection unchecked
+                for (InetAddress addr: userModel.getRemoteHosts()) {
+                    // InetAddress.toString() is too ugly
+                    builder.value(addr.getHostAddress());
+                }
+                builder.endArray();
+                continue;
+            }
+
             builder.field(key, modelMap.get(key));
         }
         builder.endObject();
@@ -98,7 +113,7 @@ public class ApiKeyManagerApiModule extends ApiModuleBase
         ApiKeyModel candiateModel = new ApiKeyModel();
 
         // validate API key creation permissions
-        List<String> userRoles = userModel.getRoles();
+        Set<String> userRoles = userModel.getRoles();
         if (null == userRoles || !(userRoles.contains("dev") || userRoles.contains("keycreate") || userRoles.contains("admin"))) {
             ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_FORBIDDEN,
                     "You are not allowed to create new API keys");
@@ -106,8 +121,8 @@ public class ApiKeyManagerApiModule extends ApiModuleBase
         }
 
         candiateModel.setId(candidateApiKey);
-        candiateModel.setParent(userModel);
         candiateModel.putAll(requestPayload.toMap());
+        candiateModel.setParent(userModel);
         if (!candiateModel.validate()) {
             ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST, candiateModel.message());
             return;

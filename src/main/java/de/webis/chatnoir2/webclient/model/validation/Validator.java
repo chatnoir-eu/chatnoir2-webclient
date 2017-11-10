@@ -25,10 +25,12 @@
 
 package de.webis.chatnoir2.webclient.model.validation;
 
+import java.io.Serializable;
+
 /**
  * Model data validator interface.
  */
-public interface Validator
+public interface Validator extends Serializable
 {
     /**
      * Validate the given object.

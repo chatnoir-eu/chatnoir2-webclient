@@ -26,6 +26,7 @@
 package de.webis.chatnoir2.webclient.model.validation;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -40,12 +41,12 @@ public class RecursiveListValidator extends OptionalValidator
     @Override
     public boolean doValidate(Object obj)
     {
-        List list;
+        List list = new ArrayList();
         try {
             // noinspection unchecked
-            list = (List) obj;
+            list.addAll((Collection) obj);
         } catch (ClassCastException ignored) {
-            mMessage = "Not a list";
+            mMessage = "Not a collection";
             return false;
         }
 

@@ -34,7 +34,7 @@ import org.apache.shiro.SecurityUtils;
  */
 public class ApiLimitsValidator extends StatefulValidator
 {
-    private final ApiKeyModel.ApiLimits mLimits;
+    private ApiKeyModel.ApiLimits mLimits;
 
     /**
      * Validate against current user's API limits.
@@ -45,7 +45,7 @@ public class ApiLimitsValidator extends StatefulValidator
     }
 
     /**
-     * @param limits Maximum API limits to compare against
+     * @param limits Maximum API limits to compare against (null to validate against current user's limits)
      */
     public ApiLimitsValidator(ApiKeyModel.ApiLimits limits)
     {
@@ -57,7 +57,19 @@ public class ApiLimitsValidator extends StatefulValidator
      */
     public ApiLimitsValidator(ApiKeyModel referenceModel)
     {
-        this(referenceModel.getApiLimits());
+        if (null != referenceModel) {
+            mLimits = referenceModel.getApiLimits();
+        } else {
+            mLimits = null;
+        }
+    }
+
+    /**
+     * @param limits new reference limits
+     */
+    public void setLimits(ApiKeyModel.ApiLimits limits)
+    {
+        mLimits = limits;
     }
 
     @Override

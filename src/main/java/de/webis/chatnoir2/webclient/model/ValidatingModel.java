@@ -26,6 +26,7 @@
 package de.webis.chatnoir2.webclient.model;
 
 import de.webis.chatnoir2.webclient.model.validation.RecursiveMapValidator;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -123,4 +124,26 @@ public abstract class ValidatingModel<K, V> extends RecursiveMapValidator implem
      * Commit data after validation
      */
     protected abstract boolean doCommit();
+
+    @Override
+    public String toString()
+    {
+        return getId();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof ValidatingModel &&
+                getId().equals(((ValidatingModel) obj).getId()) &&
+                mData.equals(obj);
+    }
+
+    @Override
+    public int hashCode()
+    {
+        HashCodeBuilder hashBuilder = new HashCodeBuilder();
+        hashBuilder.append(getId());
+        hashBuilder.append(mData);
+        return hashBuilder.toHashCode();
+    }
 }

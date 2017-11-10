@@ -25,33 +25,35 @@
 
 package de.webis.chatnoir2.webclient.model.api;
 
-import de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm;
 import de.webis.chatnoir2.webclient.model.ElasticsearchModel;
 import de.webis.chatnoir2.webclient.model.validation.*;
 import de.webis.chatnoir2.webclient.util.Configured;
-import org.apache.shiro.SecurityUtils;
 import org.elasticsearch.common.Nullable;
 
 import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 
 /**
  * Model with data validations for ChatNoir API keys.
  */
-public class ApiKeyModel extends ElasticsearchModel
-{
+public class ApiKeyModel extends ElasticsearchModel {
     /**
      * Parent API key.
      */
     private ApiKeyModel mParent = null;
 
-    public ApiKeyModel()
-    {
+    private final ApiLimitsValidator mApiLimitsValidator;
+    private final RolesValidator mRolesValidator;
+
+    public ApiKeyModel() {
         super(Configured.getInstance().getConf().getString("auth.api.key_index"),
                 "apikey",
                 "apikey.mapping.json");
 
         allowedKeys(Arrays.asList(
+                "parent",
                 "user",
                 "limits",
                 "remote_hosts",
@@ -69,30 +71,47 @@ public class ApiKeyModel extends ElasticsearchModel
                 "country",
                 "email"));
         userValidator.addValidator("first_name", new StringNotEmptyValidator());
-        userValidator.addValidator("last_name",  new StringNotEmptyValidator());
-        userValidator.addValidator("email",      new EmailAddressValidator());
-        userValidator.addValidator("address",    new StringNotEmptyValidator().optional(true));
-        userValidator.addValidator("zip_code",   new StringNotEmptyValidator().optional(true));
-        userValidator.addValidator("country",    new StringNotEmptyValidator().optional(true));
-        addValidator("user", userValidator);
+        userValidator.addValidator("last_name", new StringNotEmptyValidator());
+        userValidator.addValidator("email", new EmailAddressValidator());
+        userValidator.addValidator("address", new StringNotEmptyValidator().optional(true));
+        userValidator.addValidator("zip_code", new StringNotEmptyValidator().optional(true));
+        userValidator.addValidator("country", new StringNotEmptyValidator().optional(true));
+        addValidator("user", userValidator.strict(true));
 
-        addValidator("limits", new ApiLimitsValidator(mParent));
+        mApiLimitsValidator = new ApiLimitsValidator(mParent);
+        addValidator("limits", mApiLimitsValidator);
 
         RecursiveListValidator remoteHostsValidator = new RecursiveListValidator();
         remoteHostsValidator.addValidator(new IpAddressValidator());
-        addValidator("remote_hosts", remoteHostsValidator);
+        addValidator("remote_hosts", remoteHostsValidator.optional(true).strict(false));
 
-        addValidator("roles", new RolesValidator(mParent));
-        addValidator("expires", new DateValidator());
-        addValidator("revoked", new BooleanValidator().strict(true));
+        mRolesValidator = new RolesValidator(mParent);
+        addValidator("roles", mRolesValidator);
+        addValidator("expires", new DateValidator().optional(true));
+        addValidator("revoked", new BooleanValidator().optional(true).strict(true));
+
+        // initialize default fields
+        setParent(null);
+        Map<String, Object> user = new HashMap<>();
+        user.put("first_name", "");
+        user.put("last_name", "");
+        user.put("address", null);
+        user.put("zip_code", null);
+        user.put("country", null);
+        user.put("email", null);
+        put("user", user);
+        put("limits", new ApiLimits(null, null, null));
+        put("remote_hosts", new HashSet<InetAddress>());
+        put("roles", new HashSet<String>());
+        put("expires", null);
+        put("revoked", false);
     }
 
     /**
      * @param id user ID to load the model for
      * @throws RuntimeException if model could not be loaded for <tt>id</tt>
      */
-    public ApiKeyModel(String id) throws RuntimeException
-    {
+    public ApiKeyModel(String id) throws RuntimeException {
         this();
         if (!loadById(id)) {
             throw new RuntimeException(String.format("Could not load user model for id: %s", id));
@@ -104,9 +123,17 @@ public class ApiKeyModel extends ElasticsearchModel
      *
      * @param parent parent API key model
      */
-    public void setParent(ApiKeyModel parent)
-    {
+    public void setParent(ApiKeyModel parent) {
         mParent = parent;
+        putNoUpdate("parent", parent);
+
+        if (null == parent) {
+            mApiLimitsValidator.setLimits(null);
+            mRolesValidator.setAllowedRoles(null);
+        } else {
+            mApiLimitsValidator.setLimits(parent.getApiLimits());
+            mRolesValidator.setAllowedRoles(parent.getRoles());
+        }
     }
 
     /**
@@ -114,71 +141,131 @@ public class ApiKeyModel extends ElasticsearchModel
      *
      * @param parentId parent API key as String
      */
-    public void setParentById(String parentId)
-    {
+    public void setParentById(String parentId) {
         mParent = new ApiKeyModel(parentId);
     }
 
     /**
      * @return parent API key model
      */
-    public ApiKeyModel getParent()
-    {
+    public ApiKeyModel getParent() {
         return mParent;
     }
 
     /**
      * @return user's API limits
      */
-    public ApiLimits getApiLimits()
-    {
+    public ApiLimits getApiLimits() {
         return (ApiLimits) get("limits");
+    }
+
+    /**
+     * @return user's API limits
+     */
+    public Set<InetAddress> getRemoteHosts() {
+        // noinspection unchecked
+        return (Set<InetAddress>) get("remote_hosts");
     }
 
     /**
      * @return user's roles
      */
-    public List<String> getRoles()
-    {
+    public Set<String> getRoles() {
         Object roles = get("roles");
-        if (null == roles) {
-            return new ArrayList<>();
+        Set<String> rolesSet = new HashSet<>();
+        if (null != roles) {
+            // noinspection unchecked
+            rolesSet.addAll((List<String>) roles);
         }
-        // noinspection unchecked
-        return (List<String>) roles;
+        return rolesSet;
     }
 
     @Override
-    protected boolean doCommit()
-    {
-        put("parent", getParent());
-        boolean success = super.doCommit();
-        remove("parent");
-        return success;
+    public boolean loadById(String documentId) {
+        return super.loadById(documentId) && updateDataStructures(null);
     }
 
     @Override
-    public boolean loadById(String documentId)
+    public void put(String key, Object value)
     {
-        boolean success = super.loadById(documentId);
+        putNoUpdate(key, value);
+        updateDataStructures(key);
+    }
 
-        if (containsKey("parent")) {
-            setParent(get("parent"));
-            remove("parent");
+    /**
+     * Put value without updating data structures.
+     */
+    private void putNoUpdate(String key, Object value)
+    {
+        super.put(key, value);
+    }
+
+    @Override
+    public void putAll(Map<String, Object> map)
+    {
+        super.putAll(map);
+        updateDataStructures(null);
+    }
+
+    /**
+     * Update data structures after map data changes.
+     * @param field field name to update, null to update all
+     *
+     * @return true on success
+     */
+    private boolean updateDataStructures(@Nullable String field)
+    {
+        if (null == field || field.equals("parent")) {
+            Object parent = get("parent");
+            if (parent instanceof ApiKeyModel) {
+                setParent((ApiKeyModel) parent);
+            } else if (parent instanceof String) {
+                setParentById((String) parent);
+            } else {
+                setParent(null);
+            }
         }
 
-        try {
+        if (null == field || field.equals("limits")) {
             Map<String, Object> limits = get("limits");
-            put("limits", new ApiLimits(
-                    (Long) limits.get("day"),
-                    (Long) limits.get("week"),
-                    (Long) limits.get("month")));
-        } catch (ClassCastException e) {
-            Configured.getInstance().getSysLogger().debug("Error loading model data", e);
-            return false;
+            try {
+                putNoUpdate("limits", new ApiLimits(
+                        null != limits.get("day") ? ((Integer) limits.get("day")).longValue() : null,
+                        null != limits.get("week") ? ((Integer) limits.get("week")).longValue() : null,
+                        null != limits.get("month") ? ((Integer) limits.get("month")).longValue() : null));
+            } catch (ClassCastException ignored) {
+                try {
+                    // returned type may already be Long, so try again
+                    putNoUpdate("limits", new ApiLimits(
+                            (Long) limits.get("day"),
+                            (Long) limits.get("week"),
+                            (Long) limits.get("month")));
+                } catch (ClassCastException e) {
+                    Configured.getInstance().getSysLogger().debug("Error loading model data", e);
+                    return false;
+                }
+            }
         }
 
-        return success;
+        if (null == field || field.equals("remote_hosts")) {
+            Set<String> remoteHosts = new HashSet<>();
+            if (null != get("remote_hosts")) {
+                remoteHosts.addAll(get("remote_hosts"));
+                Set<InetAddress> addressSet = new HashSet<>();
+                for (Object ip : remoteHosts) {
+                    try {
+                        if (ip instanceof String) {
+                            addressSet.add(InetAddress.getByName((String) ip));
+                        } else {
+                            addressSet.add((InetAddress) ip);
+                        };
+                    } catch (UnknownHostException ignored) {}
+                }
+                putNoUpdate("remote_hosts", addressSet);
+            }
+        }
+
+        return true;
     }
 
     /**

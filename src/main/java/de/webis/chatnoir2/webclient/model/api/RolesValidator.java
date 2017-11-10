@@ -30,6 +30,7 @@ import de.webis.chatnoir2.webclient.model.validation.StatefulValidator;
 import org.apache.shiro.SecurityUtils;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Validate role assignment to be a subset of allowed roles.
@@ -37,7 +38,7 @@ import java.util.List;
  */
 public class RolesValidator extends StatefulValidator
 {
-    private final List<String> mAllowedRoles;
+    private Set<String> mAllowedRoles;
 
     /**
      * Validate against current user's roles.
@@ -50,21 +51,34 @@ public class RolesValidator extends StatefulValidator
     /**
      * @param allowedRoles allowed user roles (null to validate against current user's roles)
      */
-    public RolesValidator(List<String> allowedRoles) {
+    public RolesValidator(Set<String> allowedRoles) {
         mAllowedRoles = allowedRoles;
     }
 
     /**
      * @param referenceModel reference API key model to obtain allowed user roles
+     *                       (null to validate against current user's roles)
      */
     public RolesValidator(ApiKeyModel referenceModel) {
-        this(referenceModel.getRoles());
+        if (null != referenceModel) {
+            mAllowedRoles = referenceModel.getRoles();
+        } else {
+            mAllowedRoles = null;
+        }
+    }
+
+    /**
+     * @param allowedRoles allowed roles
+     */
+    public void setAllowedRoles(Set<String> allowedRoles)
+    {
+        mAllowedRoles = allowedRoles;
     }
 
     @Override
     public boolean validate(Object obj)
     {
-        List<String> allowedRoles = mAllowedRoles;
+        Set<String> allowedRoles = mAllowedRoles;
         if (null == allowedRoles) {
             allowedRoles = ApiTokenRealm.getUserModel(SecurityUtils.getSubject()).getRoles();
         }

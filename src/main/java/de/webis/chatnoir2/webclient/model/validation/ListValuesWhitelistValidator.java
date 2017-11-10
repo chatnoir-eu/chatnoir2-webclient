@@ -26,20 +26,21 @@
 package de.webis.chatnoir2.webclient.model.validation;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Validate a list of values against a whitelist of allowed values.
  */
 public class ListValuesWhitelistValidator extends StatefulValidator
 {
-    private final List mAllowedValues;
+    private final Set mAllowedValues;
 
     private Object mOffendingItem = null;
 
     /**
      * @param allowedValues list of allowed values (null means allow all)
      */
-    public ListValuesWhitelistValidator(List allowedValues)
+    public ListValuesWhitelistValidator(Set allowedValues)
     {
         mAllowedValues = allowedValues;
     }

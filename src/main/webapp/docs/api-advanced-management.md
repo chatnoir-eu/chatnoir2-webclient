@@ -117,6 +117,7 @@ current request limits.
 - `status`: REST response code
 - `message`: human-readable status message
 - `apikey`: issued API key
+- `parent`: parent API key
 
 #### Example:
 ##### Request:
@@ -124,6 +125,7 @@ current request limits.
 POST /api/v1/_manage_keys/create
 {
     "apikey": "...",
+    "parent": "...",
     "user": {
         "first_name": "John",
         "last_name": "Doe",

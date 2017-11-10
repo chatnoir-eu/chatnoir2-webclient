@@ -35,14 +35,13 @@ public abstract class OptionalValidator extends StatefulValidator
     private boolean mOptional = false;
 
     @Override
-    public final boolean validate(Object obj)
-    {
+    public final boolean validate(Object obj) {
         if (null == obj && !isOptional()) {
-            mMessage = "Valid value required.";
+            mMessage = "Value required.";
             return false;
         }
 
-        return doValidate(obj);
+        return (null == obj && isOptional()) || doValidate(obj);
     }
 
     /**
