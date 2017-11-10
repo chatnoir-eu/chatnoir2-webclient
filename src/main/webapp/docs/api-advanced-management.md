@@ -47,6 +47,7 @@ user information for your API key.
     - `email`: user email address
     - `address`: user postal address
     - `zip_code`: user postal ZIP code
+    - `country`: user country code
 - `roles`: list of assigned user roles
 - `remote_hosts`: allowed remote host addresses for this key (empty if no restriction applies)
 - `limits`: API request limits for this key
@@ -62,15 +63,16 @@ GET /api/v1/_manage_keys?apikey=...
 ##### Response:
 ```
 {
+    "apikey": "...",
+    "parent": "...",
     "user": {
         "country": "de",
         "address": "Example Address,
         "last_name": "Doe",
         "first_name": "John",
-        "email": "email@example.com",
         "zip_code": 00000
+        "email": "email@example.com",
     },
-    "apikey": "...",
     "roles": [],
     "remote_hosts": [],
     "limits": {
@@ -108,6 +110,7 @@ current request limits.
     - `email`: user email address (**required**)
     - `address`: user postal address
     - `zip_code`: user postal ZIP code
+    - `country`: user country code
 - `roles`: list of assigned user roles
 - `limits`: API request limits for this key  (**required**)
     - `day`: daily limit (-1 for unlimited)
@@ -124,12 +127,11 @@ current request limits.
 POST /api/v1/_manage_keys/create
 {
     "apikey": "...",
-    "parent": "...",
     "user": {
         "first_name": "John",
         "last_name": "Doe",
         "address": "Example address",
-        "zip_code": 0000,
+        "zip_code": 00000,
         "country": "de",
         "email": "email@example.com"
     },

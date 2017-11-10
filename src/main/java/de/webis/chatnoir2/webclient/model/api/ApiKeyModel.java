@@ -68,8 +68,7 @@ public class ApiKeyModel extends ElasticsearchModel {
                 "email",
                 "address",
                 "zip_code",
-                "country",
-                "email"));
+                "country"));
         userValidator.addValidator("first_name", new StringNotEmptyValidator());
         userValidator.addValidator("last_name", new StringNotEmptyValidator());
         userValidator.addValidator("email", new EmailAddressValidator());
