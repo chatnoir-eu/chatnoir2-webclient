@@ -40,7 +40,6 @@ user information for your API key.
 
 #### Response Data:
 - `apikey`: API key which this info is for
-- `parent`: parent API key
 - `user`: stored user data for this key
     - `first_name`: user first name
     - `last_name`: user last name
@@ -64,7 +63,6 @@ GET /api/v1/_manage_keys?apikey=...
 ```
 {
     "apikey": "...",
-    "parent": "...",
     "user": {
         "country": "de",
         "address": "Example Address,

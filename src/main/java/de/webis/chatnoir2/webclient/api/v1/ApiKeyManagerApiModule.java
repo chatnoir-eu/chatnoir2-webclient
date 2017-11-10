@@ -58,10 +58,14 @@ public class ApiKeyManagerApiModule extends ApiModuleBase
         final XContentBuilder builder = getResponseBuilder(request);
         builder.startObject();
         builder.field("apikey", userModel.getId());
-        builder.field("parent", userModel.getParent());
 
         Map<String, Object> modelMap = userModel.getAll();
         for (String key: modelMap.keySet()) {
+            // never return the parent API key, as it would allow the owner of a child key to issue new keys
+            if (key.equals("parent")) {
+                continue;
+            }
+
             if (key.equals("remote_hosts")) {
                 builder.startArray("remote_hosts");
                 // noinspection unchecked
