@@ -142,7 +142,7 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
             TransportClient client = Configured.getInstance().getClient();
             IndicesExistsResponse response = client.admin().indices().exists(request).get();
             if (!response.isExists()) {
-                Configured.getInstance().getSysLogger().info(String.format("" +
+                Configured.getInstance().getSysLogger().info(String.format(
                         "Index '%s' does not exist, creating it.", mIndexName));
 
                 URL mappingFileURL = getClass().getClassLoader().getResource(mappingFile);
