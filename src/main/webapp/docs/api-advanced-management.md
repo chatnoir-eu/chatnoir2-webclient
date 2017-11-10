@@ -138,7 +138,7 @@ POST /api/v1/_manage_keys/create
     "limits": {
         "day": 100,
         "week": 300,
-        "month": 2000
+        "month": 1000
     },
     "roles": []
 ```
