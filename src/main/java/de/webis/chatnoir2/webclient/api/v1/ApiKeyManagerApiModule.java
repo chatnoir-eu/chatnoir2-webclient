@@ -33,7 +33,6 @@ import de.webis.chatnoir2.webclient.model.api.ApiKeyModel;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.web.subject.WebSubject;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.rest.RestStatus;
 import org.json.JSONObject;
 
 import javax.servlet.ServletException;
@@ -133,11 +132,10 @@ public class ApiKeyManagerApiModule extends ApiModuleBase
         if (isCreated) {
             XContentBuilder builder = getResponseBuilder(request)
                     .startObject()
-                        .field("status", RestStatus.CREATED.getStatus())
                         .field("message", "API key created")
                         .field("apikey", candiateModel.getId())
                     .endObject();
-            writeResponse(response, builder, RestStatus.CREATED.getStatus());
+            writeResponse(response, builder, HttpServletResponse.SC_CREATED);
         } else {
             ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_INTERNAL_SERVER_ERROR,
                     "Error creating a new API key, please try again later");

@@ -39,13 +39,14 @@ user information for your API key.
 *None*
 
 #### Response Data:
+- `apikey`: API key which this info is for
+- `parent`: parent API key
 - `user`: stored user data for this key
     - `first_name`: user first name
     - `last_name`: user last name
     - `email`: user email address
     - `address`: user postal address
     - `zip_code`: user postal ZIP code
-- `apikey`: API key which this info is for
 - `roles`: list of assigned user roles
 - `remote_hosts`: allowed remote host addresses for this key (empty if no restriction applies)
 - `limits`: API request limits for this key
@@ -114,10 +115,8 @@ current request limits.
     - `month`: monthly limit (-1 for unlimited)
 
 #### Response Data:
-- `status`: REST response code
 - `message`: human-readable status message
 - `apikey`: issued API key
-- `parent`: parent API key
 
 #### Example:
 ##### Request:
@@ -144,7 +143,6 @@ POST /api/v1/_manage_keys/create
 ##### Response:
 ```
 {
-    "status": 201,
     "message": "API key created",
     "apikey": "..."
 }
