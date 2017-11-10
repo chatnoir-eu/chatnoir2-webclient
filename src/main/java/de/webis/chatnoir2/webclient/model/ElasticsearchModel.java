@@ -157,7 +157,8 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
                         .get();
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Configured.getInstance().getSysLogger().error("Error creating API key index", e);
+            return;
         }
 
         sExistenceChecked = true;
