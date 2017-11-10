@@ -83,12 +83,12 @@ public class ApiKeyModel extends ElasticsearchModel {
 
         RecursiveListValidator remoteHostsValidator = new RecursiveListValidator();
         remoteHostsValidator.addValidator(new IpAddressValidator());
-        addValidator("remote_hosts", remoteHostsValidator.optional(true).strict(false));
+        addValidator("remote_hosts", remoteHostsValidator.optional(true));
 
         mRolesValidator = new RolesValidator(mParent);
         addValidator("roles", mRolesValidator);
         addValidator("expires", new DateValidator().optional(true));
-        addValidator("revoked", new BooleanValidator().optional(true).strict(true));
+        addValidator("revoked", new BooleanValidator().optional(true));
 
         // initialize default fields
         setParent(null);
@@ -302,7 +302,7 @@ public class ApiKeyModel extends ElasticsearchModel {
 
         private long getLimit(String field)
         {
-            if (null != mParent) {
+            if (get(field) == null && null != mParent) {
                 return ((ApiLimits) mParent.get("limits")).getLimit(field);
             }
             if (null == get(field)) {

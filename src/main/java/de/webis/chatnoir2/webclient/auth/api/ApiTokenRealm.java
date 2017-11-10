@@ -75,19 +75,15 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
     @SuppressWarnings("unchecked")
     private void refreshPrincipalsCache(String apiKey)
     {
-        try {
-            ApiKeyModel userModel = new ApiKeyModel();
-            if (!userModel.loadById(apiKey)) {
-                throw new AuthenticationException("No user found for key " + apiKey);
-            }
-
-            Map<String, Object> principalData = new HashMap<>();
-            principalData.put("model", userModel);
-
-            getPrincipalsCache().put(apiKey, principalData);
-        } catch (Exception e) {
-            e.printStackTrace();
+        ApiKeyModel userModel = new ApiKeyModel();
+        if (!userModel.loadById(apiKey)) {
+            throw new AuthenticationException("No user found for key " + apiKey);
         }
+
+        Map<String, Object> principalData = new HashMap<>();
+        principalData.put("model", userModel);
+
+        getPrincipalsCache().put(apiKey, principalData);
     }
 
     /**
@@ -126,7 +122,11 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
      */
     public static ApiKeyModel getUserModel(Subject subject)
     {
-        return (ApiKeyModel) getPrincipalFields(subject).get("model");
+        Map<String, Object> principals = getPrincipalFields(subject);
+        if (null != principals) {
+            return (ApiKeyModel) principals.get("model");
+        }
+        return null;
     }
 
     @Override
