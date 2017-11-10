@@ -39,7 +39,7 @@ public class RecursiveListValidator extends OptionalValidator
     private int mMinElements = 0;
 
     @Override
-    public boolean doValidate(Object obj)
+    protected boolean doValidate(Object obj)
     {
         List list = new ArrayList();
         try {

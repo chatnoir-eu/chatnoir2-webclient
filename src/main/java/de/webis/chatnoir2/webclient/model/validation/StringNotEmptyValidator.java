@@ -31,7 +31,7 @@ package de.webis.chatnoir2.webclient.model.validation;
 public class StringNotEmptyValidator extends StringValidator
 {
     @Override
-    public boolean doValidate(String str) {
+    protected boolean doValidate(String str) {
         boolean isValid = (null != str) && !str.isEmpty();
         if (!isValid) {
             mMessage = "String must not be empty.";

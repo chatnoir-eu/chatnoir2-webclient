@@ -56,7 +56,7 @@ public class RecursiveMapValidator extends OptionalValidator
     private final List<Object> mAllowedKeys = new ArrayList<>();
 
     @Override
-    public boolean doValidate(Object obj)
+    protected boolean doValidate(Object obj)
     {
         Map map;
         try {

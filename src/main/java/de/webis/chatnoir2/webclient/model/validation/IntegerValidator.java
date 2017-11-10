@@ -34,7 +34,7 @@ import org.apache.commons.lang.StringUtils;
 public class IntegerValidator extends OptionalValidator
 {
     @Override
-    public boolean doValidate(Object obj)
+    protected boolean doValidate(Object obj)
     {
         if (obj instanceof Long || obj instanceof Integer) {
             return true;

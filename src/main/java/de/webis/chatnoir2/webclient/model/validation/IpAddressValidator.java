@@ -33,7 +33,7 @@ import org.apache.commons.validator.routines.InetAddressValidator;
 public class IpAddressValidator extends StringValidator
 {
     @Override
-    public final boolean doValidate(String str) {
+    protected final boolean doValidate(String str) {
         InetAddressValidator inetValidator = new InetAddressValidator();
         boolean isValid = inetValidator.isValid(str);
 
