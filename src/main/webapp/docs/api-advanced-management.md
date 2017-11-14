@@ -40,6 +40,8 @@ user information for your API key.
 
 #### Response Data:
 - `apikey`: API key which this info is for
+- `revoked`: whether this key has been revoked
+- `expires`: expiry date of this key as ISO datetime (null for no expiration)
 - `user`: stored user data for this key
     - `first_name`: user first name
     - `last_name`: user last name
@@ -48,7 +50,7 @@ user information for your API key.
     - `zip_code`: user postal ZIP code
     - `country`: user country code
 - `roles`: list of assigned user roles
-- `remote_hosts`: allowed remote host addresses for this key (empty if no restriction applies)
+- `remote_hosts`: allowed remote IP addresses for this key (empty if no restriction applies)
 - `limits`: API request limits for this key
     - `day`: daily limit (-1 for unlimited)
     - `week`: weekly limit (-1 for unlimited)
@@ -63,6 +65,8 @@ GET /api/v1/_manage_keys?apikey=...
 ```
 {
     "apikey": "...",
+    "expires": "2018-11-14T12:05:37.95",
+    "revoked": false,
     "user": {
         "country": "de",
         "address": "Example Address,
@@ -92,6 +96,9 @@ you don't belong to.
 If you pass `null` values as request limits, the new key will inherit your
 current request limits.
 
+You can assign an optional expiry date to the key, but it cannot be further
+in the future than your own key's expiry date.
+
 #### Required roles:
 - *keycreate*
 
@@ -114,6 +121,8 @@ current request limits.
     - `day`: daily limit (-1 for unlimited)
     - `week`: weekly limit (-1 for unlimited)
     - `month`: monthly limit (-1 for unlimited)
+- `remote_hosts`: allowed remote IP addresses for this key (empty for no restriction)
+- `expires`: optional expiry date of this key as ISO datetime
 
 #### Response Data:
 - `message`: human-readable status message
@@ -138,7 +147,10 @@ POST /api/v1/_manage_keys/create
         "week": 300,
         "month": 1000
     },
-    "roles": []
+    "roles": [],
+    "remote_hosts": [],
+    "expires": "2020-01-01T00:00:00Z"
+}
 ```
 ##### Response:
 ```
