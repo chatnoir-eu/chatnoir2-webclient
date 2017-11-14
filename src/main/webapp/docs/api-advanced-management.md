@@ -238,7 +238,8 @@ you can update existing API keys.
 **Note:** You cannot revoke API keys you haven't issued yourself (i.e., which are
 children or grand children of your API key).
 
-It may take several minutes for the changes to go live.
+It may take several minutes for the changes to go live. Revoked API keys may be
+deleted after some time.
 
 #### Required roles:
 - *keycreate*
