@@ -43,6 +43,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Base class for ChatNoir REST API modules.
@@ -83,7 +85,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      * @param request HTTP request
      * @return path as string
      */
-    public String getActionPath(final HttpServletRequest request) throws ServletException
+    public Path getActionPath(final HttpServletRequest request) throws ServletException
     {
         String requestUri = request.getRequestURI();
 
@@ -92,7 +94,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
                     + "v1/"
                     + getClass().getAnnotation(ApiModuleV1.class).value()[0];
 
-            return requestUri.substring(Math.min(requestUri.length(), prefix.length()));
+            return Paths.get(requestUri.substring(Math.min(requestUri.length(), prefix.length())));
         } else {
             throw new RuntimeException("Missing ApiModule annotation");
         }

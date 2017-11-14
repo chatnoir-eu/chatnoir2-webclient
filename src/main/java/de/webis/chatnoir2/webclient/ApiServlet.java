@@ -61,6 +61,7 @@ public class ApiServlet extends ChatNoirServlet
                 break;
             case "GET":
             case "POST":
+            case "PUT":
                 apiHandler.service(request, response);
                 break;
             case "OPTIONS":

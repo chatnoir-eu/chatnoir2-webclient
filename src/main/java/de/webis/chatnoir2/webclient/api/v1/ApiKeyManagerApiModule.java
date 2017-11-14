@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -103,62 +104,237 @@ public class ApiKeyManagerApiModule extends ApiModuleBase
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
     {
-        String actionPath = getActionPath(request);
-        switch (actionPath) {
-            case "/create":
+        Path actionPath = getActionPath(request);
+        if (actionPath.getNameCount() < 1) {
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST, "No action given");
+            return;
+        }
+
+        String action = actionPath.getName(0).toString();
+        switch (action) {
+            case "create":
                 actionCreate(request, response);
                 break;
 
-            case "/":
-            case "":
-                ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST,
-                        "No action given");
-                return;
-
             default:
-                ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST,
-                        "Invalid action: " + actionPath);
-
+                ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_NOT_FOUND,
+                        "Invalid action: " + action);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private void actionCreate(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        WebSubject subject = (WebSubject) SecurityUtils.getSubject();
-        String candidateApiKey = UUID.randomUUID().toString();
-        JSONObject requestPayload = getPayload(request);
+    @Override
+    public void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
+    {
+        Path actionPath = getActionPath(request);
+        if (actionPath.getNameCount() < 1) {
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST, "No action given");
+            return;
+        }
 
-        ApiKeyModel userModel = ApiTokenRealm.getUserModel(subject);
-        ApiKeyModel candiateModel = new ApiKeyModel();
+        String action = actionPath.getName(0).toString();
+        switch (action) {
+            case "update":
+                actionUpdate(request, response);
+                break;
+
+            case "revoke":
+                actionRevoke(request, response);
+                break;
+
+            default:
+                ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_NOT_FOUND,
+                        "Invalid action: " + action);
+        }
+    }
+
+    /**
+     * Ensure that current user has API key creation and modification rights
+     * and create appropriate error responses if not.
+     *
+     * @param userModel user to check permissions for
+     * @return false if user is not authorized to modify API keys
+     */
+    private boolean checkApiKeyCreationPermissions(HttpServletRequest request, HttpServletResponse response, ApiKeyModel userModel) throws IOException, ServletException
+    {
+        if (null == userModel) {
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_FORBIDDEN,
+                    "User not authenticated");
+            return false;
+        }
 
         // validate API key creation permissions
         Set<String> userRoles = userModel.getRoles();
         if (null == userRoles || !(userRoles.contains("dev") || userRoles.contains("keycreate") || userRoles.contains("admin"))) {
             ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_FORBIDDEN,
-                    "You are not allowed to create new API keys");
+                    "You are not allowed to create or update API keys");
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if a model is a child of another model and generate error responses if not.
+     *
+     * @param parent parent model
+     * @param child child to check
+     * @return true if <tt>child</tt> is a child of <tt>parent</tt>
+     */
+    private boolean checkApiKeyIsChild(HttpServletRequest request, HttpServletResponse response,
+                                       final ApiKeyModel parent, ApiKeyModel child) throws IOException, ServletException
+    {
+        ApiKeyModel tmpParent = child;
+        while (!tmpParent.getId().equals(parent.getId())) {
+            if (null == tmpParent.getParent()) {
+                // only allow modification of children
+                ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_FORBIDDEN,
+                        "Target API key is not a child key");
+                return false;
+            }
+
+            tmpParent = tmpParent.getParent();
+        }
+
+        return true;
+    }
+
+    /**
+     * Update API key model from request payload.
+     * Generates error responses in case of failure.
+     *
+     * @param request HTTP request with JSON data
+     * @param response servlet response object
+     * @param model model to update
+     * @return true on success
+     */
+    private boolean updateApiKeyModel(HttpServletRequest request, HttpServletResponse response, ApiKeyModel model) throws IOException, ServletException
+    {
+        ApiKeyModel userModel = ApiTokenRealm.getUserModel(SecurityUtils.getSubject());
+        if (!checkApiKeyCreationPermissions(request, response, userModel)) {
+            return false;
+        }
+
+        JSONObject requestPayload = getPayload(request);
+        model.putAll(requestPayload.toMap());
+        model.setParent(userModel);
+        if (!model.validate()) {
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST, model.message());
+            return false;
+        }
+
+        if (!model.commit()) {
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_INTERNAL_SERVER_ERROR,
+                    "Error updating API key, please try again later");
+            return false;
+        }
+
+        return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void actionCreate(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
+    {
+        ApiKeyModel userModel = ApiTokenRealm.getUserModel(SecurityUtils.getSubject());
+        if (!checkApiKeyCreationPermissions(request, response, userModel)) {
             return;
         }
 
-        candiateModel.setId(candidateApiKey);
-        candiateModel.putAll(requestPayload.toMap());
-        candiateModel.setParent(userModel);
-        if (!candiateModel.validate()) {
-            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST, candiateModel.message());
+        ApiKeyModel candiateModel = new ApiKeyModel();
+        candiateModel.setId(UUID.randomUUID().toString());
+
+        if (!updateApiKeyModel(request, response, candiateModel)) {
             return;
         }
-        boolean isCreated = candiateModel.commit();
 
         // generate API response
-        if (isCreated) {
-            XContentBuilder builder = getResponseBuilder(request)
-                    .startObject()
-                        .field("message", "API key created")
-                        .field("apikey", candiateModel.getId())
-                    .endObject();
-            writeResponse(response, builder, HttpServletResponse.SC_CREATED);
-        } else {
-            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_INTERNAL_SERVER_ERROR,
-                    "Error creating a new API key, please try again later");
+        XContentBuilder builder = getResponseBuilder(request)
+                .startObject()
+                .field("message", "API key created")
+                .field("apikey", candiateModel.getId())
+                .endObject();
+        writeResponse(response, builder, HttpServletResponse.SC_CREATED);
+    }
+
+    private void actionUpdate(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
+    {
+        ApiKeyModel userModel = ApiTokenRealm.getUserModel(SecurityUtils.getSubject());
+        if (!checkApiKeyCreationPermissions(request, response, userModel)) {
+            return;
         }
+
+        Path actionPath = getActionPath(request);
+        if (actionPath.getNameCount() < 2) {
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST,
+                    "Missing target API key");
+            return;
+        }
+
+        ApiKeyModel updateModel = new ApiKeyModel();
+        String targetApiKey = actionPath.getName(1).toString();
+        if (!updateModel.loadById(targetApiKey)) {
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_NOT_FOUND,
+                    "Invalid target API key " + targetApiKey);
+            return;
+        }
+
+        assert userModel != null;
+        if (!checkApiKeyIsChild(request, response, userModel, updateModel)) {
+            return;
+        }
+
+        if (!updateApiKeyModel(request, response, updateModel)) {
+            return;
+        }
+
+        // generate API response
+        XContentBuilder builder = getResponseBuilder(request)
+                .startObject()
+                .field("message", "API key updated")
+                .field("apikey", updateModel.getId())
+                .endObject();
+        writeResponse(response, builder, HttpServletResponse.SC_OK);
+    }
+
+    private void actionRevoke(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
+    {
+        ApiKeyModel userModel = ApiTokenRealm.getUserModel(SecurityUtils.getSubject());
+        if (!checkApiKeyCreationPermissions(request, response, userModel)) {
+            return;
+        }
+
+        Path actionPath = getActionPath(request);
+        if (actionPath.getNameCount() < 2) {
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_BAD_REQUEST,
+                    "Missing target API key");
+            return;
+        }
+
+        ApiKeyModel model = new ApiKeyModel();
+        String targetApiKey = actionPath.getName(1).toString();
+        if (!model.loadById(targetApiKey)) {
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_NOT_FOUND,
+                    "Invalid target API key " + targetApiKey);
+            return;
+        }
+
+        assert userModel != null;
+        if (!checkApiKeyIsChild(request, response, userModel, model)) {
+            return;
+        }
+
+        model.revoke();
+        if (!model.commit()) {
+            ApiBootstrap.handleApiError(request, response, ApiErrorModule.SC_INTERNAL_SERVER_ERROR,
+                    "Error updating API key, please try again later");
+            return;
+        }
+
+        // generate API response
+        XContentBuilder builder = getResponseBuilder(request)
+                .startObject()
+                .field("message", "API key revoked")
+                .field("apikey", model.getId())
+                .endObject();
+        writeResponse(response, builder, HttpServletResponse.SC_OK);
     }
 }
