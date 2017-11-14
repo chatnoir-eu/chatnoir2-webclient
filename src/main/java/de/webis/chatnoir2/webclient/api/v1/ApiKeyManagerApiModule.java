@@ -278,7 +278,7 @@ public class ApiKeyManagerApiModule extends ApiModuleBase
         }
 
         assert userModel != null;
-        if (!checkApiKeyIsChild(request, response, userModel, updateModel)) {
+        if (!userModel.getRoles().contains("admin") && !checkApiKeyIsChild(request, response, userModel, updateModel)) {
             return;
         }
 
@@ -318,7 +318,7 @@ public class ApiKeyManagerApiModule extends ApiModuleBase
         }
 
         assert userModel != null;
-        if (!checkApiKeyIsChild(request, response, userModel, model)) {
+        if (!userModel.getRoles().contains("admin") && !checkApiKeyIsChild(request, response, userModel, model)) {
             return;
         }
 
