@@ -42,6 +42,7 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.Subject;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -78,7 +79,11 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
     {
         ApiKeyModel userModel = new ApiKeyModel();
         if (!userModel.loadById(apiKey)) {
-            throw new AuthenticationException("No user found for key " + apiKey);
+            throw new AuthenticationException("Invalid API key");
+        }
+        LocalDateTime expiryDate = userModel.getExpiryDate();
+        if (null != expiryDate && expiryDate.isBefore(LocalDateTime.now())) {
+            throw new AuthenticationException("API key has expired");
         }
 
         Map<String, Object> principalData = new HashMap<>();

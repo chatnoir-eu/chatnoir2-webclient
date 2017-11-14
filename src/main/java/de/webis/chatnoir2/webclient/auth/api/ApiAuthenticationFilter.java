@@ -106,7 +106,7 @@ public class ApiAuthenticationFilter extends ChatNoirAuthenticationFilter
 
         try {
             ApiBootstrap.handleApiError(httpRequest, httpResponse,
-                    ApiErrorModule.SC_UNAUTHORIZED, "Missing or invalid API key");
+                    ApiErrorModule.SC_UNAUTHORIZED, e.getMessage());
         } catch (Throwable exception) {
             ApiBootstrap.handleException(exception, httpRequest, httpResponse);
         }
