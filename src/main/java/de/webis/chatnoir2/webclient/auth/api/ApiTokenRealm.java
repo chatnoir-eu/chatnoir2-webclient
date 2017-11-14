@@ -26,6 +26,7 @@
 package de.webis.chatnoir2.webclient.auth.api;
 
 import de.webis.chatnoir2.webclient.model.api.ApiKeyModel;
+import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
@@ -134,7 +135,15 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
     {
         String apiKey = (String) token.getPrincipal();
         synchronized (apiKey.intern()) {
-            refreshPrincipalsCache(apiKey);
+            try {
+                refreshPrincipalsCache(apiKey);
+            } catch (Throwable e) {
+                if (!(e instanceof AuthenticationException)) {
+                    Configured.getInstance().getSysLogger().error("Error during authentication", e);
+                } else {
+                    throw e;
+                }
+            }
             return new SimpleAuthenticationInfo(apiKey, apiKey, getName());
         }
     }

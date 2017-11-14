@@ -25,17 +25,24 @@
 
 package de.webis.chatnoir2.webclient.model.validation;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
 /**
- * Validate that String is a date.
+ * Validate that String is an ISO datetime representation.
  */
-public class DateValidator extends StringValidator {
+public class ISODateTimeValidator extends StringValidator {
     @Override
     protected boolean doValidate(String str)
     {
-        boolean isValid = org.apache.commons.validator.routines.DateValidator.getInstance().isValid(str);
-        if (!isValid) {
-            mMessage = "Not a valid date.";
+        try {
+            LocalTime.parse(str, DateTimeFormatter.ISO_DATE_TIME);
+        } catch (DateTimeParseException ignored) {
+            mMessage = "Not a valid ISO datetime string";
+            return false;
         }
-        return isValid;
+
+        return true;
     }
 }

@@ -33,6 +33,8 @@ import org.elasticsearch.common.Nullable;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -77,16 +79,16 @@ public class ApiKeyModel extends ElasticsearchModel {
         userValidator.addValidator("country", new StringNotEmptyValidator().optional(true));
         addValidator("user", userValidator.strict(true));
 
-        mApiLimitsValidator = new ApiLimitsValidator(mParent);
+        mApiLimitsValidator = new ApiLimitsValidator();
         addValidator("limits", mApiLimitsValidator);
 
         RecursiveListValidator remoteHostsValidator = new RecursiveListValidator();
         remoteHostsValidator.addValidator(new IpAddressValidator());
         addValidator("remote_hosts", remoteHostsValidator.optional(true));
 
-        mRolesValidator = new RolesValidator(mParent);
+        mRolesValidator = new RolesValidator();
         addValidator("roles", mRolesValidator);
-        addValidator("expires", new DateValidator().optional(true));
+        addValidator("expires", new ISODateTimeValidator().optional(true));
         addValidator("revoked", new BooleanValidator().optional(true));
 
         // initialize default fields
@@ -141,7 +143,10 @@ public class ApiKeyModel extends ElasticsearchModel {
      * @param parentId parent API key as String
      */
     public void setParentById(String parentId) {
-        mParent = new ApiKeyModel(parentId);
+        mParent = new ApiKeyModel();
+        if (!mParent.loadById(parentId)) {
+            mParent = null;
+        }
     }
 
     /**
@@ -159,28 +164,100 @@ public class ApiKeyModel extends ElasticsearchModel {
     }
 
     /**
-     * @return user's API limits
+     * Revoke API key.
      */
-    public Set<InetAddress> getRemoteHosts() {
-        // noinspection unchecked
-        return (Set<InetAddress>) get("remote_hosts");
+    public void revoke()
+    {
+        put("revoked", true);
+    }
+
+    /**
+     * @return whether API key or one of its ancestors has been revoked.
+     */
+    public boolean isRevoked()
+    {
+        boolean revoked = (null != get("revoked")) && ((Boolean) get("revoked"));
+        boolean parentRevoked = (null != mParent) && mParent.isRevoked();
+        return revoked || parentRevoked;
+    }
+
+    /**
+     * Set API key expiry date.
+     *
+     * @param expiryDate the new expiry date (null for no expiry)
+     */
+    public void setExpiryDate(@Nullable LocalDateTime expiryDate)
+    {
+        if (null == expiryDate) {
+            put("expires", null);
+            return;
+        }
+
+        put("expires", expiryDate);
+    }
+
+    /**
+     * Get expiry date of this API key or one if its ancestors, whichever is earlier.
+     *
+     * @return expiry date or null if key doesn't expire
+     */
+    public LocalDateTime getExpiryDate()
+    {
+        LocalDateTime parentExpiryDate = mParent != null ? mParent.getExpiryDate() : null;
+
+        if (null == get("expires")) {
+            return parentExpiryDate;
+        }
+
+        LocalDateTime expiryDate = LocalDateTime.parse(get("expires"), DateTimeFormatter.ISO_DATE_TIME);
+
+        if (null == parentExpiryDate) {
+            return expiryDate;
+        }
+
+        if (expiryDate.isAfter(parentExpiryDate)) {
+            return parentExpiryDate;
+        }
+
+        return expiryDate;
+    }
+
+    /**
+     * @return allowed remote host addresses
+     */
+    public Set<InetAddress> getRemoteHosts()
+    {
+        Set<InetAddress> addressSet  = new HashSet<>();
+        if (null != get("remote_hosts")) {
+            IpAddressValidator validator = new IpAddressValidator();
+            for (Object ip : (Collection) get("remote_hosts")) {
+                try {
+                    if (validator.validate(ip)) {
+                        addressSet.add(InetAddress.getByName((String) ip));
+                    }
+                } catch (UnknownHostException ignored) {}
+            }
+        }
+        return addressSet;
     }
 
     /**
      * @return user's roles
      */
-    public Set<String> getRoles() {
+    public Set<String> getRoles()
+    {
         Object roles = get("roles");
         Set<String> rolesSet = new HashSet<>();
         if (null != roles) {
             // noinspection unchecked
-            rolesSet.addAll((List<String>) roles);
+            rolesSet.addAll((Collection) roles);
         }
         return rolesSet;
     }
 
     @Override
-    public boolean loadById(String documentId) {
+    public boolean loadById(String documentId)
+    {
         return super.loadById(documentId) && updateDataStructures(null);
     }
 
@@ -243,24 +320,6 @@ public class ApiKeyModel extends ElasticsearchModel {
                     Configured.getInstance().getSysLogger().debug("Error loading model data", e);
                     return false;
                 }
-            }
-        }
-
-        if (null == field || field.equals("remote_hosts")) {
-            Set<String> remoteHosts = new HashSet<>();
-            if (null != get("remote_hosts")) {
-                remoteHosts.addAll(get("remote_hosts"));
-                Set<InetAddress> addressSet = new HashSet<>();
-                for (Object ip : remoteHosts) {
-                    try {
-                        if (ip instanceof String) {
-                            addressSet.add(InetAddress.getByName((String) ip));
-                        } else {
-                            addressSet.add((InetAddress) ip);
-                        };
-                    } catch (UnknownHostException ignored) {}
-                }
-                putNoUpdate("remote_hosts", addressSet);
             }
         }
 

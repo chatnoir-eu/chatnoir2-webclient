@@ -40,6 +40,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -54,6 +56,7 @@ public class ApiKeyManagerApiModule extends ApiModuleBase
         // return user info
         WebSubject subject = (WebSubject) SecurityUtils.getSubject();
         ApiKeyModel userModel = ApiTokenRealm.getUserModel(subject);
+        assert userModel != null;
 
         final XContentBuilder builder = getResponseBuilder(request);
         builder.startObject();
@@ -74,6 +77,19 @@ public class ApiKeyManagerApiModule extends ApiModuleBase
                     builder.value(addr.getHostAddress());
                 }
                 builder.endArray();
+                continue;
+            }
+
+            LocalDateTime expiry = userModel.getExpiryDate();
+            if (key.equals("expires") && null != expiry) {
+                // return actual expiry information from trust chain
+                builder.field("expires", expiry.format(DateTimeFormatter.ISO_DATE_TIME));
+                continue;
+            }
+
+            if (key.equals("revoked")) {
+                // return actual revocation information from trust chain
+                builder.field("revoked", userModel.isRevoked());
                 continue;
             }
 

@@ -33,12 +33,7 @@ public abstract class StringValidator extends OptionalValidator
     @Override
     protected final boolean doValidate(Object obj)
     {
-        if (!(obj instanceof String)) {
-            mMessage = "Not a string.";
-            return false;
-        }
-
-        return doValidate((String) obj);
+        return doValidate(obj.toString());
     }
 
     protected abstract boolean doValidate(String str);

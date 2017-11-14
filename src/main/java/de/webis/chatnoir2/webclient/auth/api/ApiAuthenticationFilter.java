@@ -34,6 +34,7 @@ import de.webis.chatnoir2.webclient.api.exceptions.UserErrorException;
 import de.webis.chatnoir2.webclient.auth.ChatNoirAuthenticationFilter;
 import de.webis.chatnoir2.webclient.auth.ChatNoirAuthenticationFilter.AuthFilter;
 import de.webis.chatnoir2.webclient.auth.ChatNoirWebSessionManager;
+import de.webis.chatnoir2.webclient.model.api.ApiKeyModel;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -130,7 +131,9 @@ public class ApiAuthenticationFilter extends ChatNoirAuthenticationFilter
             }
 
             // validate remote IP address
-            Set<InetAddress> remoteHosts = ApiTokenRealm.getUserModel(subject).get("remote_hosts");
+            ApiKeyModel userModel = ApiTokenRealm.getUserModel(subject);
+            assert userModel != null;
+            Set<InetAddress> remoteHosts = userModel.getRemoteHosts();
             if (null != remoteHosts && !remoteHosts.isEmpty()) {
                 InetAddress ip = InetAddress.getByName(request.getRemoteHost());
 
