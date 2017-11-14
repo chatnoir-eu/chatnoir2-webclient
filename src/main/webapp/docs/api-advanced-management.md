@@ -87,7 +87,7 @@ GET /api/v1/_manage_keys?apikey=...
 
 ### Create API key
 By sending a `POST` request to the `/create` action of the management module,
-you can issue new API keys.
+you can issue a new API key.
 
 **Note:** You cannot assign request limits to the new API key that would exceed
 your own limits. Similarly, you cannot assign user roles to the new key which
@@ -162,7 +162,7 @@ POST /api/v1/_manage_keys/create
 
 ### Update API key
 By sending a `PUT` request to the `/update` action of the management module,
-you can update existing API keys.
+you can update an existing API key.
 
 **Note:** You cannot update API keys you haven't issued yourself (i.e., which are
 children or grand children of your API key). The same restrictions apply as for
@@ -233,7 +233,7 @@ PUT /api/v1/_manage_keys/update/...
 
 ### Revoke API key
 By sending a `PUT` request to the `/revoke` action of the management module,
-you can update existing API keys.
+you can revoke an API key. Revoking a key will also revoke all its child keys.
 
 **Note:** You cannot revoke API keys you haven't issued yourself (i.e., which are
 children or grand children of your API key).
