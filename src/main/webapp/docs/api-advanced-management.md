@@ -159,3 +159,115 @@ POST /api/v1/_manage_keys/create
     "apikey": "..."
 }
 ```
+
+### Update API key
+By sending a `PUT` request to the `/update` action of the management module,
+you can update existing API keys.
+
+**Note:** You cannot update API keys you haven't issued yourself (i.e., which are
+children or grand children of your API key). The same restrictions apply as for
+creating new API keys.
+
+It may take several minutes for the changes to go live.
+
+#### Required roles:
+- *keycreate*
+
+#### Allowed methods:
+`PUT`
+
+#### Action:
+`/update/<target-apikey>`
+
+#### Parameters:
+- `user`: stored user data for this key
+    - `first_name`: user first name (**required**)
+    - `last_name`: user last name (**required**)
+    - `email`: user email address (**required**)
+    - `address`: user postal address
+    - `zip_code`: user postal ZIP code
+    - `country`: user country code
+- `roles`: list of assigned user roles
+- `limits`: API request limits for this key  (**required**)
+    - `day`: daily limit (-1 for unlimited)
+    - `week`: weekly limit (-1 for unlimited)
+    - `month`: monthly limit (-1 for unlimited)
+- `remote_hosts`: allowed remote IP addresses for this key (empty for no restriction)
+- `expires`: optional expiry date of this key as ISO datetime
+
+#### Response Data:
+- `message`: human-readable status message
+- `apikey`: updated API key
+
+#### Example:
+##### Request:
+```
+PUT /api/v1/_manage_keys/update/...
+{
+    "apikey": "...",
+    "user": {
+        "first_name": "John",
+        "last_name": "Doe",
+        "address": "Example address",
+        "zip_code": 00000,
+        "country": "de",
+        "email": "email@example.com"
+    },
+    "limits": {
+        "day": 100,
+        "week": 300,
+        "month": 1000
+    },
+    "roles": [],
+    "remote_hosts": [],
+    "expires": "2020-01-01T00:00:00Z"
+}
+```
+##### Response:
+```
+{
+    "message": "API key updated",
+    "apikey": "..."
+}
+```
+
+### Revoke API key
+By sending a `PUT` request to the `/revoke` action of the management module,
+you can update existing API keys.
+
+**Note:** You cannot revoke API keys you haven't issued yourself (i.e., which are
+children or grand children of your API key).
+
+It may take several minutes for the changes to go live.
+
+#### Required roles:
+- *keycreate*
+
+#### Allowed methods:
+`PUT`
+
+#### Action:
+`/revoke/<target-apikey>`
+
+#### Parameters:
+*None*
+
+#### Response Data:
+- `message`: human-readable status message
+- `apikey`: revoked API key
+
+#### Example:
+##### Request:
+```
+PUT /api/v1/_manage_keys/revoke/...
+{
+    "apikey": "..."
+}
+```
+##### Response:
+```
+{
+    "message": "API key revoked",
+    "apikey": "..."
+}
+```
