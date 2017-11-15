@@ -27,10 +27,11 @@
            eternal="true"
            overflowToDisk="true"/>
 
-    <!-- ChatNoir API users principal cache -->
+    <!-- ChatNoir API users principals cache -->
     <cache name="de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm-0-principals"
            maxElementsInMemory="1000"
-           eternal="true"
+           timeToLiveSeconds="900"
+           timeToIdleSeconds="900"
            overflowToDisk="true"/>
 
     <!-- ChatNoir documents cache -->

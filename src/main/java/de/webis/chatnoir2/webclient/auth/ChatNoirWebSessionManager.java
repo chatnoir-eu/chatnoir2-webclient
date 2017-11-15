@@ -76,11 +76,6 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
     private static final String API_SESSION_WEEK_WINDOW_USAGE =  ATTR_BASE + ".API_SESSION_WEEK_WINDOW_USAGE";
     private static final String API_SESSION_DAY_WINDOW_USAGE =   ATTR_BASE + ".API_SESSION_DAY_WINDOW_USAGE";
 
-    /**
-     * Authentication cache age.
-     */
-    private static final String API_AUTH_CACHE_AGE =   ATTR_BASE + ".API_AUTH_CACHE_AGE";
-
     private RealmSecurityManager mSecurityManager = null;
 
     /**
@@ -293,62 +288,9 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
     {
         try {
             super.validateSessions();
-
-            Collection<Session> activeSessions = getActiveSessions();
-            if (activeSessions != null) {
-                // periodically invalidate API principal data
-                validatePrincipalCaches(activeSessions);
-            }
         } catch (Throwable e) {
             // catch and log all possible exceptions to make sure the session validation thread doesn't die
             Configured.getInstance().getSysLogger().error("Exception thrown while validating sessions:", e);
-        }
-    }
-
-    /**
-     * Validate and possibly clear cached principals and authentication / authorization data which exceeded their TTLs.
-     *
-     * @param activeSessions sessions to validate caches for
-     */
-    private void validatePrincipalCaches(Collection<Session> activeSessions)
-    {
-        long cacheTTL = Configured.getInstance().getConf().getLong("auth.api.auth_cache_ttl", -1L);
-        if (cacheTTL < 0) {
-            // infinite auth cache TTL
-            return;
-        }
-
-        // get ApiTokenRealm instance
-        Collection<Realm> realms = mSecurityManager.getRealms();
-        ApiTokenRealm apiRealm = null;
-        for (Realm r : realms) {
-            if (r instanceof ApiTokenRealm) {
-                apiRealm = (ApiTokenRealm) r;
-                break;
-            }
-        }
-
-        if (apiRealm == null) {
-            return;
-        }
-
-        for (Session s : activeSessions) {
-            if (!isApiSession(s)) {
-                continue;
-            }
-
-            long currentTime = System.currentTimeMillis();
-            Long cacheAge = (Long) s.getAttribute(API_AUTH_CACHE_AGE);
-            if (null == cacheAge) {
-                s.setAttribute(API_AUTH_CACHE_AGE, currentTime);
-                continue;
-            }
-
-            if (System.currentTimeMillis() - cacheAge > cacheTTL) {
-                Subject subject = new Subject.Builder(mSecurityManager).sessionId(s.getId()).buildSubject();
-                apiRealm.clearCachedPrincipals(subject.getPrincipals());
-                s.setAttribute(API_AUTH_CACHE_AGE, currentTime);
-            }
         }
     }
 
