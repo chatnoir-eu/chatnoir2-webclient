@@ -1,44 +1,31 @@
 ---
-title: ChatNoir Advanced API Documentation
+title: Key Management API
+breadcrumbs: ["Advanced API Documentation"]
 ---
 
-# ChatNoir Advanced API Documentation
-In addition to ChatNoir's [general read-only search API](/doc/api), we provide an
-advanced management API. Most of these features can only be used by privileged
-users. Privileges are granted by assigning specific user roles. If you need access
-to these advanced features, please contact us and state your use case.
-
-While the general syntax and API features are the same as for the read-only search API,
-there is usually a functional difference between `GET` and `POST` requests when
-using these advanced API features.
-
-As it is for the search API, `apikey` is a required parameter for all API calls.
-
-
-## API Key Management
-The API key management endpoint can be used by privileged clients to view the stored
+# Key Management API
+The API key management endpoint is: `/api/v1/_manage_keys`
+ 
+This endpoint can be used by privileged clients to view or update stored
 information for an API key and issue new keys.
 
-### API Endpoint:
-The API endpoint for the API key management module is: `/api/v1/_manage_keys`.
-
-### Query API key user info
+## Query API key user info
 By sending a `GET` request to the management API module, you can retrieve the stored
 user information for your API key. 
 
-#### Required roles:
+### Required roles:
 *None*
 
-#### Allowed methods:
+### Allowed methods:
 `GET`
 
-#### Action:
+### Action:
 *None*
 
-#### Parameters:
+### Parameters:
 *None*
 
-#### Response Data:
+### Response Data:
 - `apikey`: API key which this info is for
 - `revoked`: whether this key has been revoked
 - `expires`: expiry date of this key as ISO datetime (null for no expiration)
@@ -56,15 +43,15 @@ user information for your API key.
     - `week`: weekly limit (-1 for unlimited)
     - `month`: monthly limit (-1 for unlimited)
 
-#### Example:
-##### Request:
+### Example:
+#### Request:
 ```
-GET /api/v1/_manage_keys?apikey=...
+GET /api/v1/_manage_keys?apikey=<apikey>
 ```
-##### Response:
+#### Response:
 ```
 {
-    "apikey": "...",
+    "apikey": "<apikey>",
     "expires": "2018-11-14T12:05:37.95",
     "revoked": false,
     "user": {
@@ -85,7 +72,7 @@ GET /api/v1/_manage_keys?apikey=...
 }
 ```
 
-### Create API key
+## Issue a new API key
 By sending a `POST` request to the `/create` action of the management module,
 you can issue a new API key.
 
@@ -99,16 +86,16 @@ current request limits.
 You can assign an optional expiry date to the key, but it cannot be further
 in the future than your own key's expiry date.
 
-#### Required roles:
+### Required roles:
 - *keycreate*
 
-#### Allowed methods:
+### Allowed methods:
 `POST`
 
-#### Action:
+### Action:
 `/create`
 
-#### Parameters:
+### Parameters:
 - `user`: stored user data for this key
     - `first_name`: user first name (**required**)
     - `last_name`: user last name (**required**)
@@ -124,16 +111,16 @@ in the future than your own key's expiry date.
 - `remote_hosts`: allowed remote IP addresses for this key (empty for no restriction)
 - `expires`: optional expiry date of this key as ISO datetime
 
-#### Response Data:
+### Response Data:
 - `message`: human-readable status message
 - `apikey`: issued API key
 
-#### Example:
-##### Request:
+### Example:
+#### Request:
 ```
 POST /api/v1/_manage_keys/create
 {
-    "apikey": "...",
+    "apikey": "<apikey>",
     "user": {
         "first_name": "John",
         "last_name": "Doe",
@@ -152,34 +139,34 @@ POST /api/v1/_manage_keys/create
     "expires": "2020-01-01T00:00:00Z"
 }
 ```
-##### Response:
+#### Response:
 ```
 {
     "message": "API key created",
-    "apikey": "..."
+    "apikey": "<new-apikey>"
 }
 ```
 
-### Update API key
+## Update API key user information
 By sending a `PUT` request to the `/update` action of the management module,
 you can update an existing API key.
 
-**Note:** You cannot update API keys you haven't issued yourself (i.e., which are
+**Note:** You cannot update API keys you haven't issued yourself (i.e., which aren't
 children or grand children of your API key). The same restrictions apply as for
 creating new API keys.
 
 It may take several minutes for the changes to go live.
 
-#### Required roles:
+### Required roles:
 - *keycreate*
 
-#### Allowed methods:
+### Allowed methods:
 `PUT`
 
-#### Action:
+### Action:
 `/update/<target-apikey>`
 
-#### Parameters:
+### Parameters:
 - `user`: stored user data for this key
     - `first_name`: user first name (**required**)
     - `last_name`: user last name (**required**)
@@ -195,16 +182,16 @@ It may take several minutes for the changes to go live.
 - `remote_hosts`: allowed remote IP addresses for this key (empty for no restriction)
 - `expires`: optional expiry date of this key as ISO datetime
 
-#### Response Data:
+### Response Data:
 - `message`: human-readable status message
 - `apikey`: updated API key
 
-#### Example:
-##### Request:
+### Example:
+#### Request:
 ```
-PUT /api/v1/_manage_keys/update/...
+PUT /api/v1/_manage_keys/update/<target-apikey>
 {
-    "apikey": "...",
+    "apikey": "<apikey>",
     "user": {
         "first_name": "John",
         "last_name": "Doe",
@@ -223,52 +210,52 @@ PUT /api/v1/_manage_keys/update/...
     "expires": "2020-01-01T00:00:00Z"
 }
 ```
-##### Response:
+#### Response:
 ```
 {
     "message": "API key updated",
-    "apikey": "..."
+    "apikey": "<target-apikey>"
 }
 ```
 
-### Revoke API key
+## Revoke an API key
 By sending a `PUT` request to the `/revoke` action of the management module,
 you can revoke an API key. Revoking a key will also revoke all its child keys.
 
-**Note:** You cannot revoke API keys you haven't issued yourself (i.e., which are
+**Note:** You cannot revoke API keys you haven't issued yourself (i.e., which aren't
 children or grand children of your API key).
 
 It may take several minutes for the changes to go live. Revoked API keys may be
 deleted after some time.
 
-#### Required roles:
+### Required roles:
 - *keycreate*
 
-#### Allowed methods:
+### Allowed methods:
 `PUT`
 
-#### Action:
+### Action:
 `/revoke/<target-apikey>`
 
-#### Parameters:
+### Parameters:
 *None*
 
-#### Response Data:
+### Response Data:
 - `message`: human-readable status message
 - `apikey`: revoked API key
 
-#### Example:
-##### Request:
+### Example:
+#### Request:
 ```
-PUT /api/v1/_manage_keys/revoke/...
+PUT /api/v1/_manage_keys/revoke/<target-apikey>
 {
-    "apikey": "..."
+    "apikey": "<apikey>"
 }
 ```
-##### Response:
+#### Response:
 ```
 {
     "message": "API key revoked",
-    "apikey": "..."
+    "apikey": "<target-apikey>"
 }
 ```

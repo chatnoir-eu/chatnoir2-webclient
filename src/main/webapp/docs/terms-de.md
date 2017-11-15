@@ -1,5 +1,5 @@
 ---
-title: Allgemeine Geschäftsbedingungen - ChatNoir
+title: Allgemeine Geschäftsbedingungen
 ---
 
 # Allgemeine Geschäftsbedingungen

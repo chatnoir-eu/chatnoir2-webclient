@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{title}}</title>
+    <title>{{title}} - ChatNoir Documentation</title>
     {{> bootstrap-head}}
     {{> chatnoir2-head}}
     <link href="{{contextPath}}/static/css/prism.min.css" rel="stylesheet">
@@ -12,7 +12,13 @@
 
         {{^isIndex}}
         <section>
-            <div class="back-to-index"><a href="{{contextPath}}/doc">« Back to documentation index</a></div>
+            <div class="back-to-index">
+                You are here:
+                {{#breadcrumbs}}
+                    <a href="{{contextPath}}/doc/{{path}}">{{title}}</a> »
+                {{/breadcrumbs}}
+                {{title}}
+            </div>
         </section>
         {{/isIndex}}
 

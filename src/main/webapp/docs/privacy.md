@@ -1,5 +1,5 @@
 ---
-title: Privacy Policy - ChatNoir
+title: Privacy Policy
 ---
 
 # Privacy Policy

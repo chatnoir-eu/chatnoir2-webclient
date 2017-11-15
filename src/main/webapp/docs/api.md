@@ -1,8 +1,8 @@
 ---
-title: ChatNoir API Documentation
+title: General Search API
 ---
 
-# ChatNoir API Documentation
+# General Search API
 
 ChatNoir exposes its search interface via a REST API which you can use in
 your own software to query search results programmatically.
@@ -31,13 +31,13 @@ parameter `pretty` to format the response in a more human-readable way.
 For example, the following two API requests are equivalent:
 
 ```
-GET /api/v1/_search?apikey=...&query=hello%20world&index=cw09,cw12&pretty
+GET /api/v1/_search?apikey=<apikey>&query=hello%20world&index=cw09,cw12&pretty
 ```
 
 ```
 POST /api/v1/_search
 {
-    "apikey": "...",
+    "apikey": "<apikey>",
     "query": "hello world",
     "index": ["cw09", "cw12"],
     "pretty": true
@@ -89,7 +89,7 @@ The API endpoint for the simple search module is: `/api/v1/_search`.
 ```
 POST /api/v1/_search
 {
-    "apikey": "...",
+    "apikey": "<apikey>",
     "query": "hello world",
     "index": ["cw12", "cc1511"],
     "size": 1,
@@ -169,7 +169,7 @@ The API endpoint for the phrase search module is: `/api/v1/_phrases`.
 ```
 POST /api/v1/_phrases
 {
-    "apikey": "...",
+    "apikey": "<apikey>",
     "query": "hello world",
     "index": ["cw12", "cc1511"],
     "size": 1,

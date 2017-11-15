@@ -1,8 +1,8 @@
 ---
-title: Architecture Overview - ChatNoir
+title: Architecture Overview
 ---
 
-# ChatNoir Architecture Overview
+# Architecture Overview
 ChatNoir's architecture consists of three individual components:
 
 1. Map file generator

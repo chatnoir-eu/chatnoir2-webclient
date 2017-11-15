@@ -52,8 +52,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -82,17 +81,22 @@ public class DocServlet extends ChatNoirServlet
     {
         Path requestURI = Paths.get(getStrippedRequestURI(request)).normalize();
 
-        String docName = "index";
         if (requestURI.getNameCount() < 1) {
             forwardError(request, response, HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
-        if (requestURI.getNameCount() >= 2) {
-            docName = requestURI.getName(1).toString();
+        if (!request.getRequestURI().endsWith("/")) {
+            redirect(request, response, request.getRequestURI() + "/");
+            return;
         }
 
-        Map<String, Object> docParams = getDocument(docName, request);
+        if (requestURI.getNameCount() >= 2) {
+            requestURI = requestURI.subpath(1, requestURI.getNameCount());
+        } else {
+            requestURI = Paths.get("");
+        }
+        Map<String, Object> docParams = getDocument(requestURI, request);
         if (null == docParams) {
             forwardError(request, response, HttpServletResponse.SC_NOT_FOUND);
             return;
@@ -107,12 +111,17 @@ public class DocServlet extends ChatNoirServlet
      *
      * Parsed documents are cached.
      *
-     * @param docName document name
+     * @param docPath document path
      * @param request HTTP request for URL rewriting
      * @return map containing parsed document and meta data, null if document does not exist
      */
-    private Map<String, Object> getDocument(String docName, HttpServletRequest request) throws IOException
+    private Map<String, Object> getDocument(Path docPath, HttpServletRequest request) throws IOException
     {
+        String docName = docPath.toString();
+        if (docName.isEmpty() || Files.isDirectory(Paths.get(getServletContext().getRealPath("/docs/" + docName)))) {
+            docName += "/index";
+        }
+
         // try to get parsed document from cache
         CacheManager cacheManager = new CacheManager();
         Cache<String, Map<String, Object>> cache = cacheManager.getCache(CACHE_NAME);
@@ -142,6 +151,33 @@ public class DocServlet extends ChatNoirServlet
         Tuple<XContentType, Map<String, Object>> xContent = XContentHelper
                 .convertToMap(new BytesArray(contentSplit[1].getBytes()), false, XContentType.YAML);
         docParams = xContent.v2();
+        docParams.computeIfAbsent("breadcrumbs", k -> new ArrayList<>());
+
+        // generate breadcrumbs
+        ArrayList<Object> breadcrumbs = new ArrayList<>();
+        if (!docName.equals("/index")) {
+            Map<String, String> entry = new HashMap<>();
+            entry.put("path", "");
+            entry.put("title", "ChatNoir Documentation");
+            breadcrumbs.add(entry);
+        }
+        Collection breadCrumbsRaw = (Collection) docParams.get("breadcrumbs");
+        if (null != breadCrumbsRaw) {
+            breadcrumbs.addAll(breadCrumbsRaw);
+        }
+        int size = breadcrumbs.size();
+        StringBuilder breadcrumbPaths = new StringBuilder();
+        for (int i = 1; i < size; ++i) {
+            if (i - 1 < docPath.getNameCount() ) {
+                breadcrumbPaths.append(docPath.getName(i - 1)).append("/");
+            }
+            Map<String, String> entry = new HashMap<>();
+            entry.put("path", breadcrumbPaths.toString());
+            entry.put("title", (String) breadcrumbs.get(i));
+            breadcrumbs.add(i, entry);
+            breadcrumbs.remove(i + 1);
+        }
+        docParams.put("breadcrumbs", breadcrumbs);
 
         MutableDataSet options = new MutableDataSet();
         options.setFrom(ParserEmulationProfile.MARKDOWN);
@@ -165,7 +201,7 @@ public class DocServlet extends ChatNoirServlet
         }
 
         docParams.put("content", htmlDoc.toString());
-        docParams.put("isIndex", docName.equals("index"));
+        docParams.put("isIndex", docName.equals("/index"));
 
         // cache document
         cache.put(docName, docParams);

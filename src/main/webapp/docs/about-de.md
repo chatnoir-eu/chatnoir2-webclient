@@ -1,5 +1,5 @@
 ---
-title: Über ChatNoir - ChatNoir
+title: Über ChatNoir
 ---
 
 # Über ChatNoir

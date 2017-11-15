@@ -1,5 +1,5 @@
 ---
-title: Datenschutzerklärung - ChatNoir
+title: Datenschutzerklärung
 ---
 
 # Datenschutzerklärung

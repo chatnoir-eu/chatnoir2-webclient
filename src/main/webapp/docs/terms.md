@@ -1,5 +1,5 @@
 ---
-title: Terms of Service - ChatNoir
+title: Terms of Service
 ---
 
 # Terms of Service
