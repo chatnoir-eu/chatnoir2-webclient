@@ -81,6 +81,9 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
         if (!userModel.loadById(apiKey)) {
             throw new AuthenticationException("Invalid API key");
         }
+        if (userModel.isRevoked()) {
+            throw new AuthenticationException("API key has been revoked");
+        }
         LocalDateTime expiryDate = userModel.getExpiryDate();
         if (null != expiryDate && expiryDate.isBefore(LocalDateTime.now())) {
             throw new AuthenticationException("API key has expired");
