@@ -96,12 +96,12 @@ public class ErrorFilter extends ShiroFilter
                     httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 }
 
-                Configured.getInstance().getSysLogger().error(
+                Configured.getSysLogger().error(
                         "Internal server exception:", exception);
                 getServletContext().getRequestDispatcher(ErrorServlet.ROUTE).forward(request, response);
 
             } catch (Throwable followUpException) {
-                Configured.getInstance().getSysLogger().error(
+                Configured.getSysLogger().error(
                         "Follow-up exception while handling exception:", followUpException);
             }
         } catch (Throwable dead) {

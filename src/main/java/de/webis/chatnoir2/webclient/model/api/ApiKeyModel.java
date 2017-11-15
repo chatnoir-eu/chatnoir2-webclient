@@ -52,7 +52,7 @@ public class ApiKeyModel extends ElasticsearchModel {
     private final RolesValidator mRolesValidator;
 
     public ApiKeyModel() {
-        super(Configured.getInstance().getConf().getString("auth.api.key_index"),
+        super(Configured.getConf().getString("auth.api.key_index"),
                 "apikey",
                 "apikey.mapping.json");
 
@@ -326,7 +326,7 @@ public class ApiKeyModel extends ElasticsearchModel {
                             (Long) limits.get("week"),
                             (Long) limits.get("month")));
                 } catch (ClassCastException e) {
-                    Configured.getInstance().getSysLogger().debug("Error loading model data", e);
+                    Configured.getSysLogger().debug("Error loading model data", e);
                     return false;
                 }
             }
@@ -373,7 +373,7 @@ public class ApiKeyModel extends ElasticsearchModel {
                 return ((ApiLimits) mParent.get("limits")).getLimit(field);
             }
             if (null == get(field)) {
-                return Configured.getInstance().getConf().getLong("auth.api.default_quota_limits." + field);
+                return Configured.getConf().getLong("auth.api.default_quota_limits." + field);
             }
             return get(field);
         }

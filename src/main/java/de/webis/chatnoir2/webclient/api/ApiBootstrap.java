@@ -207,13 +207,13 @@ public class ApiBootstrap
         } else {
             statusCode = ApiErrorModule.SC_INTERNAL_SERVER_ERROR;
             message = "An internal server error occurred. Please try again later.";
-            Configured.getInstance().getSysLogger().error("Internal server exception:", exception);
+            Configured.getSysLogger().error("Internal server exception:", exception);
         }
 
         try {
             ApiBootstrap.handleApiError(request, response, statusCode, message);
         } catch (Throwable e) {
-            Configured.getInstance().getSysLogger().error(
+            Configured.getSysLogger().error(
                     "While writing an error response, the following exception occurred:", e);
         }
     }

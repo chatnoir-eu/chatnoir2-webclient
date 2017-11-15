@@ -66,7 +66,7 @@ public class SearchServlet extends ChatNoirServlet
     @Override
     public void init()
     {
-        mResultsPerPage = Configured.getInstance().getConf().getInteger("serp.results_per_page", mResultsPerPage);
+        mResultsPerPage = Configured.getConf().getInteger("serp.results_per_page", mResultsPerPage);
     }
 
     @Override
@@ -113,7 +113,7 @@ public class SearchServlet extends ChatNoirServlet
         List<String> effectiveArr = Arrays.asList(search.getEffectiveIndices());
 
         // get index display names
-        ConfigLoader.Config[] aliases = Configured.getInstance().getConf().getArray("cluster.index_aliases");
+        ConfigLoader.Config[] aliases = Configured.getConf().getArray("cluster.index_aliases");
         for (String allowed: allowedArr) {
             Map<String, Object> m = new HashMap<>();
 

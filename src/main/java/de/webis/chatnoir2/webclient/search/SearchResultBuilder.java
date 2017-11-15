@@ -72,7 +72,7 @@ public class SearchResultBuilder
     public SearchResultBuilder index(String index)
     {
         String displayIndex = index;
-        ConfigLoader.Config[] conf = Configured.getInstance().getConf().getArray("cluster.index_aliases");
+        ConfigLoader.Config[] conf = Configured.getConf().getArray("cluster.index_aliases");
         if (conf.length != 0) {
             for (ConfigLoader.Config c : conf) {
                 if (c.getString("index", "").equals(index)) {

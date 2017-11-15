@@ -147,7 +147,7 @@ public class ApiTokenRealm extends AuthorizingRealm implements Serializable
                 refreshPrincipalsCache(apiKey);
             } catch (Throwable e) {
                 if (!(e instanceof AuthenticationException)) {
-                    Configured.getInstance().getSysLogger().error("Error during authentication", e);
+                    Configured.getSysLogger().error("Error during authentication", e);
                 } else {
                     throw e;
                 }

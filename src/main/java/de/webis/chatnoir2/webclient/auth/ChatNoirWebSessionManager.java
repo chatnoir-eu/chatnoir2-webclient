@@ -290,7 +290,7 @@ public class ChatNoirWebSessionManager extends DefaultWebSessionManager
             super.validateSessions();
         } catch (Throwable e) {
             // catch and log all possible exceptions to make sure the session validation thread doesn't die
-            Configured.getInstance().getSysLogger().error("Exception thrown while validating sessions:", e);
+            Configured.getSysLogger().error("Exception thrown while validating sessions:", e);
         }
     }
 

@@ -34,7 +34,6 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.locks.Condition;
 
 /**
  * Base interface for classes which depend on the application configuration
@@ -42,20 +41,9 @@ import java.util.concurrent.locks.Condition;
  */
 public class Configured
 {
-    private static Configured mInstance = null;
-    private static ConfigLoader.Config mConf = null;
-    private static TransportClient mClient = null;
-
-    /**
-     * @return stand-alone singleton instance.
-     */
-    public synchronized static Configured getInstance()
-    {
-        if (null == mInstance) {
-            mInstance = new Configured();
-        }
-        return mInstance;
-    }
+    private static ConfigLoader.Config sConf = null;
+    private static TransportClient sClient = null;
+    private static final Object sClientMutex = new Object();
 
     protected Configured()
     {
@@ -66,44 +54,60 @@ public class Configured
      *
      * @return loaded configuration
      */
-    public ConfigLoader.Config getConf()
+    public static synchronized ConfigLoader.Config getConf()
     {
-        if (null == mConf) {
+        if (null == sConf) {
             try {
-                mConf = ConfigLoader.getInstance().getConfig();
+                sConf = ConfigLoader.getInstance().getConfig();
             } catch (IOException | ConfigLoader.ParseException e) {
                 e.printStackTrace();
-                mConf = new ConfigLoader.Config();
+                sConf = new ConfigLoader.Config();
             }
         }
 
-        return mConf;
+        return sConf;
     }
 
     /**
-     * Get a connected Elasticsearch {@link org.elasticsearch.client.transport.TransportClient} instance.
+     * Get a connected Elasticsearch {@link TransportClient} instance.
      *
      * @return configured TransportClient
      */
-    public TransportClient getClient()
+    public static TransportClient getClient()
     {
-        if (null == mClient) {
-            final ConfigLoader.Config cfg = getConf();
-            final String clusterName = cfg.getString("cluster.cluster_name", "");
-            final String[] hosts     = cfg.getStringArray("cluster.hosts");
-            final int port           = cfg.getInteger("cluster.port", 9300);
+        synchronized (sClientMutex) {
+            if (null == sClient) {
+                final ConfigLoader.Config cfg = getConf();
+                final String clusterName = cfg.getString("cluster.cluster_name", "");
+                final String[] hosts = cfg.getStringArray("cluster.hosts");
+                final int port = cfg.getInteger("cluster.port", 9300);
 
-            final Settings settings = Settings.builder()
-                    .put("cluster.name", clusterName)
-                    .put("client.transport.sniff", cfg.getBoolean("cluster.sniff", true))
-                    .build();
+                final Settings settings = Settings.builder()
+                        .put("cluster.name", clusterName)
+                        .put("client.transport.sniff", cfg.getBoolean("cluster.sniff", true))
+                        .build();
 
-            mClient = new PreBuiltTransportClient(settings);
-            for (String host: hosts) {
-                mClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host, port)));
+                sClient = new PreBuiltTransportClient(settings);
+                for (String host : hosts) {
+                    sClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host, port)));
+                }
             }
+            return sClient;
         }
-        return mClient;
+    }
+
+    /**
+     * Cleanly shut down and reset the Elasticsearch {@link TransportClient}.
+     * The next call to {@link #getClient()} will create a new transport client.
+     */
+    public static void shutdownClient()
+    {
+        synchronized (sClientMutex) {
+            if (null != sClient) {
+                sClient.close();
+            }
+            sClient = null;
+        }
     }
 
     /**
@@ -132,7 +136,7 @@ public class Configured
      *
      * @return system Logger
      */
-    public Logger getSysLogger()
+    public static Logger getSysLogger()
     {
         return Logger.getLogger("de.webis.chatnoir2.webclient");
     }

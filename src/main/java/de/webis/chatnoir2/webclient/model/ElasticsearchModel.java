@@ -81,7 +81,7 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
      */
     public boolean loadById(String documentId)
     {
-        GetResponse response = Configured.getInstance().getClient().prepareGet(mIndexName, mType, documentId).get();
+        GetResponse response = Configured.getClient().prepareGet(mIndexName, mType, documentId).get();
         if (!response.isExists()) {
             return false;
         }
@@ -111,7 +111,7 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
     @Override
     protected boolean doCommit()
     {
-        IndexResponse response = Configured.getInstance()
+        IndexResponse response = Configured
                 .getClient()
                 .prepareIndex(mIndexName, mType, mDocumentId)
                 .setSource(getAll())
@@ -139,10 +139,10 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
 
         IndicesExistsRequest request = new IndicesExistsRequest(mIndexName);
         try {
-            TransportClient client = Configured.getInstance().getClient();
+            TransportClient client = Configured.getClient();
             IndicesExistsResponse response = client.admin().indices().exists(request).get();
             if (!response.isExists()) {
-                Configured.getInstance().getSysLogger().info(String.format(
+                Configured.getSysLogger().info(String.format(
                         "Index '%s' does not exist, creating it.", mIndexName));
 
                 URL mappingFileURL = getClass().getClassLoader().getResource(mappingFile);
@@ -157,7 +157,7 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
                         .get();
             }
         } catch (Exception e) {
-            Configured.getInstance().getSysLogger().error("Error creating API key index", e);
+            Configured.getSysLogger().error("Error creating API key index", e);
             return;
         }
 

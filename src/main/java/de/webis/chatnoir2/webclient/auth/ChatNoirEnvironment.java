@@ -81,7 +81,7 @@ public class ChatNoirEnvironment extends DefaultWebEnvironment
                 sessionManager.setSessionDAO(sessionDAO);
 
                 // set default session timeout
-                ConfigLoader.Config sessionConf = Configured.getInstance().getConf().get("auth");
+                ConfigLoader.Config sessionConf = Configured.getConf().get("auth");
                 sessionManager.setGlobalSessionTimeout(sessionConf.getLong("default_session_timeout", 900000L));
 
                 // configure periodic session validator
