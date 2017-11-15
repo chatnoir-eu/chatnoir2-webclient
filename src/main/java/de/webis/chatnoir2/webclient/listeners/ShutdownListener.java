@@ -45,6 +45,6 @@ public class ShutdownListener implements ServletContextListener
     @Override
     public void contextDestroyed(ServletContextEvent event)
     {
-        Configured.getClient().close();
+        Configured.shutdownClient();
     }
 }
