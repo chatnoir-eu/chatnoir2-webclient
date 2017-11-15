@@ -95,11 +95,6 @@ auth:
 
   # Default API authentication settings
   api:
-    # Cache life time of API authentication and authorization info in milliseconds.
-    # Principals older than this age will be cleared in intervals of
-    # auth.session_validation_interval.
-    auth_cache_ttl: 600000
-
     # User index containing the API keys
     key_index: chatnoir2_apikeys
 
