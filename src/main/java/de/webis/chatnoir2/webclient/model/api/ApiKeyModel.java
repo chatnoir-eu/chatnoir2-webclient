@@ -25,8 +25,10 @@
 
 package de.webis.chatnoir2.webclient.model.api;
 
+import de.webis.chatnoir2.webclient.auth.api.ApiTokenRealm;
 import de.webis.chatnoir2.webclient.model.ElasticsearchModel;
 import de.webis.chatnoir2.webclient.model.validation.*;
+import de.webis.chatnoir2.webclient.util.CacheManager;
 import de.webis.chatnoir2.webclient.util.Configured;
 import org.elasticsearch.common.Nullable;
 
@@ -143,6 +145,13 @@ public class ApiKeyModel extends ElasticsearchModel {
      * @param parentId parent API key as String
      */
     public void setParentById(String parentId) {
+        CacheManager cacheManager = new CacheManager();
+        Map cachedModel = (Map) cacheManager.getCache(ApiTokenRealm.PRINCIPALS_CACHE_NAME).get(parentId);
+        if (null != cachedModel) {
+            mParent = (ApiKeyModel) cachedModel.get("model");
+            return;
+        }
+
         mParent = new ApiKeyModel();
         if (!mParent.loadById(parentId)) {
             mParent = null;

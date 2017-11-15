@@ -50,7 +50,7 @@ import java.util.*;
  */
 public class ApiTokenRealm extends AuthorizingRealm implements Serializable
 {
-    private static final String PRINCIPALS_CACHE_NAME = ApiTokenRealm.class.getName() + "-0-principals";
+    public static final String PRINCIPALS_CACHE_NAME = ApiTokenRealm.class.getName() + "-0-principals";
 
     public ApiTokenRealm()
     {
