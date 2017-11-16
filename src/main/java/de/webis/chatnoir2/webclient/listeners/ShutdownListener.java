@@ -38,7 +38,7 @@ import javax.servlet.annotation.WebListener;
 public class ShutdownListener implements ServletContextListener
 {
     @Override
-    public void contextInitialized(ServletContextEvent sce)
+    public void contextInitialized(ServletContextEvent event)
     {
     }
 

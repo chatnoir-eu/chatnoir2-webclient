@@ -30,12 +30,13 @@ user information for your API key.
 - `revoked`: whether this key has been revoked
 - `expires`: expiry date of this key as ISO datetime (null for no expiration)
 - `user`: stored user data for this key
-    - `first_name`: user first name
-    - `last_name`: user last name
-    - `email`: user email address
-    - `address`: user postal address
-    - `zip_code`: user postal ZIP code
-    - `country`: user country code
+    - `common_name`: user's full name
+    - `organization`: user's organization
+    - `email`: user's email address
+    - `address`: user's postal address
+    - `zip_code`: user's ZIP code
+    - `state`: user's state or province
+    - `country`: user's country code
 - `roles`: list of assigned user roles
 - `remote_hosts`: allowed remote IP addresses for this key (empty if no restriction applies)
 - `limits`: API request limits for this key
@@ -55,10 +56,11 @@ GET /api/v1/_manage_keys?apikey=<apikey>
     "expires": "2018-11-14T12:05:37.95",
     "revoked": false,
     "user": {
-        "country": "de",
+        "country": "DE",
+        "state": "TH",
         "address": "Example Address,
-        "last_name": "Doe",
-        "first_name": "John",
+        "organization": "Example Organization",
+        "common_name": "John Doe",
         "zip_code": 00000
         "email": "email@example.com",
     },
@@ -97,12 +99,13 @@ in the future than your own key's expiry date.
 
 ### Parameters:
 - `user`: stored user data for this key
-    - `first_name`: user first name (**required**)
-    - `last_name`: user last name (**required**)
-    - `email`: user email address (**required**)
-    - `address`: user postal address
-    - `zip_code`: user postal ZIP code
-    - `country`: user country code
+    - `common_name`: user's full name (**required**)
+    - `email`: user's email address (**required**)
+    - `organization`: user's organization
+    - `address`: user's postal address
+    - `zip_code`: user's ZIP code
+    - `state`: user's state or province
+    - `country`: user's country code
 - `roles`: list of assigned user roles
 - `limits`: API request limits for this key  (**required**)
     - `day`: daily limit (-1 for unlimited)
@@ -122,12 +125,13 @@ POST /api/v1/_manage_keys/create
 {
     "apikey": "<apikey>",
     "user": {
-        "first_name": "John",
-        "last_name": "Doe",
-        "address": "Example address",
-        "zip_code": 00000,
-        "country": "de",
-        "email": "email@example.com"
+        "common_name": "John Doe",
+        "email": "email@example.com",
+        "organization": "Example Organization",
+        "address": "Example Address,
+        "zip_code": 00000
+        "state": "TH",
+        "country": "DE",
     },
     "limits": {
         "day": 100,
@@ -168,12 +172,13 @@ It may take several minutes for the changes to go live.
 
 ### Parameters:
 - `user`: stored user data for this key
-    - `first_name`: user first name (**required**)
-    - `last_name`: user last name (**required**)
-    - `email`: user email address (**required**)
-    - `address`: user postal address
-    - `zip_code`: user postal ZIP code
-    - `country`: user country code
+    - `common_name`: user's full name (**required**)
+    - `email`: user's email address (**required**)
+    - `organization`: user's organization
+    - `address`: user's postal address
+    - `zip_code`: user's ZIP code
+    - `state`: user's state or province
+    - `country`: user's country code
 - `roles`: list of assigned user roles
 - `limits`: API request limits for this key  (**required**)
     - `day`: daily limit (-1 for unlimited)
@@ -193,12 +198,13 @@ PUT /api/v1/_manage_keys/update/<target-apikey>
 {
     "apikey": "<apikey>",
     "user": {
-        "first_name": "John",
-        "last_name": "Doe",
-        "address": "Example address",
-        "zip_code": 00000,
-        "country": "de",
-        "email": "email@example.com"
+        "common_name": "Jane Doe",
+        "email": "email@example.com",
+        "organization": "Example Organization",
+        "address": "Example Address,
+        "zip_code": 00000
+        "state": "WA",
+        "country": "US",
     },
     "limits": {
         "day": 100,

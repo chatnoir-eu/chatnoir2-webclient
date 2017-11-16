@@ -67,18 +67,15 @@ public class ApiKeyModel extends ElasticsearchModel {
 
         RecursiveMapValidator userValidator = new RecursiveMapValidator();
         userValidator.allowedKeys(Arrays.asList(
-                "first_name",
-                "last_name",
+                "common_name",
+                "organization",
                 "email",
                 "address",
                 "zip_code",
+                "state",
                 "country"));
-        userValidator.addValidator("first_name", new StringNotEmptyValidator());
-        userValidator.addValidator("last_name", new StringNotEmptyValidator());
+        userValidator.addValidator("common_name", new StringNotEmptyValidator());
         userValidator.addValidator("email", new EmailAddressValidator());
-        userValidator.addValidator("address", new StringNotEmptyValidator().optional(true));
-        userValidator.addValidator("zip_code", new StringNotEmptyValidator().optional(true));
-        userValidator.addValidator("country", new StringNotEmptyValidator().optional(true));
         addValidator("user", userValidator.strict(true));
 
         mApiLimitsValidator = new ApiLimitsValidator();
@@ -96,10 +93,11 @@ public class ApiKeyModel extends ElasticsearchModel {
         // initialize default fields
         setParent(null);
         Map<String, Object> user = new HashMap<>();
-        user.put("first_name", "");
-        user.put("last_name", "");
+        user.put("common_name", null);
+        user.put("organization", null);
         user.put("address", null);
         user.put("zip_code", null);
+        user.put("state", null);
         user.put("country", null);
         user.put("email", null);
         put("user", user);

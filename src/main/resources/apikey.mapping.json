@@ -12,12 +12,13 @@
                 "user": {
                     "type": "nested",
                     "properties": {
-                        "first_name": { "type": "keyword" },
-                        "last_name":  { "type": "keyword" },
-                        "address":    { "type": "keyword" },
-                        "zip_code":   { "type": "keyword" },
-                        "country":    { "type": "keyword" },
-                        "email":      { "type": "keyword" }
+                        "common_name":  { "type": "keyword" },
+                        "organization": { "type": "keyword" },
+                        "address":      { "type": "keyword" },
+                        "zip_code":     { "type": "keyword" },
+                        "state":        { "type": "keyword" },
+                        "country":      { "type": "keyword" },
+                        "email":        { "type": "keyword" }
                     }
                 },
                 "limits": {
