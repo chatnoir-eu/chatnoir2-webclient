@@ -117,6 +117,20 @@ public abstract class ValidatingModel<K, V> extends RecursiveMapValidator implem
     @Override
     public final boolean commit()
     {
+        return commit(false);
+    }
+
+    /**
+     * Commit model with or without validation.
+     *
+     * @param skipValidation whether to skip validation
+     * @return true on success
+     */
+    public final boolean commit(boolean skipValidation)
+    {
+        if (skipValidation) {
+            return doCommit();
+        }
         return validate() && doCommit();
     }
 

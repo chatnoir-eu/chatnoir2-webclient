@@ -99,7 +99,10 @@ auth:
     key_index: chatnoir2_apikeys
 
     # Default API quota limits to apply when no specific per-user limits are set.
-    # A value of -1 means unlimited.
+    # A value smaller or equal 0 means unlimited.
+    # The values here will be used to initially create a master key which can be
+    # used to issue further keys which will then inherit from the master key.
+    # After that, the values here will only be used if the key chain is broken.
     default_quota_limits:
       day: 10000     # limit for last 24 hours
       week: 70000    # limit for last 7 days

@@ -80,7 +80,9 @@ public class RolesValidator extends StatefulValidator
     {
         Set<String> allowedRoles = mAllowedRoles;
         if (null == allowedRoles) {
-            allowedRoles = ApiTokenRealm.getUserModel(SecurityUtils.getSubject()).getRoles();
+            ApiKeyModel model = ApiTokenRealm.getUserModel(SecurityUtils.getSubject());
+            assert null != model;
+            allowedRoles = model.getRoles();
         }
 
         if (allowedRoles.contains("admin")) {

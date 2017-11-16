@@ -77,7 +77,9 @@ public class ApiLimitsValidator extends StatefulValidator
     {
         ApiKeyModel.ApiLimits referenceLimits = mLimits;
         if (null == mLimits) {
-            referenceLimits = ApiTokenRealm.getUserModel(SecurityUtils.getSubject()).getApiLimits();
+            ApiKeyModel model = ApiTokenRealm.getUserModel(SecurityUtils.getSubject());
+            assert model != null;
+            referenceLimits = model.getApiLimits();
         }
 
         if (!(obj instanceof ApiKeyModel.ApiLimits)) {
@@ -85,15 +87,18 @@ public class ApiLimitsValidator extends StatefulValidator
         }
 
         ApiKeyModel.ApiLimits limits = (ApiKeyModel.ApiLimits) obj;
-        if (referenceLimits.getDailyLimit() > 0 && limits.getDailyLimit() > referenceLimits.getDailyLimit()) {
+        if (limits.get("day") != null && referenceLimits.getDailyLimit() > 0 &&
+                (limits.get("day") <= 0 || limits.get("day") > referenceLimits.getDailyLimit())) {
             mMessage = "Daily limit out of bounds.";
             return false;
         }
-        if (referenceLimits.getWeeklyLimit() > 0 && limits.getWeeklyLimit() > referenceLimits.getWeeklyLimit()) {
+        if (limits.get("week") != null && referenceLimits.getWeeklyLimit() > 0 &&
+                (limits.get("week") <= 0 || limits.get("week") > referenceLimits.getWeeklyLimit())) {
             mMessage = "Weekly limit out of bounds.";
             return false;
         }
-        if (referenceLimits.getMonthlyLimit() > 0 && limits.getMonthlyLimit() > referenceLimits.getMonthlyLimit()) {
+        if (limits.get("month") != null && referenceLimits.getMonthlyLimit() > 0 &&
+                (limits.get("month") <= 0 || limits.get("month") > referenceLimits.getMonthlyLimit())) {
             mMessage = "Monthly limit out of bounds.";
             return false;
         }

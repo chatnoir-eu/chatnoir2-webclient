@@ -155,6 +155,8 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
                         .prepareCreate(mIndexName)
                         .setSource(mapping, XContentType.JSON)
                         .get();
+
+                onAfterCreate();
             }
         } catch (Exception e) {
             Configured.getSysLogger().error("Error creating API key index", e);
@@ -162,5 +164,14 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
         }
 
         sExistenceChecked = true;
+    }
+
+    /**
+     * Called after a fresh new index has been created.
+     * Can be overridden by sub classes to perform some setup actions on the new index.
+     */
+    protected void onAfterCreate()
+    {
+        // default implementation does nothing
     }
 }

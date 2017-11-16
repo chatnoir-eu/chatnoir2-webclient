@@ -94,6 +94,17 @@ public class ApiKeyManagerApiModule extends ApiModuleBase
                 continue;
             }
 
+            if (key.equals("limits")) {
+                // print actual limits after resolution of null values
+                ApiKeyModel.ApiLimits limits = userModel.getApiLimits();
+                builder.startObject("limits")
+                    .field("day", limits.getDailyLimit())
+                    .field("week", limits.getWeeklyLimit())
+                    .field("month", limits.getMonthlyLimit())
+                .endObject();
+                continue;
+            }
+
             builder.field(key, modelMap.get(key));
         }
         builder.endObject();

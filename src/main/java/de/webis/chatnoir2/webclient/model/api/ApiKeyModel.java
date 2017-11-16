@@ -51,6 +51,8 @@ public class ApiKeyModel extends ElasticsearchModel {
     private final ApiLimitsValidator mApiLimitsValidator;
     private final RolesValidator mRolesValidator;
 
+    private static final Map<String, Object> DEFAULT_USER_MAP = new HashMap<>();
+
     public ApiKeyModel() {
         super(Configured.getConf().getString("auth.api.key_index"),
                 "apikey",
@@ -92,15 +94,16 @@ public class ApiKeyModel extends ElasticsearchModel {
 
         // initialize default fields
         setParent(null);
-        Map<String, Object> user = new HashMap<>();
-        user.put("common_name", null);
-        user.put("organization", null);
-        user.put("address", null);
-        user.put("zip_code", null);
-        user.put("state", null);
-        user.put("country", null);
-        user.put("email", null);
-        put("user", user);
+        if (DEFAULT_USER_MAP.isEmpty()) {
+            DEFAULT_USER_MAP.put("common_name", null);
+            DEFAULT_USER_MAP.put("organization", null);
+            DEFAULT_USER_MAP.put("address", null);
+            DEFAULT_USER_MAP.put("zip_code", null);
+            DEFAULT_USER_MAP.put("state", null);
+            DEFAULT_USER_MAP.put("country", null);
+            DEFAULT_USER_MAP.put("email", null);
+        }
+        put("user", DEFAULT_USER_MAP);
         put("limits", new ApiLimits(null, null, null));
         put("remote_hosts", new HashSet<InetAddress>());
         put("roles", new HashSet<String>());
@@ -290,6 +293,61 @@ public class ApiKeyModel extends ElasticsearchModel {
         updateDataStructures(null);
     }
 
+    @Override
+    protected void onAfterCreate()
+    {
+        // create root API key
+        ApiKeyModel rootKey = new ApiKeyModel();
+        rootKey.setId(UUID.randomUUID().toString());
+
+        Map<String, String> rootUser = new HashMap<>();
+        rootUser.put("common_name", "ROOT KEY");
+        rootUser.put("email", "root@localhost");
+        rootKey.put("user", rootUser);
+
+        Set<String> rootRoles = new HashSet<>();
+        rootRoles.add("admin");
+        rootKey.put("roles", rootRoles);
+
+        Set<String> rootRemoteHosts = new HashSet<>();
+        rootRemoteHosts.add("127.0.0.1");
+        rootRemoteHosts.add("::1");
+        rootKey.put("remote_hosts", rootRemoteHosts);
+
+        ApiLimits rootApiLimits = new ApiLimits(-1L, -1L, -1L);
+        rootKey.put("limits", rootApiLimits);
+
+        rootKey.commit(true);
+
+        // create master issue key
+        ApiKeyModel masterKey = new ApiKeyModel();
+        masterKey.setId(UUID.randomUUID().toString());
+
+        Map<String, String> masterUser = new HashMap<>();
+        masterUser.put("common_name", "MASTER ISSUE KEY");
+        masterUser.put("email", "master@localhost");
+        masterKey.put("user", masterUser);
+
+        Set<String> masterRoles = new HashSet<>();
+        masterRoles.add("admin");
+        masterKey.put("roles", masterRoles);
+
+        Set<String> masterRemoteHosts = new HashSet<>();
+        masterRemoteHosts.add("127.0.0.1");
+        masterRemoteHosts.add("::1");
+        masterKey.put("remote_hosts", masterRemoteHosts);
+
+        ApiLimits masterApiLimits = new ApiLimits(
+                Configured.getConf().getLong("auth.api.default_quota_limits.day", -1L),
+                Configured.getConf().getLong("auth.api.default_quota_limits.week", -1L),
+                Configured.getConf().getLong("auth.api.default_quota_limits.month", -1L));
+        masterKey.put("limits", masterApiLimits);
+
+        masterKey.setParent(rootKey);
+
+        masterKey.commit(true);
+    }
+
     /**
      * Update data structures after map data changes.
      * @param field field name to update, null to update all
@@ -306,6 +364,16 @@ public class ApiKeyModel extends ElasticsearchModel {
                 setParentById((String) parent);
             } else {
                 setParent(null);
+            }
+        }
+
+        if (null == field || field.equals("limits")) {
+            // merge user data with default map to ensure all fields are present
+            Map<String, Object> user = get("user");
+            for (String key: DEFAULT_USER_MAP.keySet()) {
+                if (!user.containsKey(key)) {
+                    user.put(key, DEFAULT_USER_MAP.get(key));
+                }
             }
         }
 
@@ -350,16 +418,31 @@ public class ApiKeyModel extends ElasticsearchModel {
             put("month", month);
         }
 
+        /**
+         * Get actual daily limit after resolution of parent limits.
+         *
+         * @return daily request limit
+         */
         public long getDailyLimit()
         {
             return getLimit("day");
         }
 
+        /**
+         * Get actual weekly limit after resolution of parent limits.
+         *
+         * @return weekly request limit
+         */
         public long getWeeklyLimit()
         {
             return getLimit("week");
         }
 
+        /**
+         * Get actual monthly limit after resolution of parent limits.
+         *
+         * @return monthly request limit
+         */
         public long getMonthlyLimit()
         {
             return getLimit("month");
@@ -367,13 +450,22 @@ public class ApiKeyModel extends ElasticsearchModel {
 
         private long getLimit(String field)
         {
-            if (get(field) == null && null != mParent) {
+            final Long limit = get(field);
+
+            if (limit == null && null != mParent) {
                 return ((ApiLimits) mParent.get("limits")).getLimit(field);
             }
-            if (null == get(field)) {
+            if (null == limit) {
                 return Configured.getConf().getLong("auth.api.default_quota_limits." + field);
             }
-            return get(field);
+            if (null != mParent) {
+                long parentLimit = ((ApiLimits) mParent.get("limits")).getLimit(field);
+                if (0 >= parentLimit) {
+                    return limit;
+                }
+                return limit > 0 && limit <= parentLimit ? limit : parentLimit;
+            }
+            return limit;
         }
     }
 }
