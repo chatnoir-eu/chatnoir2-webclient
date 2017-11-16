@@ -87,7 +87,7 @@ public class DocServlet extends ChatNoirServlet
         }
 
         if (!request.getRequestURI().endsWith("/")) {
-            redirect(request, response, request.getRequestURI() + "/");
+            redirect(request, response, getStrippedRequestURI(request) + "/");
             return;
         }
 
