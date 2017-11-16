@@ -3,7 +3,7 @@ title: Advanced API
 ---
 
 # Advanced API
-In addition to ChatNoir's [general read-only search API](/doc/api), we provide an
+In addition to ChatNoir's [general read-only search API](/doc/api/), we provide an
 advanced management API. Most of these features can only be used by privileged
 users. Privileges are granted by assigning specific user roles. If you need access
 to these advanced features, please contact us and state your use case.
@@ -16,6 +16,6 @@ As it is for the search API, `apikey` is a required parameter for all API calls.
 
 
 ## Available API Endpoints
-- [API Key Management](/doc/api-advanced/management) \
+- [API Key Management](/doc/api-advanced/management/) \
     The API key management endpoint can be used by privileged clients to view or update
     stored information for an API key and issue new keys.

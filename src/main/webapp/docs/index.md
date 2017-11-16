@@ -9,20 +9,20 @@ The following documentation resources are available:
 ### Technical Documentation
 
 - API Documentation
-    - [General Search API](/doc/api)
-    - [Advanced API](/doc/api-advanced)
-        - [Management API](/doc/api-advanced/management)
-- [Architecture Overview](/doc/architecture)
+    - [General Search API](/doc/api/)
+    - [Advanced API](/doc/api-advanced/)
+        - [Management API](/doc/api-advanced/management/)
+- [Architecture Overview](/doc/architecture/)
 
 
 ### Legal and About
 
 - Credits and Contact (Impressum):
-    - [Deutsch](/doc/about-de)
-    - [English (translation)](/doc/about)
+    - [Deutsch](/doc/about-de/)
+    - [English (translation)](/doc/about/)
 - Terms of Service:
-    - [Deutsch](/doc/terms-de)
-    - [English (translation)](/doc/terms)
+    - [Deutsch](/doc/terms-de/)
+    - [English (translation)](/doc/terms/)
 - Privacy Policy:
-    - [Deutsch](/doc/privacy-de)
-    - [English (translation)](/doc/privacy)
+    - [Deutsch](/doc/privacy-de/)
+    - [English (translation)](/doc/privacy/)
