@@ -126,7 +126,8 @@ public abstract class ChatNoirServlet extends HttpServlet
      */
     protected void redirect(HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
         response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
-        response.setHeader("Location", request.getContextPath() + path);
+        response.setHeader("Location",
+                request.getScheme() + "://" + request.getHeader("Host") + request.getContextPath() + path);
     }
 
     /**
