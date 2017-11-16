@@ -87,7 +87,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
      */
     public Path getActionPath(final HttpServletRequest request) throws ServletException
     {
-        String requestUri = request.getRequestURI();
+        String requestUri = getStrippedRequestURI(request);
 
         if (getClass().isAnnotationPresent(ApiModuleV1.class)) {
             String prefix = ApiServlet.ROUTE.replaceAll("\\*", "")
