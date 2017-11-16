@@ -119,13 +119,23 @@ public abstract class ChatNoirServlet extends HttpServlet
     }
 
     /**
-     * Redirect to a path while taking into account any custom context paths.
+     * Redirect to a path with a "301 Moved Permanently" status, while taking into account context paths.
      *
      * @param request HTTP request
      * @param response HTTP response
      */
     protected void redirect(HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
         response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
+        response.setHeader("Location", request.getContextPath() + path);
+    }
+
+    /**
+     * Redirect to a path with a "302 Found" status, while taking into account context paths.
+     *
+     * @param request HTTP request
+     * @param response HTTP response
+     */
+    protected void redirectTemporary(HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
         response.sendRedirect(request.getContextPath() + path);
     }
 }
