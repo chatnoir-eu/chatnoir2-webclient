@@ -122,7 +122,7 @@ serp:
   # Length of titles in result listings (default: 60)
   title_length: 70
 
-  # Which field to group search results by in listings by target hostname (default: true)
+  # Whether to group search results in listings by target hostname (default: true)
   group_by_hostname: true
 
 
