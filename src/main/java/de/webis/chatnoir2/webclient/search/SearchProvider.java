@@ -299,6 +299,10 @@ public abstract class SearchProvider extends IndexRetrievalOperator
      */
     protected List<SearchResultBuilder.SearchResult> groupResults(List<SearchResultBuilder.SearchResult> results)
     {
+        if (!mGroupByHostname) {
+            return results;
+        }
+
         // use ordered hash map for bucketing
         LinkedHashMap<String, List<SearchResultBuilder.SearchResult>> buckets = new LinkedHashMap<>();
         for (SearchResultBuilder.SearchResult result: results) {
