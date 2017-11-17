@@ -62,7 +62,7 @@ public abstract class ValidatingModel<K, V> extends RecursiveMapValidator implem
     }
 
     /**
-     * Add <tt>key</tt>> and map it to <tt>value</tt>.
+     * Add <tt>key</tt> and map it to <tt>value</tt>.
      *
      * @param key field name
      * @param value field value
@@ -73,8 +73,8 @@ public abstract class ValidatingModel<K, V> extends RecursiveMapValidator implem
     }
 
     /**
-     * Copy all mappings from given map if they pass validation.
-     * If a single value fails validation, none of the others will be committed either.
+     * Copy all mappings from the given map. This is the same as individually
+     * calling {@link #put(Object, Object)} for each map entry in a loop.
      *
      * @param map map of keys and values
      */
