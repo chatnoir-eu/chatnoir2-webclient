@@ -25,9 +25,12 @@
 
 package de.webis.chatnoir2.webclient;
 
+import de.webis.chatnoir2.webclient.auth.ChatNoirSessionDAO;
 import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.AuthorizationException;
+import org.apache.shiro.web.subject.WebSubject;
+import org.apache.shiro.web.util.WebUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -73,16 +76,26 @@ public abstract class ChatNoirServlet extends HttpServlet
         String ip = request.getHeader("X-Forwarded-For");
         if (null == ip) {
             ip = request.getRemoteHost();
+        } else {
+            ip = ip.split(",")[0].trim();
         }
         String userAgent = request.getHeader("User-Agent");
 
         StringBuilder msg = new StringBuilder();
+
+        WebSubject subject = (WebSubject) SecurityUtils.getSubject();
+        if (subject.isAuthenticated()) {
+            msg.append("USER: ").append(subject.getPrincipal()).append(" ");
+        }
+
         if (null != ip) {
             msg.append("IP: ").append(ip).append(" ");
         }
+
         if (null != userAgent) {
             msg.append("USER-AGENT: ").append(userAgent).append(" ");
         }
+
         msg.append("QUERY: ").append(queryString);
 
         searchProvider.getLogger(web ? "Web" : "Api").info(msg);

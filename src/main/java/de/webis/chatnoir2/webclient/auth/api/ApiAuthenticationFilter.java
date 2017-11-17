@@ -142,7 +142,7 @@ public class ApiAuthenticationFilter extends ChatNoirAuthenticationFilter
                     try {
                         String forwardedHost = WebUtils.toHttp(request).getHeader("X-Forwarded-For");
                         if (null != forwardedHost) {
-                            ip = InetAddress.getByName(forwardedHost);
+                            ip = InetAddress.getByName(forwardedHost.split(",")[0].trim());
                         }
                     } catch (UnknownHostException ignored) {}
                 }
