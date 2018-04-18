@@ -67,12 +67,12 @@ hdfs:
   # Webis UUID name prefix need to be given
   mapfiles:
     cw12:
-      path: "/corpora/clueweb/12-mapfile"
+      path: "/corpora/corpora-thirdparty/corpus-clueweb/12-mapfile"
       partitions: 100
       prefix: clueweb12
 
     cw09:
-      path: "/corpora/clueweb/09-mapfile"
+      path: "/corpora/corpora-thirdparty/corpus-clueweb/09-mapfile"
       partitions: 200
       prefix: clueweb09
 
