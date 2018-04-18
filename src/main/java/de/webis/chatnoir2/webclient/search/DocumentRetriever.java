@@ -343,6 +343,10 @@ public class DocumentRetriever extends IndexRetrievalOperator
                 if (null == scheme) {
                     scheme = thisURI.getScheme();
                 }
+
+                // although the original URL may be HTTP, we need to use HTTPS to avoid mixed content
+                scheme = scheme.equals("http") ? "https" : scheme;
+
                 if (-1 == port) {
                     port = thisURI.getPort();
                 }
