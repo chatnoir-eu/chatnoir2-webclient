@@ -12,11 +12,9 @@ Systems Group at Bauhaus-Universität Weimar.
 The source code can be compiled using Gradle and the resulting WAR file can be deployed
 to a servlet container, e.g. Tomcat.
 
-To build the sources, first checkout the [`webis-uuid`](https://github.com/chatnoir-eu/webis-uuid)
-repository and put it in a folder called `webis-uuid` next to this source directory.
-Then from here, call  
-```
-gradle build
-```
+To build the sources, call  
+
+    gradle build
+
 This will download all third-party dependencies, compile the source code and
 create a WAR file under `build/libs`.

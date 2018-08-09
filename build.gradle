@@ -1,47 +1,70 @@
-group 'de.webis.chatnoir2'
-version '1.0-SNAPSHOT'
-
-apply plugin: 'war'
+// Apply plugins
 apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
+apply plugin: 'war'
 
-allprojects {
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-}
+group = 'de.webis.chatnoir2'
+version = '1.0-SNAPSHOT'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+javadoc.options.encoding = 'UTF-8'
 
-repositories {
-    mavenCentral()
+dependencies {
+    implementation group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
+    implementation group: 'io.netty', name: 'netty-all', version: '4.1.11.Final'
+    implementation group: 'org.elasticsearch.client', name: 'transport', version: '5.6.10'
+    implementation group: 'org.apache.shiro', name: 'shiro-core', version: '1.4.0'
+    implementation group: 'org.apache.shiro', name: 'shiro-web', version: '1.4.0'
+    implementation group: 'org.apache.shiro', name: 'shiro-ehcache', version: '1.4.0'
+    implementation group: 'commons-validator', name: 'commons-validator', version: '1.6'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
+    implementation group: 'com.github.spullara.mustache.java', name: 'compiler', version: '0.9.4'
+    implementation group: 'org.json', name: 'json', version: '20160810'
+    implementation group: 'org.reflections', name: 'reflections', version: '0.9.10'
+    implementation group: 'com.cybozu.labs', name: 'langdetect', version: '1.1-20120112'
+    implementation group: 'org.apache.hadoop', name: 'hadoop-client', version: '2.7.3', {
+        // exclude conflicting antique  netty dependency
+        exclude group: 'io.netty', module: 'netty'
+    }
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.10.2'
+    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
+    implementation group: 'com.vladsch.flexmark', name: 'flexmark', version: '0.19.5'
+    implementation group: 'com.vladsch.flexmark', name: 'flexmark-ext-anchorlink', version: '0.19.5'
+    implementation group: 'com.vladsch.flexmark', name: 'flexmark-ext-tables', version: '0.19.5'
+
+    implementation group: 'de.webis.corpora', name: 'webis-uuid', version: '1.0'
+
+    testImplementation group: 'junit', name: 'junit', version: '4.11'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '2.8.47'
 }
 
 test {
     systemProperties = [ 'catalina.home': '/tmp/chatnoir2-test' ]
 }
 
-dependencies {
-    compile group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
-    compile group: 'io.netty', name: 'netty-all', version: '4.1.11.Final'
-    compile group: 'org.elasticsearch.client', name: 'transport', version: '5.6.2'
-    compile group: 'org.apache.shiro', name: 'shiro-core', version: '1.4.0'
-    compile group: 'org.apache.shiro', name: 'shiro-web', version: '1.4.0'
-    compile group: 'org.apache.shiro', name: 'shiro-ehcache', version: '1.4.0'
-    compile group: 'commons-validator', name: 'commons-validator', version: '1.6'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
-    compile group: 'com.github.spullara.mustache.java', name: 'compiler', version: '0.9.4'
-    compile group: 'org.json', name: 'json', version: '20160810'
-    compile group: 'org.reflections', name: 'reflections', version: '0.9.10'
-    compile group: 'com.cybozu.labs', name: 'langdetect', version: '1.1-20120112'
-    compile group: 'org.apache.hadoop', name: 'hadoop-client', version: '2.7.3',
-            { exclude group: 'io.netty', module: 'netty' } // exclude conflicting antique  netty dependency
-    compile group: 'org.jsoup', name: 'jsoup', version: '1.10.2'
-    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
-    compile group: 'com.vladsch.flexmark', name: 'flexmark', version: '0.19.5'
-    compile group: 'com.vladsch.flexmark', name: 'flexmark-ext-anchorlink', version: '0.19.5'
-    compile group: 'com.vladsch.flexmark', name: 'flexmark-ext-tables', version: '0.19.5'
-
-    compile files("$projectDir/../webis-uuid/jar/webis-uuid.jar")
-
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    testCompile group: 'org.mockito', name: 'mockito-core', version: '2.8.47'
+// Set POM definition
+ext.pomDef = {
+    name = 'chatnoir2-webclient'
+    description = 'ChatNoir Web Frontend'
+    url = 'https://webis.de'
+    licenses {
+        license {
+            name = 'MIT License'
+            url = 'https://opensource.org/licenses/MIT'
+        }
+    }
+    developers {
+        developer {
+            name = 'Janek Bevendorff'
+            email = 'janek.bevendorff@uni-weimar.de'
+        }
+    }
+    organization {
+        name = 'Webis'
+        url = 'https://webis.de'
+    }
 }
+
+// Include Artifactory configuration
+apply from: 'artifactory.gradle'
