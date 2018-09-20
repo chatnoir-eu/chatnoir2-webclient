@@ -11,6 +11,7 @@ compileTestJava.options.encoding = "UTF-8"
 javadoc.options.encoding = 'UTF-8'
 
 dependencies {
+    // Third-party dependencies
     implementation group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
     implementation group: 'io.netty', name: 'netty-all', version: '4.1.11.Final'
     implementation group: 'org.elasticsearch.client', name: 'transport', version: '5.6.10'
@@ -23,18 +24,17 @@ dependencies {
     implementation group: 'org.json', name: 'json', version: '20160810'
     implementation group: 'org.reflections', name: 'reflections', version: '0.9.10'
     implementation group: 'com.cybozu.labs', name: 'langdetect', version: '1.1-20120112'
-    implementation group: 'org.apache.hadoop', name: 'hadoop-client', version: '2.7.3', {
-        // exclude conflicting antique  netty dependency
-        exclude group: 'io.netty', module: 'netty'
-    }
+    implementation group: 'org.apache.hadoop', name: 'hadoop-client', version: '2.7.3'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.10.2'
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
     implementation group: 'com.vladsch.flexmark', name: 'flexmark', version: '0.19.5'
     implementation group: 'com.vladsch.flexmark', name: 'flexmark-ext-anchorlink', version: '0.19.5'
     implementation group: 'com.vladsch.flexmark', name: 'flexmark-ext-tables', version: '0.19.5'
 
+    // Webis dependencies
     implementation group: 'de.webis.corpora', name: 'webis-uuid', version: '1.0'
 
+    // Test dependencies
     testImplementation group: 'junit', name: 'junit', version: '4.11'
     testImplementation group: 'org.mockito', name: 'mockito-core', version: '2.8.47'
 }
