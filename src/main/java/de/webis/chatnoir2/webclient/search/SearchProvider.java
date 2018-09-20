@@ -126,7 +126,7 @@ public abstract class SearchProvider extends IndexRetrievalOperator
             }
 
             // use meta description or first body part if no highlighted snippet available
-            if (snippet.isEmpty()) {
+            if (snippet.isEmpty() && null != source.get("meta_desc_lang." + getSearchLanguage())) {
                 if (!source.get("meta_desc_lang." + getSearchLanguage()).toString().isEmpty()) {
                     snippet = StringEscapeUtils.escapeHtml(
                             truncateSnippet((String) source.get("meta_desc_lang." + getSearchLanguage()), mSnippetLength));
@@ -135,7 +135,11 @@ public abstract class SearchProvider extends IndexRetrievalOperator
                             truncateSnippet((String) source.get("body_lang." + getSearchLanguage()), mSnippetLength));
                 }
             }
-            snippet = TextCleanser.cleanseAll(snippet, true);
+            if (null == snippet || snippet.trim().isEmpty()) {
+                snippet = "[ no snippet available ]";
+            } else {
+                snippet = TextCleanser.cleanseAll(snippet, true);
+            }
 
             // use highlighted title if available
             String title = StringEscapeUtils.escapeHtml(
@@ -146,7 +150,11 @@ public abstract class SearchProvider extends IndexRetrievalOperator
                     title = fragments[0].string();
                 }
             }
-            title = TextCleanser.cleanseAll(title, true);
+            if (null == title || title.trim().isEmpty()) {
+                title = "[ no title available ]";
+            } else {
+                title = TextCleanser.cleanseAll(title, true);
+            }
 
             String targetPath = (String) source.get("warc_target_path");
             if (null != targetPath) {
