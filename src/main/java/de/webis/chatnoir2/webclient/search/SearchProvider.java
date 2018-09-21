@@ -97,7 +97,8 @@ public abstract class SearchProvider extends IndexRetrievalOperator
      */
     public boolean isTerminatedEarly()
     {
-        return getResponse().isTerminatedEarly();
+        final SearchResponse response = getResponse();
+        return null != response.isTerminatedEarly() && response.isTerminatedEarly();
     }
 
     /**
