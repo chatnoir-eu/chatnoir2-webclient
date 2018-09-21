@@ -28,6 +28,7 @@ package de.webis.chatnoir2.webclient.search;
 import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.lucene.search.Explanation;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.ToXContent;
 
 import javax.annotation.CheckForNull;
@@ -409,7 +410,7 @@ public class SearchResultBuilder
         {
             if (null != mExplanation) {
                 try {
-                    return new ExplanationXContent(mExplanation).toXContent(jsonBuilder(), ToXContent.EMPTY_PARAMS).string();
+                    return Strings.toString(new ExplanationXContent(mExplanation).toXContent(jsonBuilder(), ToXContent.EMPTY_PARAMS));
                 } catch (IOException ignored) {}
             }
 

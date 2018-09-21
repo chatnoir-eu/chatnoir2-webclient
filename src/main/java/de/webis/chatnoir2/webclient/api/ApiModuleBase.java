@@ -32,6 +32,7 @@ import de.webis.chatnoir2.webclient.api.v1.ApiModuleV1;
 import de.webis.chatnoir2.webclient.auth.api.ApiKeyAuthenticationToken;
 import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.commons.lang.math.NumberUtils;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.json.JSONArray;
@@ -170,7 +171,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
     {
         response.setStatus(responseCode);
         response.setContentType("application/json");
-        response.getWriter().write(responseBuilder.string());
+        response.getWriter().write(Strings.toString(responseBuilder));
         response.getWriter().flush();
     }
 

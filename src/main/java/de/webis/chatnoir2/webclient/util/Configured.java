@@ -29,7 +29,7 @@ import de.webis.chatnoir2.webclient.resources.ConfigLoader;
 import org.apache.log4j.Logger;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import java.io.IOException;
@@ -89,7 +89,7 @@ public class Configured
 
                 sClient = new PreBuiltTransportClient(settings);
                 for (String host : hosts) {
-                    sClient.addTransportAddress(new InetSocketTransportAddress(new InetSocketAddress(host, port)));
+                    sClient.addTransportAddress(new TransportAddress(new InetSocketAddress(host, port)));
                 }
             }
             return sClient;

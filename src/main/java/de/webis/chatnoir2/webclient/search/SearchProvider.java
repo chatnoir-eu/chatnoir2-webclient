@@ -115,7 +115,7 @@ public abstract class SearchProvider extends IndexRetrievalOperator
         }
 
         for (SearchHit hit: getResponse().getHits()) {
-            final Map<String, Object> source = hit.getSource();
+            final Map<String, Object> source = hit.getSourceAsMap();
 
             String snippet = "";
             if (null != hit.getHighlightFields().get("body_lang." + getSearchLanguage())) {

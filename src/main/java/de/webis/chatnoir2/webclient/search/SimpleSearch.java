@@ -36,9 +36,7 @@ import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuild
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
-import org.elasticsearch.search.rescore.RescoreBuilder;
 
-import javax.management.Query;
 import java.util.*;
 
 
@@ -232,7 +230,7 @@ public class SimpleSearch extends SearchProvider
      */
     protected QueryRescorerBuilder buildRescorer(QueryBuilder query)
     {
-        final QueryRescorerBuilder rescorer = RescoreBuilder.queryRescorer(query);
+        final QueryRescorerBuilder rescorer = new QueryRescorerBuilder(query);
         rescorer.setQueryWeight(0.0f).
                 setRescoreQueryWeight(1.0f).
                 setScoreMode(QueryRescoreMode.Total);
