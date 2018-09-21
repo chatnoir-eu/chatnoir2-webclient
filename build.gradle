@@ -12,6 +12,7 @@ javadoc.options.encoding = 'UTF-8'
 
 dependencies {
     // Third-party dependencies
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.8'
     implementation group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
     implementation group: 'io.netty', name: 'netty-all', version: '4.1.11.Final'
     implementation group: 'org.elasticsearch.client', name: 'transport', version: '6.4.1'
@@ -19,7 +20,6 @@ dependencies {
     implementation group: 'org.apache.shiro', name: 'shiro-web', version: '1.4.0'
     implementation group: 'org.apache.shiro', name: 'shiro-ehcache', version: '1.4.0'
     implementation group: 'commons-validator', name: 'commons-validator', version: '1.6'
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
     implementation group: 'com.github.spullara.mustache.java', name: 'compiler', version: '0.9.4'
     implementation group: 'org.json', name: 'json', version: '20160810'
     implementation group: 'org.reflections', name: 'reflections', version: '0.9.10'
