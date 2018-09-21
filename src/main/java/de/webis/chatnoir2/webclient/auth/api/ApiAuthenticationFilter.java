@@ -35,6 +35,7 @@ import de.webis.chatnoir2.webclient.auth.ChatNoirAuthenticationFilter;
 import de.webis.chatnoir2.webclient.auth.ChatNoirAuthenticationFilter.AuthFilter;
 import de.webis.chatnoir2.webclient.auth.ChatNoirWebSessionManager;
 import de.webis.chatnoir2.webclient.model.api.ApiKeyModel;
+import de.webis.chatnoir2.webclient.util.Configured;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -137,8 +138,9 @@ public class ApiAuthenticationFilter extends ChatNoirAuthenticationFilter
             if (null != remoteHosts && !remoteHosts.isEmpty()) {
                 InetAddress ip = InetAddress.getByName(request.getRemoteHost());
 
-                // trust X-Forwarded-For header only if forwarded from localhost
-                if (InetAddress.getByName("127.0.0.1").equals(ip) || InetAddress.getByName("::1").equals(ip)) {
+                // trust X-Forwarded-For header only if proxy_serve setting is set of if forwarded from localhost
+                if (Configured.getConf().get("general").getBoolean("proxy_serve", false) ||
+                        InetAddress.getByName("127.0.0.1").equals(ip) || InetAddress.getByName("::1").equals(ip)) {
                     try {
                         String forwardedHost = WebUtils.toHttp(request).getHeader("X-Forwarded-For");
                         if (null != forwardedHost) {

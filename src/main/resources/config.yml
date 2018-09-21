@@ -4,6 +4,13 @@
 #
 # Optimized for the Webis betaweb cluster.
 
+# ------------------------------------------------------------------------------------
+# General ChatNoir settings
+# ------------------------------------------------------------------------------------
+general:
+  # Serve behind a proxy, this enables handling for X-Forwarded-For headers
+  proxy_serve: false
+
 
 # ------------------------------------------------------------------------------------
 # General cluster settings
