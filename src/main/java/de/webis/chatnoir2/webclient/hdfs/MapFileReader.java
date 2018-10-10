@@ -149,11 +149,11 @@ public class MapFileReader extends Configured
      */
     public static UUID getUUIDForUrl(final String url, final String index)
     {
-        if (null == mInstance.getConf()) {
+        if (null == getConf()) {
             throw new RuntimeException("MapFileReader not initialized");
         }
 
-        final ConfigLoader.Config mapfileConfig = mInstance.getConf().get("hdfs.mapfiles").get(index);
+        final ConfigLoader.Config mapfileConfig = getConf().get("hdfs.mapfiles").get(index);
         final int partition = getPartition(url, mapfileConfig.getInteger("partitions"));
         String inputPathStr = String.format("%s/%s-r-%05d", mapfileConfig.getString("path"),
                 URI_OUTPUT_NAME, partition);
@@ -166,8 +166,10 @@ public class MapFileReader extends Configured
                 mMapfileReaders.put(inputPath, reader);
             }
             String uuidStr = reader.get(new Text(url), new Text()).toString();
-            if (uuidStr.startsWith(DATA_OUTPUT_NAME))
+            if (uuidStr.startsWith(DATA_OUTPUT_NAME)) {
+                // work around map file generation bug where we forgot to strip the data prefix
                 uuidStr = uuidStr.substring(DATA_OUTPUT_NAME.length());
+            }
             return UUID.fromString(uuidStr);
 
         } catch (IOException | NullPointerException e) {
