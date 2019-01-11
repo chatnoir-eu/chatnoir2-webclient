@@ -38,6 +38,7 @@ cluster:
   # Indices the user is allowed to search
   indices:
     - cc1511
+    - cc1704
     - cw09
     - cw12
 
@@ -48,6 +49,10 @@ cluster:
   # Define index aliases.
   # Raw index names in Elasticsearch responses will be replaced with the alias name
   index_aliases:
+    - index: webis_warc_commoncrawl1704_001
+      alias: cc1704
+      display_name: CommonCrawl 04/2017
+
     - index: webis_warc_commoncrawl15_002
       alias: cc1511
       display_name: CommonCrawl 11/2015
@@ -86,6 +91,11 @@ hdfs:
     cc1511:
       path: "/corpora/corpus-commoncrawl/CC-MAIN-2015-11-mapfile"
       partitions: 100
+      prefix: commoncrawl
+
+    cc1704:
+      path: "/corpora/corpus-commoncrawl/CC-MAIN-2017-04-mapfile"
+      partitions: 200
       prefix: commoncrawl
 
 
