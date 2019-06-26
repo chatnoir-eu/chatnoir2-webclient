@@ -17,12 +17,6 @@ The following documentation resources are available:
 
 ### Legal and About
 
-- Credits and Contact (Impressum):
-    - [Deutsch](/doc/about-de/)
-    - [English (translation)](/doc/about/)
 - Terms of Service:
     - [Deutsch](/doc/terms-de/)
     - [English (translation)](/doc/terms/)
-- Privacy Policy:
-    - [Deutsch](/doc/privacy-de/)
-    - [English (translation)](/doc/privacy/)

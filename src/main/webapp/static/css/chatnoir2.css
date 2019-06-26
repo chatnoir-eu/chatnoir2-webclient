@@ -101,6 +101,25 @@ a {
     color: #c04223;
 }
 
+.webis-footer-row {
+    /*padding-bottom: 15px;*/
+}
+
+.webis-footer {
+    margin: -25px 60px 0 60px;
+}
+
+.webis-footer:first-child {
+    float: right;
+}
+
+.webis-footer span {
+    padding: 15px;
+}
+
+#PageFooter a.webis-link {
+     color: #333;
+}
 
 .chosen-container-multi {
     min-width: 20rem;
@@ -144,9 +163,8 @@ a {
 #PageFooter {
     position: absolute;
     bottom: 0;
-    height: 4rem;
+    height: 2.5rem;
     margin-top: .5rem;
-    margin-bottom: 1em;
     width: 100%;
 }
 
@@ -633,6 +651,20 @@ a {
         float: none;
         padding: 0;
     }
+
+    .webis-footer {
+         margin: 0;
+         text-align: center;
+     }
+    .webis-footer:first-child {
+        float: none;
+    }
+
+    #PageFooter {
+        height: auto;
+        position: absolute;
+        bottom: 3rem;
+    }
 }
 
 @media screen and (max-width: 900px) {
@@ -729,12 +761,6 @@ a {
 
     #SearchHeader #SearchField {
         margin-top: 0;
-    }
-
-    #PageFooter {
-        height: auto;
-        position: absolute;
-        bottom: 0;
     }
 
     #PageFooter .row > .nav li {
