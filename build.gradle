@@ -24,7 +24,7 @@ dependencies {
     implementation group: 'org.json', name: 'json', version: '20160810'
     implementation group: 'org.reflections', name: 'reflections', version: '0.9.10'
     implementation group: 'com.cybozu.labs', name: 'langdetect', version: '1.1-20120112'
-    implementation group: 'org.apache.hadoop', name: 'hadoop-client', version: '2.7.3'
+    implementation group: 'org.apache.hadoop', name: 'hadoop-client', version: '2.9.2'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.10.2'
     implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
     implementation group: 'com.vladsch.flexmark', name: 'flexmark', version: '0.19.5'
