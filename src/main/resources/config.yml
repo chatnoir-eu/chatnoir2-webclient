@@ -18,16 +18,12 @@ general:
 
 cluster:
   # Name of the Elasticsearch cluster
-  cluster_name: betaweb
+  cluster_name: elasticsearch
 
   # Initial hosts to connect to
   # These are not the only hosts used for searching. Further hosts are detected by sniffing
   hosts:
-    - betaweb015.medien.uni-weimar.de
-    - betaweb016.medien.uni-weimar.de
-    - betaweb017.medien.uni-weimar.de
-    - betaweb018.medien.uni-weimar.de
-    - betaweb019.medien.uni-weimar.de
+    - localhost
 
   # Elasticsearch transport port (default: 9300)
   port: 9300
@@ -37,33 +33,18 @@ cluster:
 
   # Indices the user is allowed to search
   indices:
-    - cc1511
-    - cc1704
-    - cw09
-    - cw12
+    - index1
 
   # Default indices to search when no explicit search index is defined
   default_indices:
-    - cc1511
+    - index1
 
   # Define index aliases.
   # Raw index names in Elasticsearch responses will be replaced with the alias name
   index_aliases:
-    - index: webis_warc_commoncrawl1704_001
-      alias: cc1704
-      display_name: CommonCrawl 04/2017
-
-    - index: webis_warc_commoncrawl15_002
-      alias: cc1511
-      display_name: CommonCrawl 11/2015
-
-    - index: webis_warc_clueweb09_003
-      alias: cw09
-      display_name: ClueWeb09
-
-    - index: webis_warc_clueweb12_011
-      alias: cw12
-      display_name: ClueWeb12
+    - index: real_index_name1
+      alias: index1
+      display_name: ChatNoir Index
 
 
 # ------------------------------------------------------------------------------------
@@ -72,31 +53,16 @@ cluster:
 
 hdfs:
   # Hadoop namenode address
-  defaultFS: hdfs://betaweb020:8020
+  defaultFS: hdfs://localhost:8020
 
   # Document mapfiles for retrieving cached documents
   # For each mapfile the HDFS path, the number of mapfile partitions and the
   # Webis UUID name prefix need to be given
   mapfiles:
     cw12:
-      path: "/corpora/corpora-thirdparty/corpus-clueweb/12-mapfile"
+      path: "/path/to/corpus/mapfile"
       partitions: 100
-      prefix: clueweb12
-
-    cw09:
-      path: "/corpora/corpora-thirdparty/corpus-clueweb/09-mapfile"
-      partitions: 200
-      prefix: clueweb09
-
-    cc1511:
-      path: "/corpora/corpus-commoncrawl/CC-MAIN-2015-11-mapfile"
-      partitions: 100
-      prefix: commoncrawl
-
-    cc1704:
-      path: "/corpora/corpus-commoncrawl/CC-MAIN-2017-04-mapfile"
-      partitions: 200
-      prefix: commoncrawl
+      prefix: chatnoir
 
 
 # ------------------------------------------------------------------------------------
