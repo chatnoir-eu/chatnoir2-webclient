@@ -30,6 +30,7 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.common.unit.Fuzziness;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;;
@@ -98,7 +99,7 @@ public class SimpleSearch extends SearchProvider
         from = Math.min(from, 10000);
         size = from + size <= 10000 ? size : 0;
 
-        mResponse = buildSearchRequest(new StringBuffer(query), from, size).get();
+        mResponse = buildSearchRequest(new StringBuffer(query), from, size).get(new TimeValue(20000));
     }
 
     @Override
