@@ -227,15 +227,24 @@ public abstract class ApiModuleBase extends ChatNoirServlet
 
         StringBuilder sb = new StringBuilder();
         String line;
-        try {
-            BufferedReader reader = request.getReader();
-            reader.reset();
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append("\n");
+        if (request.getContentType().equals("application/x-www-form-urlencoded")) {
+            // Fix magic POST parameter parsing
+            for (String key : request.getParameterMap().keySet()) {
+                if (request.getParameter(key).isEmpty() && (key.trim().startsWith("{") || key.trim().startsWith("["))) {
+                    sb.append(key);
+                }
             }
-        } catch (Exception e) {
-            Configured.getSysLogger().error("Failed to parse request payload", e);
-            return new JSONObject();
+        } else {
+            try {
+                BufferedReader reader = request.getReader();
+                reader.reset();
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line).append("\n");
+                }
+            } catch (Exception e) {
+                Configured.getSysLogger().error("Failed to parse request payload", e);
+                return new JSONObject();
+            }
         }
 
         try {
