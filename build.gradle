@@ -14,8 +14,8 @@ dependencies {
     // Third-party dependencies
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.8'
     implementation group: 'javax.servlet', name: 'javax.servlet-api', version: '3.1.0'
-    implementation group: 'io.netty', name: 'netty-all', version: '4.1.11.Final'
-    implementation group: 'org.elasticsearch.client', name: 'transport', version: '6.4.1'
+    implementation group: 'io.netty', name: 'netty-all', version: '4.1.43.Final'
+    implementation group: 'org.elasticsearch.client', name: 'transport', version: '6.8.2'
     implementation group: 'org.apache.shiro', name: 'shiro-core', version: '1.4.0'
     implementation group: 'org.apache.shiro', name: 'shiro-web', version: '1.4.0'
     implementation group: 'org.apache.shiro', name: 'shiro-ehcache', version: '1.4.0'
