@@ -227,7 +227,7 @@ public abstract class ApiModuleBase extends ChatNoirServlet
 
         StringBuilder sb = new StringBuilder();
         String line;
-        if (request.getContentType().equals("application/x-www-form-urlencoded")) {
+        if (request.getContentType() != null && request.getContentType().equals("application/x-www-form-urlencoded")) {
             // Fix magic POST parameter parsing
             for (String key : request.getParameterMap().keySet()) {
                 if (request.getParameter(key).isEmpty() && (key.trim().startsWith("{") || key.trim().startsWith("["))) {
