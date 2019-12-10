@@ -40,9 +40,9 @@ user information for your API key.
 - `roles`: list of assigned user roles
 - `remote_hosts`: allowed remote IP addresses for this key (empty if no restriction applies)
 - `limits`: API request limits for this key
-    - `day`: daily limit (0 for unlimited)
-    - `week`: weekly limit (0 for unlimited)
-    - `month`: monthly limit (0 for unlimited)
+    - `day`: daily limit (-1 for unlimited)
+    - `week`: weekly limit (-1 for unlimited)
+    - `month`: monthly limit (-1 for unlimited)
 
 ### Example:
 #### Request:
@@ -108,9 +108,9 @@ in the future than your own key's expiry date.
     - `country`: user's country code
 - `roles`: list of assigned user roles
 - `limits`: API request limits for this key  (**required**)
-    - `day`: daily limit (0 for unlimited)
-    - `week`: weekly limit (0 for unlimited)
-    - `month`: monthly limit (0 for unlimited)
+    - `day`: daily limit (-1 for unlimited)
+    - `week`: weekly limit (-1 for unlimited)
+    - `month`: monthly limit (-1 for unlimited)
 - `remote_hosts`: allowed remote IP addresses for this key (empty for no restriction)
 - `expires`: optional expiry date of this key as ISO datetime
 
