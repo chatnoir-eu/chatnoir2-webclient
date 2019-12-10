@@ -38,6 +38,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Model base class which uses Elasticsearch as storage backend.
@@ -90,6 +92,22 @@ public abstract class ElasticsearchModel extends ValidatingModel<String, Object>
         putAll(response.getSource());
 
         return true;
+    }
+
+    @Override
+    public Map<String, Object> getAll()
+    {
+        final Map<String, Object> data = super.getAll();
+        final Map<String, Object> stringData = new HashMap<>();
+        for (String k : data.keySet()) {
+            // Explicitly convert everything to a HashMap to avoid serialization issues with Netty
+            if (data.get(k) instanceof ElasticsearchModel) {
+                stringData.putAll(((ElasticsearchModel) data.get(k)).getAll());
+            } else {
+                stringData.put(k, data.get(k));
+            }
+        }
+        return stringData;
     }
 
     @Override
