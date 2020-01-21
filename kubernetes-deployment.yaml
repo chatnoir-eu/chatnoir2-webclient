@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chatnoir-log-pvc
+  labels:
+    app: chatnoir-web
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 60Gi
+  storageClassName: ceph-rbd
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatnoir-web
+  labels:
+    app: chatnoir-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chatnoir-web
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: chatnoir-web
+    spec:
+      volumes:
+        - name: config
+          configMap:
+            name: chatnoir-config
+        - name: log-volume
+          persistentVolumeClaim:
+            claimName: chatnoir-log-pvc
+        - name: tmp-volume
+          emptyDir:
+            medium: Memory
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: chatnoir-web
+          image: webis/chatnoir-web:latest
+          ports:
+            - name: tomcat
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            # Requires pre-deployed config map with sub path config.yml
+            - mountPath: /etc/chatnoir2/config.yml
+              name: config
+              subPath: config.yml
+            - mountPath: /var/log/chatnoir2
+              name: log-volume
+            - mountPath: /tmp
+              name: tmp-volume
