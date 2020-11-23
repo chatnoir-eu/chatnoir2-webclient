@@ -45,7 +45,7 @@ Webis erhebt keinen Anspruch auf die Urheberrechte an Inhalten Dritter, die übe
 
 Bei Ihrer Nutzung der Dienste werden durch Webis oder durch von Webis beauftragte Dritte nutzungs- oder personenbezogene Daten erhoben. Sie übertragen einfache, veräußerliche Nutzungsrechte über die erhobenen Daten räumlich, zeitlich und inhaltlich unbeschränkt an Webis und die jeweils von Webis beauftragten Dritten ausschließlich zum Zweck der Diensterbringung.
 
-Die Datenerhebung unterliegt der zum Zeitpunkt Ihrer Nutzung [geltenden Datenschutzerklärung](/docs/privacy-de).
+Die Datenerhebung unterliegt der zum Zeitpunkt Ihrer Nutzung [geltenden Datenschutzerklärung](https://webis.de/legal.html#privacy).
 
 ### Gewährleistungsausschluss
 
